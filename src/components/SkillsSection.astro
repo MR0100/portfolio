@@ -1,0 +1,253 @@
+---
+import { skillGroups } from "~/data/profile";
+
+const levelTitle = (lvl?: string) => {
+  if (!lvl) return undefined;
+  const map: Record<string, string> = {
+    expert: "Expert",
+    strong: "Strong",
+    familiar: "Familiar",
+    learning: "Currently learning",
+  };
+  return map[lvl];
+};
+
+const levelDot = (lvl?: string) => {
+  switch (lvl) {
+    case "expert":
+      return "bg-accent";
+    case "strong":
+      return "bg-accent/60";
+    case "familiar":
+      return "bg-muted/50";
+    case "learning":
+      return "bg-sepia";
+    default:
+      return "bg-transparent";
+  }
+};
+
+const totalSkills = skillGroups.reduce((acc, g) => acc + g.skills.length, 0);
+
+// Use slugged ids so the script can target groups cleanly
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+---
+
+<div class="space-y-8" data-skills-root>
+  <!-- Controls -->
+  <div class="space-y-5">
+    <div class="relative">
+      <label for="skills-search" class="sr-only">Search skills</label>
+      <svg
+        class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input
+        id="skills-search"
+        type="search"
+        placeholder="Search skills — e.g. Flutter, BLoC, PostgreSQL …"
+        class="w-full rounded-full border border-border bg-paper/60 pl-11 pr-24 py-3 text-base font-serif text-text placeholder:text-muted focus:border-accent focus:bg-bg outline-none transition-colors"
+        autocomplete="off"
+        spellcheck="false"
+        aria-controls="skills-results"
+      />
+      <kbd
+        class="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center gap-1 rounded border border-border bg-bg/60 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted"
+        aria-hidden="true"
+      >/</kbd>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted mr-1">Filter by</span>
+      <button
+        type="button"
+        data-skills-filter="all"
+        class="chip chip-accent"
+        aria-pressed="true"
+      >All</button>
+      {skillGroups.map((g) => (
+        <button
+          type="button"
+          data-skills-filter={slug(g.title)}
+          class="chip"
+          aria-pressed="false"
+        >{g.title}</button>
+      ))}
+    </div>
+
+    <div
+      class="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted"
+    >
+      <span data-skills-summary>Showing {totalSkills} of {totalSkills} skills</span>
+      <button
+        type="button"
+        data-skills-reset
+        class="hidden text-accent hover:text-accent-hover transition-colors"
+      >Reset</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div
+    id="skills-results"
+    class="grid gap-10 md:grid-cols-2 lg:grid-cols-3"
+    aria-live="polite"
+  >
+    {
+      skillGroups.map((group, i) => (
+        <div
+          class="space-y-3"
+          data-skills-group={slug(group.title)}
+          data-skills-group-count={group.skills.length}
+        >
+          <div class="flex items-baseline justify-between">
+            <h3 class="font-display text-lg font-semibold tracking-tight">{group.title}</h3>
+            <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">§ {String(i + 1).padStart(2, "0")}</span>
+          </div>
+          <div class="rule"></div>
+          <ul class="flex flex-wrap gap-1.5 pt-2" data-skills-list>
+            {group.skills.map((s) => (
+              <li
+                class="chip"
+                data-skill-name={s.name.toLowerCase()}
+                title={levelTitle(s.level)}
+              >
+                {s.level && <span class={`h-1.5 w-1.5 rounded-full ${levelDot(s.level)}`} aria-hidden="true" />}
+                {s.name}
+              </li>
+            ))}
+          </ul>
+          <p
+            class="hidden font-mono text-[10px] uppercase tracking-[0.22em] text-muted/60 pt-1"
+            data-skills-empty
+          >No matches in this category.</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <p
+    class="hidden font-mono text-[10px] uppercase tracking-[0.22em] text-muted text-center pt-6"
+    data-skills-empty-all
+  >Nothing matches — try a broader term or hit Reset.</p>
+
+  <div class="flex flex-wrap items-center gap-5 text-xs text-muted font-mono uppercase tracking-[0.18em]">
+    <span class="inline-flex items-center gap-2">
+      <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span> Expert
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-1.5 w-1.5 rounded-full bg-accent/60" aria-hidden="true"></span> Strong
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-1.5 w-1.5 rounded-full bg-muted/50" aria-hidden="true"></span> Familiar
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="h-1.5 w-1.5 rounded-full bg-sepia" aria-hidden="true"></span> Learning
+    </span>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-skills-root]");
+    if (!root) return;
+
+    const input = root.querySelector("#skills-search");
+    const summary = root.querySelector("[data-skills-summary]");
+    const resetBtn = root.querySelector("[data-skills-reset]");
+    const filterBtns = Array.from(root.querySelectorAll("[data-skills-filter]"));
+    const groups = Array.from(root.querySelectorAll("[data-skills-group]"));
+    const emptyAll = root.querySelector("[data-skills-empty-all]");
+
+    let activeCategory = "all";
+
+    const applyFilter = () => {
+      const q = (input.value || "").trim().toLowerCase();
+      let totalVisible = 0;
+      let totalCount = 0;
+
+      groups.forEach((group) => {
+        const groupKey = group.getAttribute("data-skills-group");
+        const groupCount = Number(group.getAttribute("data-skills-group-count")) || 0;
+        const items = Array.from(group.querySelectorAll("[data-skill-name]"));
+        const groupVisibleByCategory =
+          activeCategory === "all" || activeCategory === groupKey;
+
+        let visibleInGroup = 0;
+        items.forEach((li) => {
+          const name = li.getAttribute("data-skill-name") || "";
+          const matchesText = !q || name.includes(q);
+          const visible = matchesText && groupVisibleByCategory;
+          li.style.display = visible ? "" : "none";
+          if (visible) visibleInGroup++;
+        });
+
+        totalCount += groupCount;
+        totalVisible += visibleInGroup;
+
+        // Hide the entire group block when nothing inside matches
+        group.style.display = visibleInGroup > 0 ? "" : "none";
+
+        const emptyEl = group.querySelector("[data-skills-empty]");
+        if (emptyEl) emptyEl.classList.toggle("hidden", visibleInGroup > 0);
+      });
+
+      // Summary + global empty
+      if (summary) {
+        summary.textContent = `Showing ${totalVisible} of ${totalCount} skills`;
+      }
+      if (emptyAll) {
+        emptyAll.classList.toggle("hidden", totalVisible > 0);
+      }
+
+      const dirty = q.length > 0 || activeCategory !== "all";
+      if (resetBtn) resetBtn.classList.toggle("hidden", !dirty);
+    };
+
+    input?.addEventListener("input", applyFilter);
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-skills-filter") || "all";
+        activeCategory = key;
+        filterBtns.forEach((b) => {
+          const isActive = b === btn;
+          b.classList.toggle("chip-accent", isActive);
+          b.setAttribute("aria-pressed", String(isActive));
+        });
+        applyFilter();
+      });
+    });
+
+    resetBtn?.addEventListener("click", () => {
+      input.value = "";
+      activeCategory = "all";
+      filterBtns.forEach((b) => {
+        const isAll = b.getAttribute("data-skills-filter") === "all";
+        b.classList.toggle("chip-accent", isAll);
+        b.setAttribute("aria-pressed", String(isAll));
+      });
+      input.focus();
+      applyFilter();
+    });
+
+    // "/" keyboard shortcut to focus the search
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement !== input) {
+        const tag = (document.activeElement?.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea") return;
+        e.preventDefault();
+        input.focus();
+      }
+    });
+  })();
+</script>

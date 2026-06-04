@@ -1,0 +1,77 @@
+---
+title: "Marline Media"
+oneLiner: "Snap-filter and poster designer for Marline Media — canvas, layers, print-ready exports."
+status: "brand-verified"
+category: "Creative tooling"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "Marline Media"
+period: "2021 — 2023"
+featured: false
+order: 14
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "Custom canvas rendering"
+  - "Layered UI"
+  - "REST APIs"
+  - "FCM"
+  - "In-App Purchase"
+links:
+  liveSite: "https://marlinemedia.com/"
+hero: "/work/marline-media/01.png"
+gallery:
+  - "/work/marline-media/01.png"
+  - "/work/marline-media/02.png"
+  - "/work/marline-media/03.png"
+accent: "230 221 251"
+todos:
+  - "Confirm dates."
+  - "The mobile app has since been delisted from public stores. Confirm whether to mention this directly on the case study or just frame as 'client project'."
+---
+
+## Overview
+
+Marline Media is a Snapchat / Instagram filter and gender-reveal poster business at [marlinemedia.com](https://marlinemedia.com/). The mobile app I built was the consumer-facing creative tool — design a filter or a poster on canvas, order it through the store flow. Built and deployed by me at Sadguru Soft.
+
+## Problem &amp; context
+
+Print-ready exports from a phone-rendered canvas is the kind of thing that looks easy until you actually have to do it. The on-screen preview, the export, and the printer's expectations all have to agree on geometry, colour profile, and bleed. None of that is free, and Flutter doesn't ship it.
+
+Layer this onto a creative tool — independently transformable text, images, vectors — plus an ordering flow with IAP, and the engineering surface gets large quickly.
+
+## My approach &amp; key decisions
+
+- **High-resolution canvas rendering sized to the output specs**, not to the device screen, so exports retain quality.
+- **Layer manipulation** for text, images, and graphic ornaments — independently transformable, with shared hit-testing.
+- **Native platform APIs for the final encoding step** so print-ready outputs match what the brand's downstream pipeline expects.
+- **IAP for unlocking premium filter/poster templates.**
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) with custom canvas + layer rendering.
+- **Backend:** Firebase for templates + user state, REST APIs for the order flow.
+- **Commerce:** In-App Purchase for premium template unlocks.
+- **Notifications:** FCM for order/engagement updates.
+- **Exports:** Native platform APIs for the final encoding step, sized to the brand's print pipeline.
+
+## Challenges
+
+- **Print-clean exports from a mobile canvas.** The preview and the export have to share their geometry math or you spend forever chasing pixel-mismatch bugs at print time.
+- **Independent gesture routing on overlapping layers.** Text-on-image with both transformable means the hit-testing logic has to be deliberate.
+- **Multi-template IAP catalogue.** Inventory management of premium templates inside a small app is its own minor product.
+
+## Results &amp; impact
+
+- The brand at [marlinemedia.com](https://marlinemedia.com/) is active.
+- The mobile app has since been delisted from public stores. Archived evidence (the brand's app-ads.txt referencing AdMob, the website's use of Android-density asset naming) confirms an Android build existed on Play at one point.
+- The case study links to the brand site as the canonical reference.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Marline Media (Snap Filter) project line.
+- Brand site — [marlinemedia.com](https://marlinemedia.com/).
+- Wayback snapshot evidence of the brand site's app-ads.txt and Android-density asset naming (Round 3 verification, `RESEARCH.md`).
+- Mitul's confirmation that he personally deployed the app (Round 3 follow-up).

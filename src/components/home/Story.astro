@@ -1,0 +1,32 @@
+---
+import { profile } from "~/data/profile";
+---
+
+<!-- Magazine pull-quote feature -->
+<section id="about" class="container-page py-20 md:py-28">
+  <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-8">/ the short version</div>
+
+  <!-- Monumental statement -->
+  <blockquote class="max-w-5xl">
+    <p class="font-display text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.0]" data-scramble>
+      I make mobile apps that feel <span class="text-accent italic">fast</span> and don't <span class="text-accent italic">fall over</span>.
+    </p>
+  </blockquote>
+
+  <!-- Supporting body in two columns -->
+  <div class="mt-12 grid gap-8 md:gap-12 lg:grid-cols-[1fr_1fr] max-w-4xl">
+    <div class="space-y-5 font-serif text-lg leading-relaxed text-text/90">
+      <p>{profile.bioLong[0]}</p>
+      <p>{profile.bioLong[1]}</p>
+    </div>
+    <div class="space-y-5 font-serif text-lg leading-relaxed text-text/90">
+      <p>{profile.bioLong[2]}</p>
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 pt-2 font-mono text-[10px] uppercase tracking-[0.18em]">
+        <div><dt class="text-muted">Stack</dt><dd class="text-text mt-0.5">Flutter · Kotlin · Swift</dd></div>
+        <div><dt class="text-muted">Method</dt><dd class="text-text mt-0.5">Clean Arch · BLoC</dd></div>
+        <div><dt class="text-muted">Experience</dt><dd class="text-text mt-0.5">{profile.yearsExperience} years</dd></div>
+        <div><dt class="text-muted">Based</dt><dd class="text-text mt-0.5">{profile.location}</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>

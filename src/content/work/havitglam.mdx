@@ -1,0 +1,82 @@
+---
+title: "Havitglam"
+oneLiner: "Habit + routine tracker with photo verification and social challenges — built for 1zLabs (Seoul)."
+status: "verified"
+category: "Consumer · Lifestyle"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "1zLabs / onezlabs"
+publisher: "onezlabs"
+period: "2022 — 2023"
+featured: false
+order: 8
+region: "East Asia"
+city: "Seoul"
+country: "South Korea"
+lat: 37.5665
+lng: 126.9780
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "FCM"
+  - "Camera"
+  - "Local Storage"
+  - "Image caching"
+  - "Animations"
+links:
+  playStore: "https://play.google.com/store/apps/details?id=com.onezlabs.havitglam"
+hero: "/work/havitglam/01.png"
+gallery:
+  - "/work/havitglam/01.png"
+  - "/work/havitglam/02.png"
+  - "/work/havitglam/03.png"
+accent: "255 232 195"
+todos:
+  - "Confirm exact dates."
+  - "There's a likely iOS counterpart ('Largo 라르고') published by the same 1zLabs developer — confirm if it should also be linked here."
+---
+
+## Overview
+
+Havitglam is a Korean-market lifestyle app built for **1zLabs** (Seoul) — users build daily habits and self-care routines (vitamins, gym, yoga, water, reading), then verify they actually did them with a quick photo. They can share with "Glammers" and join 7-day challenges. One of three apps I shipped for 1zLabs while at Sadguru Soft.
+
+## Problem &amp; context
+
+Habit-tracker apps are everywhere. What made Havitglam different was the photo-verification loop — proof, not self-report — plus a social layer that turns "did I drink enough water today" into a shared activity.
+
+That combination has product consequences. The app has to be photo-heavy on the storage side, fast on the gallery scroll, reliable on push delivery, and tuned for a Korean-language audience with its own design register.
+
+## My approach &amp; key decisions
+
+- **Photo verification flow with timestamp metadata.** Captured in-app, sent through a cached image pipeline before backing up — the proof artefact is fast to capture and durable to keep.
+- **Optimised local image caching + cloud storage** to keep 60 fps performance under heavy photo rendering and gallery scrolling.
+- **FCM** for the social-challenge push notifications and the daily-habit reminders.
+- **Animations woven through the routine + challenge surfaces** so daily check-ins feel rewarding rather than rote.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for Android.
+- **Backend:** Firebase backing the routines, social graph and challenge state.
+- **Notifications:** FCM for daily reminders and social-challenge events.
+- **Media:** Camera capture + local cache + cloud storage pipeline.
+- **Distribution:** Live on Google Play at `com.onezlabs.havitglam` (publisher: onezlabs / 1zLabs).
+
+## Challenges
+
+- **Photo-heavy 60 fps performance.** Gallery scrolling on phones with mid-tier hardware while photos are decoding is a classic stutter trap; image caching had to be aggressive but bounded.
+- **Push reliability on Android in Korea.** FCM behaviour varies by OEM aggressive battery-saver behaviour — push delivery has to be tested on real devices, not just emulators.
+- **Cultural fit.** A Korean lifestyle app speaks a different visual language than a Western fitness app; design + product decisions had to respect that.
+
+## Results &amp; impact
+
+- Live on **Google Play** under the onezlabs/1zLabs publisher.
+- Part of a three-app suite I shipped for 1zLabs — alongside [Tarot Cat](/work/tarot-cat) and [Today's Quote](/work/todays-quote).
+- A likely iOS counterpart ("Largo 라르고", same publisher, KR-only on App Store) was identified during research — pending Mitul's confirmation that it's the iOS sibling of this app.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Havitglam (Lifestyle Tracker) project line.
+- Play Store listing — [play.google.com/store/apps/details?id=com.onezlabs.havitglam](https://play.google.com/store/apps/details?id=com.onezlabs.havitglam).
+- 1zLabs corporate site — [1zlabs.com](https://1zlabs.com/).
+- Mitul's confirmation that onezlabs / 1zLabs was the client studio (Round 2 + 3 verification, `RESEARCH.md`).

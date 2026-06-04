@@ -1,0 +1,22 @@
+---
+interface Props {
+  label?: string;
+  trailing?: string;
+}
+
+const { label, trailing } = Astro.props;
+---
+
+<div class="spec-block">
+  {label && (
+    <div class="spec-block-header">
+      <span>{label}</span>
+      {trailing && <span class="text-text/70">{trailing}</span>}
+    </div>
+  )}
+  <div class="spec-block-body">
+    <dl class="space-y-0">
+      <slot />
+    </dl>
+  </div>
+</div>

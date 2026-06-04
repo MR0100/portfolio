@@ -1,0 +1,122 @@
+---
+import { getCollection } from "astro:content";
+
+const all = await getCollection("work");
+
+const verified = all.filter((e) => e.data.status === "verified").length;
+const industries = new Set(all.map((e) => e.data.category)).size;
+const cities = new Set(
+  all.filter((e) => e.data.city).map((e) => `${e.data.city},${e.data.country}`),
+).size;
+
+// `to`/`suffix` drive the count-up; everything else is the same content as before.
+const stats = [
+  { to: 6, suffix: "+", l: "Years in the field", s: "Jr. → Lead" },
+  { to: all.length, suffix: "", l: "Apps shipped", s: "Cross-platform & native" },
+  { to: verified, suffix: "", l: "Live in app stores", s: "Verified listings" },
+  { to: 3, suffix: "", l: "Continents served", s: `${cities} cities` },
+  { to: industries, suffix: "", l: "Industries", s: "Diamonds → health → agtech" },
+];
+---
+
+<section class="border-y border-border bg-paper/40" data-numbers>
+  <div class="container-page py-14 md:py-20">
+    <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-10">
+      <span class="text-accent">◢</span>
+      <span>By the numbers</span>
+    </div>
+
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-5 md:gap-8">
+      {
+        stats.map((s) => (
+          <div class="space-y-2">
+            <dd class="font-display text-5xl md:text-7xl font-semibold tracking-tight tabular-nums leading-none text-accent">
+              <span class="inline-block" data-countup data-to={s.to} data-suffix={s.suffix}>{s.to}{s.suffix}</span>
+            </dd>
+            <dt class="font-display text-base font-semibold tracking-tight">{s.l}</dt>
+            <dd class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{s.s}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<!-- Count-up on scroll, then a subtle glitch on each number at random intervals (3–15s).
+     Scoped to this section, IntersectionObserver-driven, reduced-motion safe. -->
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-numbers]");
+    if (!root) return;
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const nums = root.querySelectorAll("[data-countup]");
+
+    const finalText = (el) =>
+      (el.getAttribute("data-to") || "") + (el.getAttribute("data-suffix") || "");
+
+    // One brief glitch: chromatic split (CSS) + a quick digit scramble that resolves.
+    const glitchOnce = (el) => {
+      const to = el.getAttribute("data-to") || "";
+      const suffix = el.getAttribute("data-suffix") || "";
+      el.classList.add("num-glitching");
+      const scramble = () => {
+        let s = "";
+        for (const ch of to) {
+          s += ch >= "0" && ch <= "9" ? String(Math.floor(Math.random() * 10)) : ch;
+        }
+        el.textContent = s + suffix;
+      };
+      scramble();
+      setTimeout(scramble, 80);
+      setTimeout(() => { el.textContent = to + suffix; }, 170);
+      setTimeout(() => { el.classList.remove("num-glitching"); }, 440);
+    };
+
+    // Each number schedules its own next glitch at a random delay, capped at 15s.
+    const scheduleGlitch = (el) => {
+      if (rm) return;
+      const delay = 3000 + Math.random() * 12000; // 3s … 15s
+      setTimeout(() => {
+        glitchOnce(el);
+        scheduleGlitch(el);
+      }, delay);
+    };
+
+    const countUp = (el) => {
+      const to = parseFloat(el.getAttribute("data-to") || "0");
+      const suffix = el.getAttribute("data-suffix") || "";
+      const dur = 1100;
+      const start = performance.now();
+      const step = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * to) + suffix;
+        if (p < 1) {
+          requestAnimationFrame(step);
+        } else {
+          el.textContent = finalText(el);
+          scheduleGlitch(el);
+        }
+      };
+      requestAnimationFrame(step);
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const el = e.target;
+          io.unobserve(el);
+          if (rm) { el.textContent = finalText(el); return; }
+          countUp(el);
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    nums.forEach((el) => {
+      if (!rm) el.textContent = "0" + (el.getAttribute("data-suffix") || "");
+      io.observe(el);
+    });
+  })();
+</script>

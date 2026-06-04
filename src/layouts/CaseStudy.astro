@@ -1,0 +1,181 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Base from "~/layouts/Base.astro";
+import StatusBadge from "~/components/StatusBadge.astro";
+import StoreLinksRow from "~/components/StoreLinksRow.astro";
+import LocationCard from "~/components/LocationCard.astro";
+import SpecBlock from "~/components/SpecBlock.astro";
+import SpecRow from "~/components/SpecRow.astro";
+import SpecimenHeading from "~/components/SpecimenHeading.astro";
+import CreativeWorkJsonLd from "~/components/CreativeWorkJsonLd.astro";
+
+interface Props {
+  entry: CollectionEntry<"work">;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const plate = String(d.order).padStart(2, "0");
+
+const distribution = [
+  d.links.appStore && "iOS",
+  (d.links.playStore || d.links.apkPure) && "Android",
+  d.links.liveSite && "Web",
+].filter(Boolean).join(" / ") || "Internal / no public listing";
+
+const coords =
+  typeof d.lat === "number" && typeof d.lng === "number"
+    ? `${d.lat.toFixed(2)}°${d.lat >= 0 ? "N" : "S"}, ${d.lng.toFixed(2)}°${d.lng >= 0 ? "E" : "W"}`
+    : null;
+---
+
+<Base title={d.title} description={d.oneLiner} type="article">
+  <CreativeWorkJsonLd entry={entry} />
+
+  <article class="container-page py-10 md:py-14">
+    <!-- Ribbon -->
+    <div class="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <div>Specimen Sheets · Vol. I · Plate {plate}</div>
+      <a href="/work" class="hover:text-text transition-colors">← Catalog</a>
+    </div>
+    <div class="mt-4 rule-thin"></div>
+
+    <!-- Title block -->
+    <header class="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
+      <div class="space-y-6">
+        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">
+          {d.category}
+        </div>
+
+        <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95]">
+          {d.title}<span class="text-accent">.</span>
+        </h1>
+
+        <p class="font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-2xl">{d.oneLiner}</p>
+
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <StatusBadge status={d.status} />
+          {d.publisher && (
+            <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+              publisher · <span class="text-text">{d.publisher}</span>
+            </span>
+          )}
+        </div>
+
+        {(d.links.appStore || d.links.playStore || d.links.apkPure || d.links.liveSite || d.links.github) && (
+          <div class="pt-2 relative z-10">
+            <StoreLinksRow links={d.links} size="md" />
+          </div>
+        )}
+      </div>
+
+      <!-- Right rail: identification spec block + location -->
+      <div class="space-y-4">
+        <SpecBlock label="Identification" trailing={`Plate ${plate}`}>
+          <SpecRow label="Role">{d.role}</SpecRow>
+          <SpecRow label="Employer">{d.employer}</SpecRow>
+          {d.client && <SpecRow label="Client">{d.client}</SpecRow>}
+          {d.publisher && <SpecRow label="Publisher">{d.publisher}</SpecRow>}
+          <SpecRow label="Period">{d.period}</SpecRow>
+          <SpecRow label="Distrib.">{distribution}</SpecRow>
+        </SpecBlock>
+
+        <LocationCard city={d.city} country={d.country} region={d.region} lat={d.lat} lng={d.lng} />
+      </div>
+    </header>
+
+    <!-- Stack panel (full width band) -->
+    <section class="mt-12 border border-border bg-paper/40 rounded-md p-5 md:p-6">
+      <div class="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.24em] text-muted mb-3">
+        <span>Architecture · stack</span>
+        <span>{d.stack.length} entries</span>
+      </div>
+      <ul class="flex flex-wrap gap-1.5">
+        {d.stack.map((s) => <li class="chip">{s}</li>)}
+      </ul>
+    </section>
+
+    {d.hero && (
+      <div class="mt-12 overflow-hidden rounded-md border border-border bg-paper/40">
+        <img src={d.hero} alt={`${d.title} hero`} class="h-auto w-full" loading="eager" decoding="async" />
+      </div>
+    )}
+
+    <!-- Narrative -->
+    <SpecimenHeading num="01" title="Narrative" trailing={d.category} />
+    <div class="mt-6 grid gap-12 md:grid-cols-[1fr_240px] lg:gap-16">
+      <div
+        class="prose-page space-y-6 leading-relaxed font-serif text-lg
+          [&_h2]:font-display [&_h2]:text-2xl md:[&_h2]:text-3xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:mt-12 [&_h2]:mb-3 [&_h2]:not-italic [&_h2]:text-text
+          [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-8 [&_h3]:mb-2
+          [&_p]:text-text [&_p]:leading-relaxed
+          [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-2.5
+          [&_ul>li]:relative [&_ul>li]:pl-6 [&_ul>li]:text-text
+          [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:top-[0.65em] [&_ul>li]:before:h-px [&_ul>li]:before:w-3 [&_ul>li]:before:bg-accent/60
+          [&_strong]:text-text [&_strong]:font-semibold
+          [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-accent/30"
+      >
+        <slot />
+
+        {d.todos.length > 0 && (
+          <aside class="mt-12 border border-dashed border-sepia/50 bg-sepia/5 rounded-md font-sans">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-sepia/30 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">
+              <span>Editor's notes</span>
+              <span>{d.todos.length} pending</span>
+            </div>
+            <ul class="px-5 py-4 space-y-1 text-text/80 list-none pl-5">
+              {d.todos.map((t) => <li class="relative pl-0 before:hidden">— {t}</li>)}
+            </ul>
+          </aside>
+        )}
+      </div>
+
+      <!-- Right rail: coordinates / metadata snippet -->
+      <aside class="hidden md:block space-y-6">
+        <div class="border-l-2 border-accent/40 pl-4 space-y-3">
+          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Specimen</div>
+          <div class="font-display text-5xl tabular-nums tracking-tight text-accent leading-none">{plate}</div>
+          <dl class="text-xs font-mono uppercase tracking-[0.2em] text-muted space-y-1.5 pt-3">
+            <div class="flex justify-between gap-2">
+              <dt>Class</dt>
+              <dd class="text-text text-right">{d.category}</dd>
+            </div>
+            <div class="flex justify-between gap-2">
+              <dt>Region</dt>
+              <dd class="text-text text-right">{d.region}</dd>
+            </div>
+            {coords && (
+              <div class="flex justify-between gap-2">
+                <dt>Coords</dt>
+                <dd class="text-text text-right">{coords}</dd>
+              </div>
+            )}
+            <div class="flex justify-between gap-2">
+              <dt>Status</dt>
+              <dd class="text-text text-right">{d.status}</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+
+    {d.gallery.length > 0 && (
+      <section class="mt-20">
+        <SpecimenHeading num="02" title="Gallery" trailing={`${d.gallery.length} plates`} />
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {d.gallery.map((src, i) => (
+            <div class="overflow-hidden rounded-md border border-border bg-paper/40">
+              <img src={src} alt={`${d.title} screenshot ${i + 1}`} loading="lazy" decoding="async" class="h-auto w-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {d.needsAssets && (
+      <aside class="mt-12 rounded-md border border-dashed border-border bg-paper/40 p-5 text-sm font-sans text-muted">
+        Screenshots and app icons for this specimen haven't been provided yet. Drop them under <code class="font-mono text-xs">public/work/{entry.slug}/</code> and list them in the case-study frontmatter — the gallery populates automatically.
+      </aside>
+    )}
+  </article>
+</Base>

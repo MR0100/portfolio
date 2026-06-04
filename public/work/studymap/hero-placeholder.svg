@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Studymap placeholder">
+  <rect x="22" y="22" width="756" height="556" rx="18" fill="none" stroke="#5C667A" stroke-opacity="0.28" stroke-width="2" stroke-dasharray="9 11"/>
+  <g fill="#5C667A">
+    <rect x="372" y="250" width="56" height="44" rx="5" fill="none" stroke="#5C667A" stroke-opacity="0.5" stroke-width="2.5"/>
+    <circle cx="389" cy="266" r="5" fill-opacity="0.5"/>
+    <path d="M376 290 l16 -16 12 12 10 -10 14 14" fill="none" stroke="#5C667A" stroke-opacity="0.5" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <text x="400" y="340" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="30" font-weight="600" fill="#5C667A" fill-opacity="0.6">Studymap</text>
+  <text x="400" y="372" text-anchor="middle" font-family="ui-monospace, monospace" font-size="13" letter-spacing="3" fill="#5C667A" fill-opacity="0.42">SCREENSHOTS PENDING</text>
+</svg>

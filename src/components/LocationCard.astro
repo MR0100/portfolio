@@ -1,0 +1,68 @@
+---
+interface Props {
+  city?: string;
+  country?: string;
+  region: string;
+  lat?: number;
+  lng?: number;
+}
+
+const { city, country, region, lat, lng } = Astro.props;
+
+const W = 320;
+const H = 200;
+
+const hasCoords = typeof lat === "number" && typeof lng === "number";
+let x = 0,
+  y = 0;
+if (hasCoords) {
+  x = ((lng + 180) / 360) * W;
+  y = ((90 - lat) / 180) * H;
+}
+
+const label = [city, country].filter(Boolean).join(", ");
+---
+
+<aside class="border border-border bg-paper/40 rounded-lg overflow-hidden">
+  <div class="px-4 pt-3 pb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+    <span class="text-sepia">Location</span>
+    <span>{region}</span>
+  </div>
+
+  <div class="px-4 pb-3">
+    {label ? (
+      <div class="font-display text-lg leading-tight">{label}</div>
+    ) : (
+      <div class="font-serif italic text-muted text-sm">Untethered — geography not on record</div>
+    )}
+  </div>
+
+  {hasCoords ? (
+    <div class="bg-bg/60 border-t border-border/60 p-2">
+      <svg viewBox={`0 0 ${W} ${H}`} class="w-full h-auto" aria-label={`Mini map showing ${label}`}>
+        <defs>
+          <pattern id={`mini-dots-${x}-${y}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="0.5" cy="0.5" r="0.4" fill="rgb(var(--muted))" fill-opacity="0.22" />
+          </pattern>
+        </defs>
+        <rect width={W} height={H} fill={`url(#mini-dots-${x}-${y})`} />
+        <!-- Equator -->
+        <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="rgb(var(--muted))" stroke-opacity="0.18" stroke-dasharray="3 5" stroke-width="0.5" />
+        <!-- Prime meridian -->
+        <line x1={W / 2} y1="0" x2={W / 2} y2={H} stroke="rgb(var(--muted))" stroke-opacity="0.18" stroke-dasharray="3 5" stroke-width="0.5" />
+        <!-- Marker -->
+        <g transform={`translate(${x} ${y})`}>
+          <circle r="2.5" class="map-marker-pulse" />
+          <circle r="3.5" class="map-marker" />
+        </g>
+      </svg>
+    </div>
+  ) : null}
+
+  {hasCoords && (
+    <div class="px-4 py-2 border-t border-border/60 flex justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+      <span>{lat?.toFixed(2)}°{lat! >= 0 ? "N" : "S"}</span>
+      <span>{lng?.toFixed(2)}°{lng! >= 0 ? "E" : "W"}</span>
+    </div>
+  )}
+</aside>

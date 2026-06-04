@@ -1,0 +1,73 @@
+---
+title: "BookMrk"
+oneLiner: "Mobile commerce for the bookmrk.in school-books brand — catalog, IAP, live order tracking."
+status: "brand-verified"
+category: "Consumer · E-Commerce"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "BookMRK (bookmrk.in)"
+period: "2020 — 2022"
+featured: false
+order: 12
+region: "South Asia"
+country: "India"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "REST APIs"
+  - "Local Storage"
+  - "Live Location"
+  - "Maps"
+  - "FCM"
+  - "In-App Purchase"
+  - "Animations"
+links:
+  liveSite: "https://www.bookmrk.in/"
+hero: "/work/bookmrk/01.png"
+gallery:
+  - "/work/bookmrk/01.png"
+  - "/work/bookmrk/02.png"
+accent: "229 219 255"
+todos:
+  - "Confirm dates."
+  - "Both the consumer app and the delivery app are no longer on public stores — confirm if there's a current install path (internal APK, etc.) or list as 'no longer in stores'."
+---
+
+## Overview
+
+BookMrk is the consumer side of a school-books and stationery brand at [bookmrk.in](https://www.bookmrk.in/) — buy books and supplies by school, class, or publisher, with checkout and live order tracking. Built at Sadguru Soft for the BookMRK brand.
+
+## Problem &amp; context
+
+School-books retail has narrow margins and high logistical complexity. Different schools, classes, and publishers each have their own catalogs — picking the right textbook for a specific school + class shouldn't take more than a few taps. The mobile app then had to carry the order through to a delivery flow that surfaced live tracking back to the customer.
+
+## My approach &amp; key decisions
+
+- **Scalable catalog navigation** — drill-down by school → class → subject is the primary path; search comes second.
+- **Responsive UI** with real-time catalog sync and predictable state management across the checkout funnel.
+- **Secure checkout flows** layered on the publisher's payment integrations.
+- **Live location + maps** to surface live order status to the customer, fed by the [BookMrk Delivery](/work/bookmrk-delivery) driver app.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), iOS + Android consumer app.
+- **Backend:** REST APIs from the BookMRK platform.
+- **Commerce:** IAP integration for in-app purchases.
+- **Real-time:** Live location + map updates fed by the companion delivery app.
+- **Notifications:** FCM for order status updates.
+
+## Challenges
+
+- **Catalog complexity.** A single textbook can have multiple editions across publishers across school boards — the data model has to support disambiguation without slowing down navigation.
+- **Checkout reliability.** Mid-funnel drop-offs are the killer; state management and error surfaces have to be predictable.
+
+## Results &amp; impact
+
+- The brand at [bookmrk.in](https://www.bookmrk.in/) is live and active — the canonical link for this case study.
+- The consumer mobile app is not currently listed on public app stores. Archived evidence suggests there was a public listing at one point.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, BookMrk (Student App) project line.
+- Brand site — [bookmrk.in](https://www.bookmrk.in/) (confirmed live via search; direct fetch failed in the research session — likely transient).
+- Round 2 verification (`RESEARCH.md`) — no public store listing surfaces under the bookmrk name today.

@@ -1,0 +1,84 @@
+---
+title: "Foresite"
+oneLiner: "Smart agriculture app for Ukko Agro — crop monitoring, disease modelling, and real-time field telemetry."
+status: "verified"
+category: "AgTech"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "Ukko Agro Inc."
+publisher: "Ukko Agro Inc. (Toronto)"
+period: "2022 — 2024"
+featured: true
+order: 3
+region: "North America"
+city: "Toronto"
+country: "Canada"
+lat: 43.6532
+lng: -79.3832
+stack:
+  - "Flutter"
+  - "Dart"
+  - "REST APIs"
+  - "SQLite"
+  - "Offline-first sync"
+  - "Maps"
+  - "Live Location"
+  - "WebSockets"
+  - "Charts"
+  - "FCM"
+links:
+  appStore: "https://apps.apple.com/ca/app/foresite/id1604668353"
+  playStore: "https://play.google.com/store/apps/details?id=com.ukkoag.enterprise"
+hero: "/work/foresite/01.png"
+gallery:
+  - "/work/foresite/01.png"
+  - "/work/foresite/02.png"
+accent: "228 242 253"
+todos:
+  - "Confirm dates."
+  - "Confirm role focus — agronomist-facing tool or grower-facing companion (publisher ships both; this is the `com.ukkoag.enterprise` one)."
+---
+
+## Overview
+
+Foresite is the field tool for **Ukko Agro Inc.**, a Toronto-based smart-agriculture company. The app sits in agronomists' hands as they walk a farm — pulling weather and disease-model data, marking observations, and synchronising back to the Ukko platform. I shipped it as a Flutter developer at Sadguru Soft, working with the Ukko team across continents.
+
+## Problem &amp; context
+
+Agronomy software gets used in places where connectivity isn't a given — the middle of a 200-acre field is not where you want your mobile app to throw a network error. Ukko Agro's customer base sits across North American farmland; the app had to feel as snappy on a tractor-cab signal as on Toronto office Wi-Fi.
+
+Beyond connectivity, the product had to make sense of multi-source data — sensor telemetry, weather feeds, disease-risk modelling — and present it in a form an agronomist could act on while standing in a field.
+
+## My approach &amp; key decisions
+
+- **Offline-first by default.** SQLite is the source of truth on the device. Network operations queue locally and reconcile when connectivity returns — a field worker logging an observation in the morning shouldn't have to wait until they're back at the depot to be sure it's saved.
+- **Tight, screen-shaped payloads.** Map and chart screens were tuned to ask the API for what they actually render and nothing more. The difference between a fast field experience and an unusable one is often shaping responses to the UI's needs.
+- **WebSockets where it matters, polling where it doesn't.** Real-time channels were reserved for the telemetry that actually had to be live; polling was deemed good enough for slower-moving data.
+- **Maps + live location wired to platform APIs** underneath Flutter to keep battery sensible during long outdoor sessions.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart). Reactive screens; offline-first data layer.
+- **Local store:** SQLite, used as the canonical source for outbox-style sync.
+- **Real-time:** WebSocket channels for telemetry; FCM for push notifications.
+- **Maps:** Platform map SDK integrations for field-area visualisation, accessed through Flutter wrappers.
+- **Charts:** Built into the app for sensor + disease-model views.
+- **Distribution:** Live on iOS (Apple Canada App Store, `id1604668353`) and Android (Play Store, `com.ukkoag.enterprise`), both published under the Ukko Agro Inc. account.
+
+## Challenges
+
+- **Battery cost on long outdoor sessions.** Field sessions can run for hours; live-location + WebSocket telemetry had to coexist with a phone that still had charge at the end of the day.
+- **Sync correctness on flaky networks.** The reconciliation rules between the offline outbox and the server state had to be robust against partial successes and retries.
+- **Two distinct user roles to consider** — Ukko publishes both an agronomist-facing app and a grower-facing companion; this build is the agronomist tool (`com.ukkoag.enterprise`).
+
+## Results &amp; impact
+
+- Live on **both iOS and Google Play** under the Ukko Agro publisher account.
+- Part of a working AgTech platform serving North American farm operations — the brand sits at the company's own developer page on both stores.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, ForeSite (AgTech) project line.
+- App Store listing — [apps.apple.com/ca/app/foresite](https://apps.apple.com/ca/app/foresite/id1604668353).
+- Play Store listing — [play.google.com/store/apps/details?id=com.ukkoag.enterprise](https://play.google.com/store/apps/details?id=com.ukkoag.enterprise).
+- Publisher identification via cross-store research (Round 3 verification, `RESEARCH.md`).

@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { profile } from "~/data/profile";
+
+interface Props {
+  entry: CollectionEntry<"work">;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+
+const sameAs: string[] = [];
+if (d.links.appStore) sameAs.push(d.links.appStore);
+if (d.links.playStore) sameAs.push(d.links.playStore);
+if (d.links.liveSite) sameAs.push(d.links.liveSite);
+if (d.links.apkPure) sameAs.push(d.links.apkPure);
+
+const jsonld = {
+  "@context": "https://schema.org",
+  "@type": d.links.appStore || d.links.playStore || d.links.apkPure ? "MobileApplication" : "CreativeWork",
+  name: d.title,
+  description: d.oneLiner,
+  url: new URL(`/work/${entry.slug}`, Astro.site ?? "https://mitulvaghasiya.com").toString(),
+  creator: {
+    "@type": "Person",
+    name: profile.name,
+    url: Astro.site?.toString() ?? "https://mitulvaghasiya.com/",
+  },
+  publisher: d.publisher
+    ? { "@type": "Organization", name: d.publisher }
+    : { "@type": "Organization", name: d.employer },
+  applicationCategory: d.category,
+  operatingSystem: [
+    d.links.appStore && "iOS",
+    d.links.playStore || d.links.apkPure ? "Android" : null,
+  ].filter(Boolean),
+  sameAs,
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />

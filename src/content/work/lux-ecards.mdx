@@ -1,0 +1,85 @@
+---
+title: "Lux ECards"
+oneLiner: "Multilingual Indian invitation card editor — canvas, layers, vector text, real-time preview."
+status: "verified"
+category: "Creative tooling"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "Lux Ecards"
+publisher: "Verdad IT"
+period: "2021 — 2023"
+featured: true
+order: 5
+region: "South Asia"
+city: "Surat"
+country: "India"
+lat: 21.1702
+lng: 72.8311
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "REST APIs"
+  - "Custom canvas renderer"
+  - "Layered UI"
+  - "In-App Purchase"
+  - "FCM"
+  - "PNG/PDF export"
+links:
+  playStore: "https://play.google.com/store/apps/details?id=com.luxecard.app"
+  liveSite: "https://lux-ecards.com/"
+hero: "/work/lux-ecards/01.png"
+gallery:
+  - "/work/lux-ecards/01.png"
+  - "/work/lux-ecards/02.png"
+  - "/work/lux-ecards/03.png"
+accent: "254 250 255"
+todos:
+  - "Confirm dates."
+  - "Confirm whether an iOS build existed and was retired, or it was Android-only by design."
+---
+
+## Overview
+
+Lux ECards is the mobile editor behind a multilingual Indian invitation business — weddings, baby showers, engagements, business openings, even obituaries — with templates designed in **Gujarati, Hindi, and English**. Customers pick a template, edit it on a canvas, and export print-ready output without needing a designer. Built at Sadguru Soft for the Lux Ecards brand, published on Google Play by Verdad IT.
+
+## Problem &amp; context
+
+"Canva, but for invitations" sounds simple right up until you try to ship it inside a Flutter app on a mid-range Android. You need a real **layered canvas** — independently movable text, image, and vector layers — exports that look identical to the on-screen preview, multilingual text rendering that handles non-Latin scripts cleanly, and an IAP flow for the premium template catalogue. None of this comes for free.
+
+The Indian-market context made the typography work harder than a default Latin-only build would face: Gujarati and Hindi scripts come with their own baseline rules, ligatures, and shaping concerns.
+
+## My approach &amp; key decisions
+
+- **Custom layered canvas** as the core of the editor. Each element (text, image, vector ornament) is an independently-transformable layer; gestures are routed to the active layer with consistent hit-testing.
+- **Preview path = export path.** The canvas-render path and the export path share their geometry math, so what users see is exactly what they share or print.
+- **Multilingual text rendering** for Gujarati / Hindi / English. Non-Latin scripts surface a lot of font-baseline and shaping edge cases that Latin-only apps never see.
+- **IAP-gated premium templates** layered over a Firebase backend.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), Android publication on Play Store.
+- **Backend:** Firebase for content + templates; REST APIs for the broader ordering flow.
+- **Editor:** Custom layered canvas implementation; PNG/PDF export from the same geometry pipeline as the preview.
+- **Commerce:** In-App Purchase for premium template unlocks.
+- **Notifications:** FCM for engagement and order updates.
+- **Distribution:** Live on Google Play as "Indian Invitation Cards Maker" at `com.luxecard.app`, publisher Verdad IT. Web brand at lux-ecards.com.
+
+## Challenges
+
+- **Non-Latin script rendering.** Getting Gujarati and Hindi text to lay out cleanly across canvas zoom levels — and produce print-clean exports — was its own discipline.
+- **Layer system feel.** Independently-transformable layers with overlapping hit areas need careful gesture routing or the app feels frustrating to use.
+- **Print-clean exports from a phone-rendered canvas.** Sharing the geometry between preview and export meant the math only had to be right once.
+
+## Results &amp; impact
+
+- Live on Google Play under `com.luxecard.app` (publisher: Verdad IT).
+- Brand site at [lux-ecards.com](https://lux-ecards.com/) live, positioning the product as a regional Indian invitation maker.
+- The Play Store title is "Indian Invitation Cards Maker" (the brand-led version) — same app, marketed under the bundle's brand line.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Lux-ECards project line.
+- Play Store listing — [play.google.com/store/apps/details?id=com.luxecard.app](https://play.google.com/store/apps/details?id=com.luxecard.app).
+- Brand site — [lux-ecards.com](https://lux-ecards.com/).
+- Mitul's confirmation that Verdad IT is the studio/client (Round 2 verification, `RESEARCH.md`).

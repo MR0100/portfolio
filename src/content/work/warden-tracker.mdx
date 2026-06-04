@@ -1,0 +1,65 @@
+---
+title: "Warden Tracker"
+oneLiner: "High-precision geo-fencing app — background location, spatial queries, low-latency proximity alerts."
+status: "internal"
+category: "Real-time & Location"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+period: "2022 — 2023"
+featured: false
+order: 17
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Background location"
+  - "Geo-fencing"
+  - "Spatial queries"
+  - "Native push notifications"
+links: {}
+hero: "/work/warden-tracker/hero-placeholder.svg"
+gallery: []
+accent: "236 242 255"
+needsAssets: true
+todos:
+  - "Provide screenshots if any are available."
+  - "Confirm dates."
+  - "Confirm whether the client / use-case (security, asset tracking, etc.) is safe to mention publicly."
+---
+
+## Overview
+
+Warden Tracker is a geo-fencing system — background location feeds spatial queries which trigger low-latency proximity alerts via native push. Built at Sadguru Soft; the technical interest is in keeping the location loop honest while battery cost stays defensible.
+
+## Problem &amp; context
+
+The phrase "high-precision geo-fencing" gets thrown around easily and is much harder to deliver. The classic trap is letting GPS updates dominate the battery budget; the second-classic trap is over-quieting location and missing the fence-cross. Warden's success criterion was hit-rate on real proximity events, not pretty maps.
+
+## My approach &amp; key decisions
+
+- **Background location tuned per platform** — Android foreground service with a sensible duty cycle, iOS background modes with significant-location-change fallbacks.
+- **Spatial queries on-device** for the fence-cross detection, kept on the device so the alert can fire instantly.
+- **Native push for proximity alerts**, with a delivery path that doesn't depend on FCM being awake.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart).
+- **Location:** Native background services per platform.
+- **Spatial:** On-device fence-cross detection.
+- **Notifications:** Native push channels.
+- **Distribution:** Internal / B2B project. Never on public app stores.
+
+## Challenges
+
+- **Battery vs. event-hit-rate.** Tuning the duty cycle so neither the device dies mid-day nor the fence-cross goes silent.
+- **Spatial query speed on the device.** The check has to be fast enough not to add latency between cross and alert.
+- **Same-name confusion in research.** Several unrelated "Warden" / "WardenGPS" apps exist on both stores — none are this build.
+
+## Results &amp; impact
+
+- Internal / B2B client project. Never on public app stores.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Warden Tracker project line.
+- Round 1 + 2 verification (`RESEARCH.md`) — confirmed no plausible public store match.

@@ -1,0 +1,37 @@
+---
+import { profile } from "~/data/profile";
+
+const year = 2026;
+---
+
+<footer class="mt-32 border-t border-border/60">
+  <div class="container-page py-12 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+    <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+      <div class="space-y-2">
+        <div class="font-display text-base font-semibold text-text normal-case tracking-tight">
+          {profile.shortName}<span class="text-accent">.</span>
+        </div>
+        <div>Specimen Sheets · Atlas of Work · Vol. I</div>
+        <div>{profile.location}</div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-sepia">Colophon</div>
+        <div>Doc rev. 2026.06</div>
+        <div>Set in Fraunces &amp; Inter</div>
+        <div>Built with Astro</div>
+        <div>© {year} {profile.name}</div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-sepia">Channels</div>
+        <div class="flex flex-col gap-1.5 normal-case tracking-normal text-sm font-sans">
+          <a href={profile.socials.email} class="hover:text-accent transition-colors">{profile.email}</a>
+          <a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">github.com/MR0100</a>
+          <a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">/in/mitul-vaghasiya-075a53166</a>
+          <a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">@_MR_0100</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

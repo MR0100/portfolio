@@ -1,0 +1,37 @@
+---
+import { profile, skillGroups, experience } from "~/data/profile";
+
+const allSkills = skillGroups.flatMap((g) => g.skills.map((s) => s.name));
+
+const jsonld = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: profile.headline,
+  description: profile.bioShort,
+  email: profile.email,
+  url: Astro.site?.toString() ?? "https://mitulvaghasiya.com/",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Surat",
+    addressRegion: "Gujarat",
+    addressCountry: "IN",
+  },
+  sameAs: [
+    profile.socials.github,
+    profile.socials.linkedin,
+    profile.socials.twitter,
+  ],
+  knowsAbout: allSkills,
+  worksFor: {
+    "@type": "Organization",
+    name: experience[0].company,
+  },
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "S.V. Patel College of Computer Application & Management",
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />

@@ -1,0 +1,74 @@
+---
+title: "Tarot Cat"
+oneLiner: "Cat-themed tarot reading app with daily fortunes — Korean-market consumer app for 1zLabs."
+status: "verified"
+category: "Consumer · Lifestyle"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "1zLabs / onezlabs"
+publisher: "onezlabs"
+period: "2022 — 2023"
+featured: false
+order: 9
+region: "East Asia"
+city: "Seoul"
+country: "South Korea"
+lat: 37.5665
+lng: 126.9780
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "Local Storage"
+  - "FCM"
+  - "Custom animations"
+links:
+  playStore: "https://play.google.com/store/apps/details?id=com.onezlabs.tarot_cat"
+hero: "/work/tarot-cat/01.png"
+gallery:
+  - "/work/tarot-cat/01.png"
+accent: "254 219 240"
+todos:
+  - "More screenshots if available (only 1 currently provided)."
+  - "Confirm whether the iOS 'MyTarot 마이타로' app (same publisher, KR-only on App Store) is the iOS counterpart we should also link."
+---
+
+## Overview
+
+Tarot Cat is a daily-tarot app dressed in a cat — a Korean-market consumer app built for **1zLabs**. The cat talks to you, draws cards, and presents fortunes designed to take a few seconds out of your day. One of three apps I shipped for 1zLabs while at Sadguru Soft.
+
+## Problem &amp; context
+
+Daily-tarot apps live or die on the moment of the draw. If the card animation feels cheap, the whole product feels cheap. If the daily-fortune push doesn't land, the user stops opening the app. Both had to be done well in a small, polished package — and tuned for a Korean consumer audience.
+
+## My approach &amp; key decisions
+
+- **Custom cross-platform animations** for the card draw and reveal — the part of the app users actually remember.
+- **Offline-first content database** so a daily reading isn't blocked on network.
+- **FCM for the daily-fortune push**, designed for delivery reliability on Korean Android devices.
+- **Lightweight Firebase backend** sized to the app's scope — not over-built.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), Android publication.
+- **Backend:** Firebase (lightweight scope).
+- **Notifications:** FCM for daily fortunes.
+- **Storage:** Local cache for offline-first daily readings.
+- **Distribution:** Live on Google Play at `com.onezlabs.tarot_cat` (publisher: onezlabs / 1zLabs).
+
+## Challenges
+
+- **Animation perceived quality.** The card draw is a fraction-of-a-second moment that decides whether the app feels delightful or generic. Iteration matters.
+- **Same-name confusion.** Several "Tarot Cat" apps exist on the App Store from unrelated publishers (Nébula Tarot Cat, etc.) — the right disambiguation is the `com.onezlabs.tarot_cat` bundle on Play and (likely) the "MyTarot 마이타로" iOS app on the same 1zLabs developer account.
+
+## Results &amp; impact
+
+- Live on **Google Play** under the onezlabs / 1zLabs publisher.
+- Part of the three-app 1zLabs suite alongside [Havitglam](/work/havitglam) and [Today's Quote](/work/todays-quote).
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Tarot Cat (Astrology) project line.
+- Play Store listing — [play.google.com/store/apps/details?id=com.onezlabs.tarot_cat](https://play.google.com/store/apps/details?id=com.onezlabs.tarot_cat).
+- 1zLabs corporate site — [1zlabs.com](https://1zlabs.com/).
+- Mitul's confirmation of the onezlabs / 1zLabs client (Round 2 + 3 verification, `RESEARCH.md`).

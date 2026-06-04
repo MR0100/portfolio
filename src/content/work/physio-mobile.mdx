@@ -1,0 +1,81 @@
+---
+title: "Physio Mobile"
+oneLiner: "Telehealth rehab app — video-led exercises for back, shoulder and knee pain, with secure health profiles."
+status: "verified"
+category: "Health · Telehealth"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "Robin Brunner (DE)"
+publisher: "Robin Brunner"
+period: "2021 — 2023"
+featured: false
+order: 11
+region: "Europe"
+city: "Berlin"
+country: "Germany"
+lat: 52.5200
+lng: 13.4050
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "Video players"
+  - "Local Storage"
+  - "FCM"
+  - "Secure health data handling"
+links:
+  appStore: "https://apps.apple.com/us/app/physio-mobile/id6448959919"
+  playStore: "https://play.google.com/store/apps/details?id=com.physiomoboile.training_app"
+hero: "/work/physio-mobile/01.png"
+gallery:
+  - "/work/physio-mobile/01.png"
+  - "/work/physio-mobile/02.png"
+  - "/work/physio-mobile/03.png"
+accent: "243 255 243"
+todos:
+  - "Confirm dates."
+  - "Confirm any specific outcome metric you want featured."
+---
+
+## Overview
+
+Physio Mobile is a German-market telehealth rehab app — targeted exercise videos for people with back, shoulder/neck, and knee/hip pain, plus statistics and reminders to keep users on plan. Built at Sadguru Soft for a German physiotherapist's app practice (published under Robin Brunner).
+
+## Problem &amp; context
+
+Telehealth video apps live or die on two things: the smoothness of the video experience, and the trustworthiness of the data handling. Healthcare data is regulated, users are often older or in pain, and the app has to feel calm rather than clinical.
+
+For Physio Mobile specifically, the audience is patients working through targeted rehabilitation — usually with their physiotherapist's guidance. The mobile app is the home extension of that programme.
+
+## My approach &amp; key decisions
+
+- **Optimised video players tuned for mid-length exercise clips** — fast scrub, clean buffering, no stutter during rep counts.
+- **Secure handling of sensitive health profile data** at rest and in transit.
+- **Reminders + statistics designed for a non-power-user audience.** Clear, simple, never gamified to the point of pushiness.
+- **Targeted programme structure** — body region (back / shoulder / neck / knee / hip), then exercises within each, with progression.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), iOS + Android.
+- **Backend:** Firebase for user state, content delivery, programme structure.
+- **Video:** Optimised video player surfaces tuned for the exercise clip format.
+- **Notifications:** FCM for reminder delivery.
+- **Distribution:** Live on App Store (`id6448959919`) and Play Store (`com.physiomoboile.training_app`) under the brand's own developer account (Robin Brunner). The Play Store bundle id is `com.physiomoboile.training_app` — the misspelling is original to the bundle and kept as-is.
+
+## Challenges
+
+- **Video player quality + bandwidth.** Smooth scrubbing of mid-length clips on a phone is harder than it looks; tuning the player for the actual content format matters.
+- **Calm UX for patients in discomfort.** The product cannot feel like a fitness app or a clinical record — it has to feel patient-friendly and gentle.
+- **Regulatory framing.** Health data, even on a non-prescription product, gets handled with care.
+
+## Results &amp; impact
+
+- Live on **both iOS App Store and Google Play** under the Robin Brunner publisher account.
+- Distribution focused on the German-speaking telehealth market.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Physio Mobile (Telehealth) project line.
+- App Store listing — [apps.apple.com/us/app/physio-mobile](https://apps.apple.com/us/app/physio-mobile/id6448959919).
+- Play Store listing — [play.google.com/store/apps/details?id=com.physiomoboile.training_app](https://play.google.com/store/apps/details?id=com.physiomoboile.training_app).
+- Mitul's confirmation that this is the right Robin Brunner publisher (Round 2 verification, `RESEARCH.md`).

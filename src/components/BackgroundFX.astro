@@ -1,0 +1,210 @@
+---
+// Site-wide reactive cyberpunk background. Two fixed layers:
+//   .bgfx-back  (z:-1, behind all content) — scanlines, scan sweep, cursor
+//               grid-reveal glow, rare glitch band, + parallax on the orbs.
+//   .bgfx-front (z:30, above content but below the nav; pointer-events:none)
+//               — the HUD reticle that smooth-chases the cursor with live coords.
+// Fully reduced-motion gated; cursor pieces disabled on touch.
+---
+
+<div class="bgfx-back" aria-hidden="true">
+  <div class="bgfx-scanlines"></div>
+  <div class="bgfx-sweep"></div>
+  <div class="bgfx-reveal"></div>
+  <div class="bgfx-glitchband" data-glitchband></div>
+</div>
+
+<div class="bgfx-front" aria-hidden="true">
+  <div class="bgfx-reticle" data-reticle>
+    <svg viewBox="0 0 100 100" width="76" height="76">
+      <path d="M20 8 H8 V20 M80 8 H92 V20 M20 92 H8 V80 M80 92 H92 V80" fill="none" stroke="rgb(var(--accent))" stroke-opacity="0.55" stroke-width="1.4" />
+      <circle cx="50" cy="50" r="14" fill="none" stroke="rgb(var(--accent))" stroke-opacity="0.4" stroke-width="1" />
+      <line x1="50" y1="30" x2="50" y2="44" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1" />
+      <line x1="50" y1="56" x2="50" y2="70" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1" />
+      <line x1="30" y1="50" x2="44" y2="50" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1" />
+      <line x1="56" y1="50" x2="70" y2="50" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1" />
+      <circle cx="50" cy="50" r="1.6" fill="rgb(var(--accent))" />
+    </svg>
+    <span class="bgfx-coords" data-coords>X:0000 Y:0000</span>
+  </div>
+</div>
+
+<style>
+  .bgfx-back {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .bgfx-front {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .bgfx-scanlines {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(var(--text) / 0.04) 0,
+      rgb(var(--text) / 0.04) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    opacity: 0.5;
+  }
+
+  .bgfx-sweep {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgb(var(--accent) / 0.05) 50%, transparent 100%);
+    background-size: 100% 24%;
+    background-repeat: no-repeat;
+    animation: bgfx-sweep 9s linear infinite;
+    will-change: background-position;
+  }
+  @keyframes bgfx-sweep {
+    0% { background-position: 0 -28%; }
+    100% { background-position: 0 128%; }
+  }
+
+  .bgfx-reveal {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 500ms ease-out;
+    background:
+      radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--accent) / 0.07), transparent 72%),
+      radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--grid) / 0.55) 1px, transparent 1.4px);
+    background-size: 100% 100%, 22px 22px;
+  }
+  .bgfx-back.is-active .bgfx-reveal { opacity: 1; }
+
+  .bgfx-glitchband {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 80px;
+    opacity: 0;
+    background: linear-gradient(to bottom, transparent, rgb(var(--accent) / 0.10), rgb(var(--sepia) / 0.08), transparent);
+    mix-blend-mode: screen;
+  }
+  .bgfx-glitchband.is-glitching { animation: bgfx-band 380ms steps(9, end) 1; }
+  @keyframes bgfx-band {
+    0% { opacity: 0; transform: translateY(-12vh); }
+    10% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(112vh); }
+  }
+
+  .bgfx-reticle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate3d(-200px, -200px, 0);
+    margin: -38px 0 0 -38px;
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+    will-change: transform;
+  }
+  .bgfx-front.is-active .bgfx-reticle { opacity: 0.9; }
+  .bgfx-reticle.is-locked svg { animation: bgfx-lock 320ms ease-out 1; transform-origin: center; }
+  @keyframes bgfx-lock {
+    0% { transform: scale(1.25) rotate(-6deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .bgfx-coords {
+    position: absolute;
+    left: 84px;
+    top: 30px;
+    font-family: ui-monospace, "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    color: rgb(var(--muted));
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .bgfx-front,
+    .bgfx-reveal { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bgfx-sweep,
+    .bgfx-glitchband { animation: none !important; }
+    .bgfx-front,
+    .bgfx-reveal { display: none !important; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const back = document.querySelector(".bgfx-back");
+    const front = document.querySelector(".bgfx-front");
+    if (!back) return;
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (rm) return;
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    const orbs = Array.from(document.querySelectorAll(".atmosphere-orb"));
+    const reticle = front && front.querySelector("[data-reticle]");
+    const coords = front && front.querySelector("[data-coords]");
+    const band = back.querySelector("[data-glitchband]");
+
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let rx = mx, ry = my;
+    let active = false, raf = null;
+    const pad = (n) => String(Math.round(n)).padStart(4, "0");
+
+    const onMove = (e) => {
+      mx = e.clientX; my = e.clientY;
+      if (!active) {
+        active = true;
+        back.classList.add("is-active");
+        if (front) front.classList.add("is-active");
+      }
+      back.style.setProperty("--mx", ((mx / window.innerWidth) * 100).toFixed(2) + "%");
+      back.style.setProperty("--my", ((my / window.innerHeight) * 100).toFixed(2) + "%");
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+
+    const loop = () => {
+      raf = null;
+      rx += (mx - rx) * 0.14;
+      ry += (my - ry) * 0.14;
+      if (reticle && fine) reticle.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+      if (coords && fine) coords.textContent = "X:" + pad(mx) + " Y:" + pad(my);
+      const dx = mx / window.innerWidth - 0.5;
+      const dy = my / window.innerHeight - 0.5;
+      orbs.forEach((orb, i) => {
+        const depth = (i + 1) * 9;
+        orb.style.translate = `${dx * depth}px ${dy * depth}px`;
+      });
+      if (Math.abs(mx - rx) > 0.5 || Math.abs(my - ry) > 0.5) raf = requestAnimationFrame(loop);
+    };
+
+    window.addEventListener("mousemove", onMove, { passive: true });
+
+    if (fine && reticle) {
+      const lock = () => {
+        reticle.classList.add("is-locked");
+        setTimeout(() => reticle.classList.remove("is-locked"), 340);
+        setTimeout(lock, 5000 + Math.random() * 6000);
+      };
+      setTimeout(lock, 6000);
+    }
+
+    if (band) {
+      const glitch = () => {
+        band.classList.remove("is-glitching");
+        void band.offsetWidth;
+        band.classList.add("is-glitching");
+        setTimeout(glitch, 9000 + Math.random() * 11000);
+      };
+      setTimeout(glitch, 5000 + Math.random() * 5000);
+    }
+  })();
+</script>

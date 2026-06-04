@@ -1,0 +1,177 @@
+---
+import { getCollection } from "astro:content";
+import StatusBadge from "~/components/StatusBadge.astro";
+import StoreLinksRow from "~/components/StoreLinksRow.astro";
+
+const all = await getCollection("work");
+const featured = all
+  .filter((e) => e.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const distribution = (links: typeof featured[number]["data"]["links"]) =>
+  [
+    links.appStore && "iOS",
+    (links.playStore || links.apkPure) && "Android",
+    links.liveSite && "Web",
+  ]
+    .filter(Boolean)
+    .join(" / ") || "Internal";
+
+// Full-viewport pinned stage (100vh) + scroll runway per tab. Tune `stepVh` for pacing.
+const stepVh = 42;
+const trackVh = 100 + featured.length * stepVh;
+---
+
+<section class="container-page" data-picks>
+  <div data-track class="relative" style={`--track:${trackVh}vh`}>
+    <!-- the whole section is pinned: header + tabs + panels stay in frame together -->
+    <div class="flex flex-col justify-center gap-8 py-16 md:gap-10 md:py-0 md:sticky md:top-0 md:h-screen md:[min-height:100svh]">
+      <!-- header -->
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="space-y-3">
+          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Selected work</div>
+          <h2 class="font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]" data-scramble>
+            A few I'm proud of.
+          </h2>
+        </div>
+        <a href="/work" class="font-mono text-xs uppercase tracking-[0.24em] text-accent hover:text-accent-hover transition-colors">
+          All {all.length} →
+        </a>
+      </div>
+
+      <!-- switcher: tab rail + cross-fading panels -->
+      <div class="grid gap-8 md:grid-cols-[260px_1fr] md:gap-12">
+        <div role="tablist" aria-label="Selected projects" class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
+          {featured.map((e, i) => (
+            <button
+              role="tab"
+              aria-selected={i === 0 ? "true" : "false"}
+              data-tab={i}
+              class="text-left whitespace-nowrap rounded-md px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors aria-selected:bg-accent/10 aria-selected:text-accent text-muted hover:text-text"
+            >
+              <span class="text-accent/60 mr-2 tabular-nums">{String(i + 1).padStart(2, "0")}</span>{e.data.title}
+            </button>
+          ))}
+          <div class="hidden md:block mt-4 h-px w-full bg-border/60 relative overflow-hidden">
+            <div data-progress class="absolute inset-y-0 left-0 bg-accent transition-[width] duration-300 ease-out" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- stacked panels: all occupy the same grid cell; active one fades/slides in -->
+        <div class="grid">
+          {featured.map((e, i) => {
+            const d = e.data;
+            const img = d.hero || d.gallery[0];
+            return (
+              <div
+                role="tabpanel"
+                data-panel={i}
+                aria-hidden={i !== 0 ? "true" : "false"}
+                class:list={[
+                  "col-start-1 row-start-1 grid gap-6 sm:grid-cols-[1fr_320px] sm:gap-10 sm:items-start transition-all duration-500 ease-out",
+                  i === 0 ? "opacity-100 translate-y-0 z-10" : "opacity-0 translate-y-4 pointer-events-none",
+                ]}
+              >
+                <div class="space-y-4 order-2 sm:order-1">
+                  <div class="flex items-center gap-3">
+                    <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{d.category}</span>
+                    <StatusBadge status={d.status} />
+                  </div>
+                  <h3 class="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-tight">{d.title}</h3>
+                  <p class="font-serif text-lg text-muted leading-relaxed max-w-md">{d.oneLiner}</p>
+                  <dl class="grid grid-cols-2 gap-x-6 gap-y-3 max-w-sm pt-1">
+                    <div>
+                      <dt class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Role</dt>
+                      <dd class="mt-0.5 font-serif text-base text-text leading-snug">{d.role}</dd>
+                    </div>
+                    <div>
+                      <dt class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Distribution</dt>
+                      <dd class="mt-0.5 font-serif text-base text-text leading-snug">{distribution(d.links)}</dd>
+                    </div>
+                  </dl>
+                  <div class="flex flex-wrap gap-1.5">{d.stack.slice(0, 6).map((s) => <span class="chip">{s}</span>)}</div>
+                  <div class="flex flex-wrap items-center gap-4 pt-1">
+                    <StoreLinksRow links={d.links} size="md" />
+                    <a href={`/work/${e.slug}`} class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:text-accent-hover transition-colors">
+                      Read case study →
+                    </a>
+                  </div>
+                </div>
+                <div class="order-1 sm:order-2 aspect-[4/3] rounded-lg border border-border bg-paper/40 overflow-hidden">
+                  {img && <img src={img} alt={`${d.title} screenshot`} loading="lazy" decoding="async" class="h-full w-full object-contain p-4" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  [data-track] { min-height: 0; }
+  @media (min-width: 768px) {
+    [data-track] { min-height: var(--track); }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-picks]");
+    if (!root) return;
+    const track = root.querySelector("[data-track]");
+    const tabs = Array.from(root.querySelectorAll("[data-tab]"));
+    const panels = Array.from(root.querySelectorAll("[data-panel]"));
+    const progress = root.querySelector("[data-progress]");
+    const N = tabs.length;
+    if (!N) return;
+    const mq = window.matchMedia("(min-width: 768px)");
+
+    let active = -1;
+    const setActive = (i) => {
+      if (i === active) return;
+      active = i;
+      tabs.forEach((t, k) => t.setAttribute("aria-selected", k === i ? "true" : "false"));
+      panels.forEach((p, k) => {
+        const on = k === i;
+        p.classList.toggle("opacity-100", on);
+        p.classList.toggle("translate-y-0", on);
+        p.classList.toggle("z-10", on);
+        p.classList.toggle("opacity-0", !on);
+        p.classList.toggle("translate-y-4", !on);
+        p.classList.toggle("pointer-events-none", !on);
+        p.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      if (progress) progress.style.width = Math.round(((i + 1) / N) * 100) + "%";
+    };
+    setActive(0);
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      if (!mq.matches) return; // scroll-driven only on md+
+      const dist = track.offsetHeight - window.innerHeight;
+      if (dist <= 0) return;
+      const scrolled = Math.min(Math.max(-track.getBoundingClientRect().top, 0), dist);
+      let idx = Math.floor((scrolled / dist) * N);
+      if (idx >= N) idx = N - 1;
+      if (idx < 0) idx = 0;
+      setActive(idx);
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    tabs.forEach((t, i) => t.addEventListener("click", () => {
+      if (!mq.matches) { setActive(i); return; }
+      const dist = track.offsetHeight - window.innerHeight;
+      if (dist <= 0) { setActive(i); return; }
+      const within = ((i + 0.5) / N) * dist;
+      const top = window.scrollY + track.getBoundingClientRect().top + within;
+      window.scrollTo({ top, behavior: "smooth" });
+    }));
+
+    update();
+  })();
+</script>

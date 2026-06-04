@@ -1,0 +1,84 @@
+---
+title: "Lili — Health Data Assistant"
+oneLiner: "AI health assistant that ingests Fitbit and Apple Health data and answers questions in plain language."
+status: "verified"
+category: "Health & AI"
+role: "Senior Flutter Developer"
+employer: "Sadguru Soft"
+client: "AI Assistant Lili / Julia Baccarini Santana"
+publisher: "AI Assistant Lili"
+period: "2021 — 2023"
+featured: true
+order: 2
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "REST APIs"
+  - "Fitbit API"
+  - "Apple Health"
+  - "AI chat interface"
+  - "OAuth 2.0"
+  - "Local Storage"
+links:
+  appStore: "https://apps.apple.com/gb/app/lili-health-data-assistant/id1549377844"
+  apkPure: "https://apkpure.com/lili-health-data-assistant/com.itslili.lili"
+  press: ["https://appadvice.com/app/lili-your-health-assistant/1549377844"]
+hero: "/work/lili/01.png"
+gallery:
+  - "/work/lili/01.png"
+  - "/work/lili/02.png"
+accent: "236 242 255"
+todos:
+  - "Confirm exact period (year started + delivered)."
+  - "Android: the Play Store listing is currently unlisted — APKPure mirror is the working link. Decide whether to show it or hide the Android link entirely."
+---
+
+## Overview
+
+Lili is a personal health assistant that connects to a user's wearables — Fitbit and Apple Health — and offers an AI-driven, conversational way to make sense of all that data. Less "fitness leaderboard," more "ask the data a question and get an answer." I led the Flutter build at Sadguru Soft, working with the product's founder.
+
+## Problem &amp; context
+
+Wearables are great at capturing data and terrible at explaining it. By 2021 most users had a phone full of biometric readings they couldn't interpret. The bet behind Lili was that an AI assistant on top of well-modelled health data could do for personal health what a chat interface did for code.
+
+For the mobile client, that meant being more than a dashboard. It had to:
+
+- talk to two very different wearable platforms — Fitbit (cloud OAuth) and Apple Health (on-device, permission-prompted) — and unify them;
+- present a fluid, gesture-first chat surface that handled bursts of biometric data without choking the UI;
+- handle sensitive personal health information with encryption and permission discipline as defaults.
+
+## My approach &amp; key decisions
+
+- **Two ingestion paths, one internal model.** Fitbit data arrives via OAuth 2.0 from a cloud API. Apple Health data is on-device and only accessible with the user's per-data-type consent. Both feed a single internal health-data model so the conversational layer never has to know where a step count came from.
+- **Gesture-driven cards over a chat feed.** The replies surface as a swappable card stack rather than a linear chat log — feels like flicking through a deck.
+- **Memory budgeting from day one.** Health data arrives in bursts that wreck naive Flutter apps; the build was tuned to keep widget lifecycles tight, with explicit disposal where heavy data was no longer needed.
+- **Encryption + 256-bit OAuth 2.0** as a hard requirement for handling personal health data.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), cross-platform iOS + Android.
+- **Auth:** OAuth 2.0 to Fitbit's API. Apple Health via the platform's native permission flow over Method Channels.
+- **Storage:** Encrypted local storage for cached personal data.
+- **Interface:** AI chat-style conversational UI driven by a backing service; swappable gesture-driven cards for replies.
+- **Distribution:** Listed on the App Store (UK, IN, ZW and others) under the "AI Assistant Lili" / "Julia Baccarini Santana" developer account. The Android Play Store listing has since been unlisted; an APKPure mirror still serves the build.
+
+## Challenges
+
+- **Reconciling two wearable data models.** Fitbit and Apple Health describe the same metrics differently — units, sampling frequency, source-of-truth rules. The internal model had to be lossless enough that the AI never had to guess.
+- **Conversational UI under memory pressure.** Chat surfaces leak. Long sessions with heavy data attached were where a naive implementation would have crashed; widget lifecycles and explicit cleanup kept the experience smooth.
+- **Privacy-as-product.** Encryption and explicit permission flow weren't compliance theatre — they were the trust contract users were buying into.
+
+## Results &amp; impact
+
+- Live on the App Store in multiple regions under the original publisher (`id1549377844`).
+- Indexed on third-party app aggregators like AppAdvice — a small but real distribution signal.
+- The Android Play Store listing is no longer public; the APKPure mirror of the same `com.itslili.lili` bundle remains the working install path.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Sadguru Soft project line for Lili (Health Data AI).
+- App Store listing — [apps.apple.com/gb/app/lili-health-data-assistant](https://apps.apple.com/gb/app/lili-health-data-assistant/id1549377844).
+- APKPure mirror — [apkpure.com/lili-health-data-assistant](https://apkpure.com/lili-health-data-assistant/com.itslili.lili).
+- AppAdvice profile — [appadvice.com/app/lili-your-health-assistant](https://appadvice.com/app/lili-your-health-assistant/1549377844).
+- Mitul's confirmation of publisher (Round 2 + 3 verification, `RESEARCH.md`).

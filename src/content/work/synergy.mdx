@@ -1,0 +1,72 @@
+---
+title: "Synergy"
+oneLiner: "Match-making and dating app with WebSocket-based real-time chat — client project, no longer in stores."
+status: "unlisted"
+category: "Consumer · Social"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+period: "2021 — 2022"
+featured: false
+order: 15
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "WebSockets"
+  - "REST APIs"
+  - "FCM"
+  - "In-App Purchase"
+  - "Local Storage"
+  - "Animations"
+links: {}
+hero: "/work/synergy/01.png"
+gallery:
+  - "/work/synergy/01.png"
+  - "/work/synergy/02.png"
+accent: "235 246 251"
+todos:
+  - "Confirm exact dates."
+  - "Confirm whether to mention the original 'Synergy' product name on the public site or leave anonymised."
+---
+
+## Overview
+
+Synergy was a match-making and dating app — Flutter on the client, WebSocket-based real-time chat, IAP for premium features. Client project from the Sadguru Soft years; no longer in public stores.
+
+## Problem &amp; context
+
+Dating apps are an obvious product to underestimate. Real-time messaging at scale isn't optional — it's table stakes. The interesting work is at the WebSocket-state-management seam, keeping the chat surface fluid while the underlying connection drops and reconnects through the day.
+
+A real-time consumer messaging product also has hidden hard parts: typing indicators that don't lie, read receipts that survive the network blinking, message ordering that survives delivery race conditions, and a state model that the UI can render without jitter when re-syncing.
+
+## My approach &amp; key decisions
+
+- **WebSockets for instant messaging**, with a state model that survives connection drops cleanly.
+- **Advanced state handling** so the chat UI never shows a half-state when the network blinks.
+- **IAP layered for premium features.**
+- **Push (FCM)** to bring users back when conversations were waiting.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart).
+- **Backend:** Firebase backing the user graph and matching state.
+- **Real-time:** WebSocket for instant chat; FCM for re-engagement.
+- **Commerce:** IAP for premium features.
+
+## Challenges
+
+- **Network instability vs. perceived chat reliability.** A chat that *looks* broken is a chat that's broken to the user, even if everything is fine under the hood.
+- **State during re-sync.** When the WebSocket drops and the app reconnects, the UI has to update without flicker.
+- **Dating-app trust.** Identity, safety and reporting features matter as much as match mechanics.
+
+## Results &amp; impact
+
+- Not currently in public app stores. Listed here as a real piece of client work rather than pretending it doesn't exist.
+- Framed as "Match-making & dating" per Mitul's old portfolio listing for the project.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Synergy (Productivity Dating) project line.
+- Mitul's old portfolio entry — confirmed via fetch (Round 2 verification, `RESEARCH.md`) — describes Synergy as a match-making and dating application.
+- No public store listing surfaced under the Synergy name + feature set (Round 2 verification).

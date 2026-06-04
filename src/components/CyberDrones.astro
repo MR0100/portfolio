@@ -1,0 +1,521 @@
+---
+// TERRITORIAL DEFENSE — the whole viewport is friendly territory.
+//   DEFENDERS (teal): 1 leader + 3 supporters.
+//     · Only the LEADER scans (limited range). It follows the cursor; after
+//       ~3s of no cursor movement it stops and patrols the centre of the screen.
+//     · Supporters orbit the leader around the EDGE of its scan range — drifting
+//       in and out of cover — so a straggler can be caught off-radar.
+//     · On detection the squad LOCKS ON and fires (slow, aimed projectiles that
+//       can miss), giving the attacker a chance to run.
+//   ATTACKERS (red): slip in from an edge, hunt supporters, and ignore the cursor
+//     entirely. Once locked they bolt for the nearest edge, firing back wildly.
+//     If they destroy both… all three supporters → BREACH (red glitch) + reset.
+//   Ships ride on two layers (behind / in front of the page text) and randomly
+//   swap between them for depth. The dot grid (body background) stays underneath.
+// Fine-pointer + non-reduced-motion only.
+const defenders = [
+  { size: 58, role: "leader" },
+  { size: 36, role: "support" },
+  { size: 34, role: "support" },
+  { size: 33, role: "support" },
+];
+---
+
+<div data-drones aria-hidden="true">
+  <canvas class="dcv" data-canvas></canvas>
+
+  {defenders.map((d) => (
+    <div class="drone" data-drone data-role={d.role} style={`width:${d.size}px`}>
+      <svg viewBox="0 0 60 40" width="100%" height="100%" style="overflow:visible">
+        {d.role === "leader" && <circle class="d-ring" cx="30" cy="23" r="24" fill="none" stroke="rgb(var(--accent))" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="3 4" />}
+        <g stroke="rgb(var(--accent))" stroke-opacity="0.55" stroke-width="2.4" stroke-linecap="round">
+          <line x1="30" y1="23" x2="13" y2="10" />
+          <line x1="30" y1="23" x2="47" y2="10" />
+          <line x1="30" y1="23" x2="13" y2="36" />
+          <line x1="30" y1="23" x2="47" y2="36" />
+        </g>
+        <g fill="rgb(var(--accent))" fill-opacity="0.12" stroke="rgb(var(--accent))" stroke-opacity="0.55" stroke-width="1.2">
+          <circle cx="13" cy="10" r="7" />
+          <circle cx="47" cy="10" r="7" />
+          <circle cx="13" cy="36" r="7" />
+          <circle cx="47" cy="36" r="7" />
+        </g>
+        <rect class="d-hull" x="21" y="14" width="18" height="18" rx="5" fill="rgb(var(--surface))" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1.5" />
+        <circle cx="30" cy="23" r="6" fill="rgb(var(--bg))" stroke="rgb(var(--accent))" stroke-opacity="0.5" stroke-width="1" />
+        <circle class="d-iris" data-iris cx="30" cy="23" r="3.2" fill="rgb(var(--accent))" />
+        <circle cx="13" cy="36" r="1.6" fill="rgb(var(--accent))" fill-opacity="0.8" />
+        <circle cx="47" cy="36" r="1.6" fill="rgb(var(--accent))" fill-opacity="0.8" />
+        <circle class="d-tip" cx="13" cy="10" r="1.9" fill="rgb(var(--sepia))" />
+        <circle class="d-tip d-tip2" cx="47" cy="10" r="1.9" fill="rgb(var(--accent))" />
+      </svg>
+    </div>
+  ))}
+
+  <template data-attacker-template>
+    <div class="attacker" data-attacker style="width:46px">
+      <svg viewBox="0 0 60 40" width="100%" height="100%" style="overflow:visible">
+        <ellipse class="a-glow" cx="9" cy="20" rx="6" ry="4" fill="rgb(255 120 70)" fill-opacity="0.45" />
+        <ellipse class="a-glow" cx="13" cy="20" rx="3" ry="2.4" fill="rgb(255 180 120)" fill-opacity="0.85" />
+        <polygon class="a-wing" points="42,20 7,6 19,20 7,34" fill="rgb(34 8 13)" stroke="rgb(244 63 94)" stroke-opacity="0.72" stroke-width="1.3" />
+        <path d="M7 6 L15 11 M7 34 L15 29" fill="none" stroke="rgb(244 63 94)" stroke-opacity="0.7" stroke-width="1.2" />
+        <polygon class="a-hull" points="55,20 46,13 24,14 17,17 17,23 24,26 46,27" fill="rgb(20 6 10)" stroke="rgb(244 63 94)" stroke-opacity="0.9" stroke-width="1.5" />
+        <path d="M45 16 L26 16.5 M45 24 L26 23.5" fill="none" stroke="rgb(244 63 94)" stroke-opacity="0.3" stroke-width="0.8" />
+        <line x1="51" y1="18" x2="61" y2="16.5" stroke="rgb(244 63 94)" stroke-opacity="0.92" stroke-width="1.5" />
+        <line x1="51" y1="22" x2="61" y2="23.5" stroke="rgb(244 63 94)" stroke-opacity="0.92" stroke-width="1.5" />
+        <ellipse class="a-core" data-core cx="40" cy="20" rx="5.4" ry="3.1" fill="rgb(244 63 94)" />
+        <circle cx="40" cy="20" r="1.8" fill="rgb(255 210 205)" />
+      </svg>
+    </div>
+  </template>
+
+  <div class="breach" data-breach>
+    <div class="breach-grid"></div>
+    <div class="breach-readout">
+      <span class="breach-line">▌ SECTOR BREACHED</span>
+      <span class="breach-sub">TERRITORY LOST — REINITIALIZING DEFENSE GRID</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* display:contents → the wrapper makes no box, so the canvas + ships stack in
+     the page's root context. Everything lives on the background layer (z:-1):
+     behind the page text, above the dot-grid body background. */
+  [data-drones] { display: contents; }
+
+  .dcv { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+  .drone, .attacker {
+    position: fixed; left: 0; top: 0; z-index: -1;
+    transform: translate3d(-200px, -200px, 0);
+    will-change: transform; pointer-events: none;
+  }
+
+  .drone { opacity: 0; transition: opacity 500ms ease-out; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35)); }
+  [data-drones].is-ready .drone { opacity: 0.85; }
+  .drone.is-dead { opacity: 0 !important; transition: opacity 260ms ease-in; }
+  .drone.is-spawning { animation: d-spawn 420ms ease-out 1; }
+  @keyframes d-spawn { 0% { opacity: 0; } 100% { opacity: 0.85; } }
+  .drone.is-hit .d-hull { stroke: rgb(244 63 94); stroke-opacity: 1; }
+  .drone.is-firing .d-iris { fill: rgb(var(--accent)); r: 4.2; }
+
+  .d-iris { transition: r 160ms ease-out; }
+  .d-ring { animation: d-pulse 3.2s ease-in-out infinite; transform-origin: 30px 23px; }
+  @keyframes d-pulse { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.12); } }
+  .d-tip { animation: d-blink 2.4s steps(1, end) infinite; }
+  .d-tip2 { animation: d-blink 2.4s steps(1, end) infinite; animation-delay: 1.2s; }
+  @keyframes d-blink { 0%, 70% { opacity: 1; } 71%, 100% { opacity: 0.15; } }
+
+  .attacker { opacity: 0; transition: opacity 300ms ease-out; filter: drop-shadow(0 2px 7px rgb(120 0 20 / 0.4)); }
+  .attacker.is-in { opacity: 0.95; }
+  .attacker.is-dying { animation: a-die 360ms ease-out 1 forwards; }
+  @keyframes a-die { 0% { opacity: 0.95; transform: scale(1); } 100% { opacity: 0; } }
+  .a-core { animation: a-corepulse 1.2s ease-in-out infinite; transform-origin: 40px 20px; }
+  @keyframes a-corepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .a-glow { animation: a-glow 0.85s ease-in-out infinite; }
+  @keyframes a-glow { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.5; } }
+  .attacker.is-hit .a-hull { stroke-opacity: 1; stroke: rgb(255 255 255); }
+
+  /* ---- Breach (loss) overlay ---- */
+  .breach { position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0; display: grid; place-items: center; overflow: hidden; }
+  .breach.is-breaching { animation: breach-flash 1900ms ease-out 1; }
+  @keyframes breach-flash { 0% { opacity: 0; } 4% { opacity: 1; } 100% { opacity: 0; } }
+  .breach::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgb(180 10 30 / 0.5) 100%), rgb(120 6 22 / 0.22);
+    mix-blend-mode: screen;
+  }
+  .breach-grid { position: absolute; inset: 0; background-image: repeating-linear-gradient(to bottom, rgb(255 60 80 / 0.10) 0, rgb(255 60 80 / 0.10) 1px, transparent 1px, transparent 4px); }
+  .breach.is-breaching .breach-grid { animation: breach-shake 90ms steps(2, end) infinite; }
+  @keyframes breach-shake { 0% { transform: translate3d(-3px, 0, 0); } 50% { transform: translate3d(3px, 1px, 0); } 100% { transform: translate3d(-2px, -1px, 0); } }
+  .breach-readout { position: relative; text-align: center; font-family: ui-monospace, "JetBrains Mono", monospace; color: rgb(255 210 215); text-shadow: 2px 0 rgb(255 40 70 / 0.9), -2px 0 rgb(40 180 255 / 0.6); }
+  .breach.is-breaching .breach-readout { animation: breach-jitter 70ms steps(2, end) infinite; }
+  @keyframes breach-jitter { 0% { transform: translate3d(-2px, 0, 0); } 50% { transform: translate3d(2px, -1px, 0); } 100% { transform: translate3d(-1px, 1px, 0); } }
+  .breach-line { display: block; font-size: clamp(22px, 6vw, 64px); font-weight: 600; letter-spacing: 0.14em; }
+  .breach-sub { display: block; margin-top: 0.7em; font-size: clamp(9px, 1.5vw, 13px); letter-spacing: 0.36em; color: rgb(255 150 160); }
+
+  @media (hover: none), (pointer: coarse) { [data-drones] { display: none; } }
+  @media (prefers-reduced-motion: reduce) { [data-drones] { display: none !important; } }
+</style>
+
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-drones]");
+    if (!root) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const canvas = root.querySelector("[data-canvas]");
+    const tpl = root.querySelector("[data-attacker-template]");
+    const breach = root.querySelector("[data-breach]");
+    const ctx = canvas.getContext("2d");
+
+    const W = () => window.innerWidth, H = () => window.innerHeight;
+    const NAV = 64;
+
+    // --- tunables ---
+    const SUPPORT_HP = 3, ATTACKER_HP = 5;             // 3 hits down a supporter; 5 hits down an attacker
+    const SCAN_RANGE = 250;
+    const DEF_FIRE_CD = 50;                            // defender re-fire — paced so the kill takes a visible flee, not an instant pop
+    const ATK_RANGE = 185, ATK_FIRE_CD = 56;           // attacker harasses a supporter
+    const ATK_RETURN_CD = 24;                          // wild return fire while locked
+    const BOLT_SPEED = 13, BOLT_LIFE = 70, HIT_R = 18; // fast projectiles that lead the target
+    const MAX_ATTACKERS = 1;                           // one intruder at a time
+    const SPAWN_FIRST = 120, SPAWN_GAP = 150, SPAWN_JITTER = 180;
+    const TRAIL_LEN = 24;                              // ship trail length in frames (auto-removed)
+    const ORBIT_R = 250, ORBIT_AMP = 82;               // supporters straddle the scan border
+    const CURSOR_IDLE = 180;                           // 3s of no movement → leader stops following
+    const IDLE_AREA = 0.6;                             // idle leader roams a circle: radius = IDLE_AREA * (min(W,H)/2), centred on screen
+    const EVADE_MIN = 250, EVADE_RAND = 90;            // locked attacker weaves the field ~4-5.5s before it flees
+    const EVADE_SAFE = SCAN_RANGE + 55;                // …keeping at least this far from the leader's scanner while it does
+    const DAMP = 0.95;
+
+    // theme-aware teal + a valid fallback (custom props can read empty at init);
+    // re-read once styles land + on theme toggle.
+    const css = (v, fb) => { const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ","); return s || fb; };
+    let TEAL = css("--accent", "94,234,212");
+    const RED = "244,63,94", REDDOT = "255,90,110";
+    const readTeal = () => { TEAL = css("--accent", "94,234,212"); };
+    new MutationObserver(readTeal).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    let dpr = 1;
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = W() * dpr; canvas.height = H() * dpr;
+      canvas.style.width = W() + "px"; canvas.style.height = H() + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // --- cursor (defenders only; attackers ignore it entirely) ---
+    let mx = -9999, my = -9999, lastMove = -9999, F = 0;
+    window.addEventListener("mousemove", (e) => { mx = e.clientX; my = e.clientY; lastMove = F; }, { passive: true });
+    window.addEventListener("mouseleave", () => { mx = -9999; my = -9999; });
+    const cursorActive = () => mx > -9000 && (F - lastMove) < CURSOR_IDLE;
+
+    const half = (el) => ({ hw: (el.offsetWidth || 48) / 2, hh: (el.offsetHeight || 32) / 2 });
+
+    // --- defenders ---
+    const defenders = Array.from(root.querySelectorAll("[data-drone]")).map((el, i) => {
+      const h = half(el);
+      return {
+        el, iris: el.querySelector("[data-iris]"), role: el.dataset.role, leader: el.dataset.role === "leader",
+        x: W() * (0.4 + 0.05 * i), y: H() * (0.4 + 0.05 * i), vx: 0, vy: 0,
+        wander: Math.random() * 6.28, phase: Math.random() * 6.28, orbit: Math.random() * 6.28, rPhase: Math.random() * 6.28,
+        hw: h.hw, hh: h.hh, trail: [], hp: SUPPORT_HP, alive: true, reviveAt: 0, fireCd: 0,
+      };
+    });
+    const leader = defenders.find((d) => d.leader) || defenders[0];
+    const supporters = defenders.filter((d) => !d.leader);
+    const aliveSups = () => supporters.filter((s) => s.alive);
+
+    // --- attackers / fx pools ---
+    const attackers = [];
+    const bolts = [];      // {x,y,vx,vy,life,c,w,team,layer}
+    const sparks = [];     // {x,y,vx,vy,life,max,c,layer}
+    let mode = "patrol", target = null;
+    let scanAngle = 0;
+    let nextSpawn = SPAWN_FIRST, breaching = false;
+
+    const onScreen = (a) => a.x > -50 && a.x < W() + 50 && a.y > -50 && a.y < H() + 50;
+    const flash = (el, cls) => { if (!el) return; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 150); };
+    // lock on; stagger the opening volley so the (slow) takedown reads as a fight
+    const engage = (att) => {
+      mode = "engaged"; target = att;
+      att.evadeUntil = F + EVADE_MIN + (Math.random() * EVADE_RAND | 0); // weave the field this long before fleeing
+      att.jukeCd = 0;
+      defenders.forEach((d, i) => { d.fireCd = 12 + i * 15; });
+    };
+
+    const burst = (x, y, c, n) => {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * 6.28, s = 0.6 + Math.random() * 2.6;
+        sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 14 + Math.random() * 16 | 0, max: 30, c });
+      }
+    };
+    const fireBolt = (o, tx, ty, team, c) => {
+      const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy) || 1;
+      bolts.push({ x: o.x, y: o.y, vx: (dx / d) * BOLT_SPEED, vy: (dy / d) * BOLT_SPEED, life: BOLT_LIFE, c, w: 2, team });
+    };
+    const drawTrail = (trail, x, y, col, baseW) => {
+      trail.push(x, y);
+      if (trail.length > TRAIL_LEN * 2) trail.splice(0, trail.length - TRAIL_LEN * 2);
+      for (let k = 2; k < trail.length; k += 2) {
+        const t = k / trail.length;
+        ctx.strokeStyle = "rgba(" + col + "," + (0.5 * t).toFixed(3) + ")";
+        ctx.lineWidth = baseW * (0.25 + 0.75 * t);
+        ctx.beginPath(); ctx.moveTo(trail[k - 2], trail[k - 1]); ctx.lineTo(trail[k], trail[k + 1]); ctx.stroke();
+      }
+    };
+
+    function spawnAttacker() {
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      root.appendChild(node);
+      const h = half(node);
+      const side = Math.floor(Math.random() * 4), w = W(), ht = H();
+      let x, y;
+      if (side === 0) { x = -30; y = NAV + Math.random() * (ht - NAV - 60); }
+      else if (side === 1) { x = w + 30; y = NAV + Math.random() * (ht - NAV - 60); }
+      else if (side === 2) { x = Math.random() * w; y = NAV + 10; }
+      else { x = Math.random() * w; y = ht + 30; }
+      const a = {
+        el: node, core: node.querySelector("[data-core]"), x, y, vx: 0, vy: 0,
+        wander: Math.random() * 6.28, phase: Math.random() * 6.28,
+        hw: h.hw, hh: h.hh, hp: ATTACKER_HP, entered: false, fireCd: 30, returnCd: 0, trail: [],
+        evadeUntil: 0, jukeCd: 0,
+      };
+      attackers.push(a);
+      requestAnimationFrame(() => node.classList.add("is-in"));
+    }
+    function killAttacker(a) {
+      burst(a.x, a.y, REDDOT, 16);
+      a.el.classList.add("is-dying");
+      const el = a.el; setTimeout(() => el.remove(), 380);
+      const idx = attackers.indexOf(a); if (idx >= 0) attackers.splice(idx, 1);
+      if (target === a) { target = null; mode = "patrol"; }
+      supporters.forEach((s) => { if (!s.alive && !s.reviveAt) s.reviveAt = F + 150; });
+    }
+    function killSupporter(s) {
+      s.alive = false; s.hp = 0; s.el.classList.add("is-dead");
+      burst(s.x, s.y, REDDOT, 14);
+      if (aliveSups().length === 0) triggerBreach();
+    }
+    function reviveSupporter(s) {
+      s.alive = true; s.hp = SUPPORT_HP; s.reviveAt = 0;
+      s.x = leader.x + (Math.random() - 0.5) * 120; s.y = leader.y + (Math.random() - 0.5) * 120;
+      s.vx = 0; s.vy = 0; s.trail.length = 0;
+      s.el.classList.remove("is-dead"); s.el.classList.add("is-spawning");
+      setTimeout(() => s.el.classList.remove("is-spawning"), 440);
+      burst(s.x, s.y, TEAL, 8);
+    }
+    function triggerBreach() {
+      if (breaching) return;
+      breaching = true; mode = "patrol"; target = null;
+      breach.classList.remove("is-breaching"); void breach.offsetWidth; breach.classList.add("is-breaching");
+      setTimeout(resetGame, 1850);
+    }
+    function resetGame() {
+      attackers.splice(0).forEach((a) => a.el.remove());
+      supporters.forEach((s) => {
+        s.alive = true; s.hp = SUPPORT_HP; s.reviveAt = 0;
+        s.x = leader.x + (Math.random() - 0.5) * 140; s.y = leader.y + (Math.random() - 0.5) * 140;
+        s.vx = 0; s.vy = 0; s.trail.length = 0; s.el.classList.remove("is-dead");
+      });
+      leader.trail.length = 0;
+      bolts.length = 0; sparks.length = 0;
+      mode = "patrol"; target = null; nextSpawn = 240; breaching = false;
+      breach.classList.remove("is-breaching");
+    }
+
+    const clampSpeed = (o, max) => { const s = Math.hypot(o.vx, o.vy); if (s > max) { o.vx = (o.vx / s) * max; o.vy = (o.vy / s) * max; } };
+    const bounds = (o, pad) => {
+      const w = W(), h = H();
+      if (o.x < pad) { o.x = pad; o.vx = Math.abs(o.vx) + 0.2; o.wander = 0; }
+      if (o.x > w - pad) { o.x = w - pad; o.vx = -Math.abs(o.vx) - 0.2; o.wander = Math.PI; }
+      if (o.y < NAV + pad) { o.y = NAV + pad; o.vy = Math.abs(o.vy) + 0.2; o.wander = Math.PI / 2; }
+      if (o.y > h - pad) { o.y = h - pad; o.vy = -Math.abs(o.vy) - 0.2; o.wander = -Math.PI / 2; }
+    };
+
+    const step = () => { try { tick(); } catch (e) {} requestAnimationFrame(step); };
+
+    const tick = () => {
+      F++;
+      const w = W(), h = H();
+      ctx.clearRect(0, 0, w, h);
+      ctx.lineCap = "round";
+
+      // ============ ATTACKERS ============
+      for (let i = attackers.length - 1; i >= 0; i--) {
+        const a = attackers[i];
+        try {
+          if (!isFinite(a.x) || !isFinite(a.y)) { a.x = w / 2; a.y = h / 2; a.vx = 0; a.vy = 0; }
+          a.wander += (Math.random() - 0.5) * 0.14;
+          let ax = Math.cos(a.wander) * 0.04, ay = Math.sin(a.wander) * 0.04;
+          const locked = target === a;
+
+          let prey = null, pd = 1e9;
+          for (const s of aliveSups()) { const dd = Math.hypot(s.x - a.x, s.y - a.y); if (dd < pd) { pd = dd; prey = s; } }
+
+          if (!a.entered) {
+            ax += (w * 0.5 - a.x) * 0.0022; ay += ((NAV + h) * 0.5 - a.y) * 0.0022;
+            if (a.x > 30 && a.x < w - 30 && a.y > NAV + 30 && a.y < h - 30) a.entered = true;
+          } else if (locked) {
+            if (F < a.evadeUntil) {
+              // EVADE — weave a safe path through the field, staying OUTSIDE the
+              // leader's scanner circle and jinking unpredictably; don't leave yet.
+              const lx = a.x - leader.x, ly = a.y - leader.y, ld = Math.hypot(lx, ly) || 1;
+              if (ld < EVADE_SAFE) { const k = 0.45 + ((EVADE_SAFE - ld) / EVADE_SAFE) * 0.85; ax += (lx / ld) * k; ay += (ly / ld) * k; }
+              if (--a.jukeCd <= 0) { a.jukeCd = 13 + (Math.random() * 15 | 0); a.wander = Math.random() * 6.28; } // frequent sharp dodges break the squad's aim
+              ax += Math.cos(a.wander) * 0.07; ay += Math.sin(a.wander) * 0.07;
+            } else {
+              // time's up — break for the nearest edge and leave
+              const dl = a.x, dr = w - a.x, dt = a.y - NAV, db = h - a.y, m = Math.min(dl, dr, dt, db);
+              if (m === dl) ax -= 0.62; else if (m === dr) ax += 0.62; else if (m === dt) ay -= 0.62; else ay += 0.62;
+            }
+            // fire back wildly throughout the lock (no target)
+            if (--a.returnCd <= 0) { a.returnCd = ATK_RETURN_CD + (Math.random() * 14 | 0); const ang = Math.random() * 6.28; fireBolt(a, a.x + Math.cos(ang) * 80, a.y + Math.sin(ang) * 80, "atk", RED); }
+          } else {
+            // hunt the nearest supporter and shoot it
+            if (prey) { const d = pd || 1; ax += ((prey.x - a.x) / d) * 0.1; ay += ((prey.y - a.y) / d) * 0.1; }
+            if (prey && pd < ATK_RANGE && --a.fireCd <= 0) { a.fireCd = ATK_FIRE_CD + (Math.random() * 20 | 0); fireBolt(a, prey.x, prey.y, "atk", RED); }
+          }
+
+          a.vx = (a.vx + ax) * DAMP; a.vy = (a.vy + ay) * DAMP;
+          // locked → a little faster than its 2.3 roam (panic), but slower to flee than before
+          clampSpeed(a, a.entered ? (locked ? 2.6 : 2.3) : 2.4);
+          a.x += a.vx; a.y += a.vy;
+
+          if (a.entered) {
+            if (locked && F >= a.evadeUntil) {
+              // fleeing out — let it cross the edge and despawn
+              if (!onScreen(a)) { a.el.remove(); attackers.splice(i, 1); target = null; mode = "patrol"; continue; }
+            } else {
+              bounds(a, 22); // hunting or evading → keep it inside the field
+            }
+          }
+
+          a.phase += 0.04;
+          const rot = Math.atan2(a.vy, a.vx) * 57.2958;
+          a.el.style.transform = `translate3d(${a.x - a.hw}px, ${a.y - a.hh}px, 0) rotate(${rot}deg)`;
+          drawTrail(a.trail, a.x, a.y, REDDOT, 2.6);
+        } catch (e) {}
+      }
+
+      // ============ CONTINUOUS TERRITORY SCAN (leader) ============
+      // the leader watches its radius every frame and locks on the instant an
+      // attacker crosses into range.
+      if (mode === "patrol") {
+        let best = null, bd = SCAN_RANGE;
+        for (const a of attackers) { if (!a.entered) continue; const d = Math.hypot(a.x - leader.x, a.y - leader.y); if (d < bd) { bd = d; best = a; } }
+        if (best) engage(best);
+      }
+      if (target && (!attackers.includes(target) || !onScreen(target))) { target = null; mode = "patrol"; }
+
+      // ============ DEFENDERS ============
+      for (const d of defenders) {
+        try {
+          if (!d.alive) { if (d.reviveAt && F >= d.reviveAt && !breaching) reviveSupporter(d); continue; }
+          if (!isFinite(d.x) || !isFinite(d.y)) { d.x = w / 2; d.y = h / 2; d.vx = 0; d.vy = 0; }
+          d.wander += (Math.random() - 0.5) * 0.12;
+          let ax, ay;
+
+          if (d.leader) {
+            ax = Math.cos(d.wander) * 0.09; ay = Math.sin(d.wander) * 0.09;
+            if (cursorActive()) {
+              ax += (mx - d.x) * 0.0026; ay += (my - d.y) * 0.0026; // follow the cursor
+            } else {
+              // idle → FLY a circle centred on screen (radius = IDLE_AREA * half
+              // the shorter side); only steer back when it drifts outside, so it
+              // roams the whole area instead of homing to the exact centre.
+              const cx0 = w * 0.5, cy0 = h * 0.5, R = (Math.min(w, h) / 2) * IDLE_AREA;
+              const ex = d.x - cx0, ey = d.y - cy0;
+              if (Math.hypot(ex, ey) > R) { ax += (cx0 - d.x) * 0.005; ay += (cy0 - d.y) * 0.005; }
+            }
+            if (target) { ax += (target.x - d.x) * 0.0008; ay += (target.y - d.y) * 0.0008; }
+          } else {
+            // orbit the leader around the EDGE of its scan range (drifts in/out)
+            d.orbit += 0.006;
+            const r = ORBIT_R + Math.sin(F * 0.012 + d.rPhase) * ORBIT_AMP;
+            const tx = leader.x + Math.cos(d.orbit) * r, ty = leader.y + Math.sin(d.orbit) * r;
+            ax = (tx - d.x) * 0.004 + Math.cos(d.wander) * 0.05;
+            ay = (ty - d.y) * 0.004 + Math.sin(d.wander) * 0.05;
+            for (const o of defenders) { if (o === d || !o.alive) continue; const sx = d.x - o.x, sy = d.y - o.y, sd = Math.hypot(sx, sy) || 1; if (sd < 56) { ax += (sx / sd) * 0.06; ay += (sy / sd) * 0.06; } }
+          }
+
+          d.vx = (d.vx + ax) * DAMP; d.vy = (d.vy + ay) * DAMP;
+          clampSpeed(d, d.leader ? 2.0 : 2.5);
+          d.x += d.vx; d.y += d.vy;
+          bounds(d, 26);
+
+          d.phase += 0.035;
+          const bob = Math.sin(d.phase) * 2.4;
+          const rot = Math.max(-14, Math.min(14, d.vx * 3));
+          d.el.style.transform = `translate3d(${d.x - d.hw}px, ${d.y - d.hh + bob}px, 0) rotate(${rot}deg)`;
+
+          if (d.iris) {
+            let lookx = d.vx, looky = d.vy;
+            if (target) { lookx = target.x - d.x; looky = target.y - d.y; }
+            else if (mx > -9000) { lookx = mx - d.x; looky = my - d.y; }
+            const m = Math.hypot(lookx, looky) || 1;
+            d.iris.setAttribute("cx", (30 + Math.max(-3, Math.min(3, (lookx / m) * 3))).toFixed(1));
+            d.iris.setAttribute("cy", (23 + Math.max(-3, Math.min(3, (looky / m) * 3))).toFixed(1));
+          }
+          d.el.classList.toggle("is-firing", mode === "engaged" && !!target);
+          drawTrail(d.trail, d.x, d.y + bob, TEAL, d.leader ? 3 : 2.2);
+
+          // squad fire — slow projectile that LEADS the fleeing attacker (so the
+          // sparse shots can connect), with a little spread so it can still escape.
+          if (mode === "engaged" && target && --d.fireCd <= 0) {
+            d.fireCd = DEF_FIRE_CD + (Math.random() * 20 | 0);
+            const sx = d.x, sy = d.y + bob;
+            const tt = Math.hypot(target.x - sx, target.y - sy) / BOLT_SPEED; // bolt travel time
+            // accurate only while the target is INSIDE the leader's scanner; outside it the
+            // squad has no lock and fires blind → the attacker's out-of-range weave is safe.
+            const spread = Math.hypot(target.x - leader.x, target.y - leader.y) < SCAN_RANGE ? 13 : 95;
+            const tx = target.x + target.vx * tt + (Math.random() - 0.5) * spread;
+            const ty = target.y + target.vy * tt + (Math.random() - 0.5) * spread;
+            fireBolt({ x: sx, y: sy }, tx, ty, "def", TEAL);
+          }
+        } catch (e) {}
+      }
+
+      // ============ BOLTS (travel + collide) ============
+      for (let i = bolts.length - 1; i >= 0; i--) {
+        const b = bolts[i];
+        b.x += b.vx; b.y += b.vy; b.life--;
+        let hit = false;
+        if (b.team === "def") {
+          for (const a of attackers) { if (Math.hypot(a.x - b.x, a.y - b.y) < HIT_R) { a.hp -= 1; flash(a.el, "is-hit"); burst(b.x, b.y, TEAL, 3); hit = true; if (a.hp <= 0) killAttacker(a); break; } }
+        } else {
+          for (const s of aliveSups()) { if (Math.hypot(s.x - b.x, s.y - b.y) < HIT_R) { s.hp -= 1; flash(s.el, "is-hit"); burst(b.x, b.y, REDDOT, 3); hit = true; if (s.hp <= 0) killSupporter(s); break; } }
+        }
+        const al = Math.min(1, b.life / 10) * 0.9;
+        ctx.strokeStyle = "rgba(" + b.c + "," + al.toFixed(3) + ")"; ctx.lineWidth = b.w;
+        ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 1.5, b.y - b.vy * 1.5); ctx.stroke();
+        if (hit || b.life <= 0 || !onScreen(b)) bolts.splice(i, 1);
+      }
+
+      // ============ LEADER RADAR (always scanning) ============
+      {
+        scanAngle += 0.045;
+        if (scanAngle > 6.2832) scanAngle -= 6.2832;
+        // faint perimeter of the watched territory
+        ctx.strokeStyle = "rgba(" + TEAL + ",0.10)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(leader.x, leader.y, SCAN_RANGE, 0, 6.2832); ctx.stroke();
+        // rotating sweep wedge + bright leading edge
+        const g = ctx.createRadialGradient(leader.x, leader.y, 6, leader.x, leader.y, SCAN_RANGE);
+        g.addColorStop(0, "rgba(" + TEAL + ",0.14)"); g.addColorStop(1, "rgba(" + TEAL + ",0)");
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.moveTo(leader.x, leader.y); ctx.arc(leader.x, leader.y, SCAN_RANGE, scanAngle - 0.5, scanAngle); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = "rgba(" + TEAL + ",0.4)"; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(leader.x, leader.y); ctx.lineTo(leader.x + Math.cos(scanAngle) * SCAN_RANGE, leader.y + Math.sin(scanAngle) * SCAN_RANGE); ctx.stroke();
+      }
+
+      // ============ LOCK-ON BRACKET ============
+      if (mode === "engaged" && target) {
+        const s = 18 + Math.sin(F * 0.18) * 2, x = target.x, y = target.y;
+        ctx.strokeStyle = "rgba(" + TEAL + ",0.85)"; ctx.lineWidth = 1.4;
+        const corner = (cx, cy, sx, sy) => { ctx.beginPath(); ctx.moveTo(cx + sx * s, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * s); ctx.stroke(); };
+        corner(x - s, y - s, 1, 1); corner(x + s, y - s, -1, 1); corner(x - s, y + s, 1, -1); corner(x + s, y + s, -1, -1);
+      }
+
+      // ============ SPARKS ============
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const p = sparks[i]; const al = p.life / p.max;
+        p.x += p.vx; p.y += p.vy; p.vx *= 0.92; p.vy *= 0.92;
+        ctx.fillStyle = "rgba(" + p.c + "," + (0.9 * al).toFixed(3) + ")";
+        ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+        if (--p.life <= 0) sparks.splice(i, 1);
+      }
+
+      // ============ SPAWN ============
+      if (!breaching && attackers.length < MAX_ATTACKERS && --nextSpawn <= 0) {
+        spawnAttacker();
+        nextSpawn = SPAWN_GAP + Math.random() * SPAWN_JITTER | 0;
+      }
+    };
+
+    requestAnimationFrame(() => { readTeal(); root.classList.add("is-ready"); step(); });
+  })();
+</script>

@@ -1,0 +1,88 @@
+---
+title: "KGK Buy Diamonds"
+oneLiner: "Global B2B diamond-trading platform serving 10+ countries — Flutter app + Clean Architecture + BLoC."
+status: "verified"
+category: "Enterprise & B2B E-Commerce"
+role: "Mobile Development Team Lead"
+employer: "KGK InfoTech LLP"
+client: "KGK Group"
+publisher: "KGK Diamonds BVBA"
+period: "2025 — Present"
+featured: true
+order: 1
+region: "South Asia"
+city: "Surat"
+country: "India"
+lat: 21.1702
+lng: 72.8311
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Clean Architecture"
+  - "BLoC"
+  - "REST APIs"
+  - "Performance optimisation"
+  - "CI/CD"
+links:
+  appStore: "https://apps.apple.com/in/app/kgk-diamonds-buy-diamonds/id6479595403"
+  playStore: "https://play.google.com/store/apps/details?id=com.kgk.diamonds"
+  liveSite: "https://kgkdiamonds.com/"
+hero: "/work/kgk-buy-diamonds/hero-placeholder.svg"
+gallery: []
+accent: "236 242 255"
+needsAssets: true
+todos:
+  - "Provide hero image + 3–5 gallery screenshots of the live app."
+  - "Confirm headline metric — the store listing mentions '50,000+ certified diamonds' and '120 years'; either is safe to feature."
+---
+
+## Overview
+
+KGK Buy Diamonds is the flagship B2B trading app for the **KGK Group**, a diamond house with a 120-year history and a presence in 10+ countries. The app puts a live, certified diamond inventory in the hands of retailers, wholesalers and brokers — with the kind of advanced search and filter UX a wholesaler actually needs. I lead the mobile team that builds and ships it from KGK InfoTech LLP in Surat.
+
+## Problem &amp; context
+
+Diamond trading has historically been a relationship + Excel business. KGK's customers — retail jewellers and wholesalers across India, the Gulf, Europe and the Americas — were placing orders against fragmented inventory reports that went stale by the time they arrived. KGK needed a mobile-first product that could:
+
+- carry tens of thousands of inventory rows with real-time pricing and certificate viewing,
+- feel as fast on an entry-level Android in Surat as on the latest iPhone in Antwerp,
+- present an internationally-readable interface in a domain that's heavy on jargon (cut, clarity, certification grades),
+- and survive on flaky cellular networks where buyers actually trade from.
+
+It also had to be defensible as a B2B product — clean auth, audit trail, no surprises during a sales pitch demo.
+
+## My approach &amp; key decisions
+
+The mobile app sits on top of KGK's broader trading platform. Coming in as the mobile lead, the early decisions were architectural:
+
+- **Clean Architecture + BLoC** for the codebase. The team isn't tiny, the surface area is broad, and onboarding new engineers had to be fast. Layered separation between domain, data, and presentation pays for itself in months.
+- **Aggressive list virtualisation** for the inventory grid. The screens spend most of their time in long, filter-heavy lists; performance there determines whether the app feels professional or amateur.
+- **Search-and-filter as a first-class path**, not an afterthought. The filter UX is where wholesalers actually live in this kind of app. We treated it with the care normally reserved for hero screens.
+- **A unified design system across platforms.** Spec-driven components mean the iOS and Android builds don't drift over time.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart). Clean Architecture with domain/data/presentation separation. State via BLoC.
+- **Data:** REST APIs backed by KGK's trading platform. Local caching for the listing screens.
+- **Distribution:** Available on both App Store and Google Play, published under the KGK Diamonds entity.
+- **CI/CD:** Git-based pipelines, automated build + deploy steps wired into the team's Jira workflow.
+
+## Challenges
+
+- **High-volume data grids without dropped frames.** The inventory list is long and the filter actions change it constantly. Virtualised lists, frame budgeting, and careful re-render boundaries.
+- **API latency on filter-heavy paths.** Round-trips on listing screens were tuned for the real network conditions traders work under — payload shape, paging strategy, and cache invalidation rules redesigned for the use case.
+- **B2B trust signals.** The app has to look credible during a sales conversation. Visual polish and stability are part of the product, not separate from it.
+
+## Results &amp; impact
+
+- Shipping on both **App Store (iOS)** and **Google Play (Android)** under the KGK Group publisher, powering the international B2B trading flow.
+- The KGK platform itself is positioned around the line "Buy Diamonds in Few Clicks" and serves the certified inventory at scale.
+- Team-wide reliability targets: 95%+ crash-free sessions and 99.9% uptime, supported by automated testing and crash reporting.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, KGK InfoTech LLP role description and project line for KGK Buy Diamonds.
+- App Store listing — [apps.apple.com/in/app/kgk-diamonds-buy-diamonds](https://apps.apple.com/in/app/kgk-diamonds-buy-diamonds/id6479595403).
+- Play Store listing — [play.google.com/store/apps/details?id=com.kgk.diamonds](https://play.google.com/store/apps/details?id=com.kgk.diamonds).
+- KGK Diamonds site — [kgkdiamonds.com](https://kgkdiamonds.com/).
+- Internal verification round 2 (`RESEARCH.md`).

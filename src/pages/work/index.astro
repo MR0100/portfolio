@@ -1,0 +1,227 @@
+---
+import { getCollection } from "astro:content";
+import Base from "~/layouts/Base.astro";
+import StatusBadge from "~/components/StatusBadge.astro";
+import StoreLinksRow from "~/components/StoreLinksRow.astro";
+import WorldMap from "~/components/WorldMap.astro";
+import SpecimenHeading from "~/components/SpecimenHeading.astro";
+
+const all = (await getCollection("work")).sort((a, b) => a.data.order - b.data.order);
+
+// Helpers to extract a sort key from period (e.g., "2025 — Present" → 2025)
+const periodSort = (p: string) => {
+  const m = p.match(/(\d{4})/);
+  return m ? Number(m[1]) : 0;
+};
+
+// Status priority: verified > brand-verified > unlisted > internal > early
+const statusOrder: Record<string, number> = {
+  verified: 0,
+  "brand-verified": 1,
+  unlisted: 2,
+  internal: 3,
+  early: 4,
+};
+
+const counts = {
+  total: all.length,
+  verified: all.filter((e) => e.data.status === "verified").length,
+  brand: all.filter((e) => e.data.status === "brand-verified").length,
+  internal: all.filter((e) => ["internal", "unlisted", "early"].includes(e.data.status)).length,
+  regions: new Set(all.map((e) => e.data.region)).size,
+  industries: new Set(all.map((e) => e.data.category)).size,
+};
+---
+
+<Base
+  title="Catalog"
+  description="The full sortable catalog of every app Mitul Vaghasiya has shipped."
+>
+  <section class="container-page pt-10 md:pt-14">
+    <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <div>Specimen Sheets · Atlas of Work · Vol. I</div>
+      <div>{all.length} entries</div>
+    </div>
+    <div class="mt-4 rule-thin"></div>
+
+    <h1 class="mt-10 font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95] max-w-4xl">
+      Catalog<span class="text-accent">.</span>
+    </h1>
+    <p class="mt-4 max-w-2xl font-serif text-lg md:text-xl text-muted leading-relaxed">
+      The complete index. Sort by status, region, category, or year. Every entry links to its full specimen page.
+    </p>
+
+    <!-- At-a-glance stats -->
+    <dl class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-10 border-t border-b border-border/60 py-8">
+      <div>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Total</dt>
+        <dd class="stat-num">{counts.total}</dd>
+      </div>
+      <div>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Verified</dt>
+        <dd class="stat-num">{counts.verified}</dd>
+      </div>
+      <div>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Brand · client</dt>
+        <dd class="stat-num">{counts.brand}</dd>
+      </div>
+      <div>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Internal · early</dt>
+        <dd class="stat-num">{counts.internal}</dd>
+      </div>
+      <div>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Industries</dt>
+        <dd class="stat-num">{counts.industries}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- Map -->
+  <section class="container-page mt-12">
+    <SpecimenHeading num="00" title="Plate · atlas of work" trailing={`${counts.regions} regions`} />
+    <div class="mt-6 border border-border bg-paper/40 rounded-md p-3 md:p-4">
+      <WorldMap />
+    </div>
+  </section>
+
+  <!-- Sortable catalog -->
+  <section class="container-page mt-20" data-catalog-root>
+    <SpecimenHeading num="01" title="Catalog · specimen index" trailing={`${all.length} entries`} />
+
+    <!-- Sort toolbar -->
+    <div class="mt-6 flex flex-wrap items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <span>Sort by</span>
+      <button type="button" data-sort="order" class="chip chip-accent" aria-pressed="true">Order</button>
+      <button type="button" data-sort="status" class="chip" aria-pressed="false">Status</button>
+      <button type="button" data-sort="region" class="chip" aria-pressed="false">Region</button>
+      <button type="button" data-sort="category" class="chip" aria-pressed="false">Category</button>
+      <button type="button" data-sort="period" class="chip" aria-pressed="false">Period</button>
+    </div>
+
+    <!-- Specimen rows -->
+    <ol class="mt-6 divide-y divide-border/60 border-y border-border/60" data-catalog-list>
+      {all.map((entry, i) => {
+        const d = entry.data;
+        const heroImg = d.hero || d.gallery[0];
+        const num = String(d.order).padStart(2, "0");
+        const location = [d.city, d.country].filter(Boolean).join(", ");
+        const distribution = [
+          d.links.appStore && "iOS",
+          (d.links.playStore || d.links.apkPure) && "Android",
+          d.links.liveSite && "Web",
+        ].filter(Boolean).join(" / ") || "Internal";
+
+        return (
+          <li
+            class="group relative"
+            data-row
+            data-sort-order={d.order}
+            data-sort-status={statusOrder[d.status] ?? 9}
+            data-sort-region={d.region}
+            data-sort-category={d.category}
+            data-sort-period={-periodSort(d.period)}
+          >
+            <article class="grid gap-x-6 gap-y-3 py-7 md:grid-cols-[44px_1fr_auto] lg:grid-cols-[44px_1fr_240px]">
+              <div class="font-mono text-lg font-normal tabular-nums tracking-tight text-accent leading-none pt-1">{num}</div>
+
+              <div class="space-y-2 min-w-0">
+                <div class="flex items-baseline gap-3 flex-wrap">
+                  <h3 class="font-display text-xl md:text-2xl font-semibold tracking-tight leading-tight">
+                    <a
+                      href={`/work/${entry.slug}`}
+                      class="after:absolute after:inset-0 after:content-[''] group-hover:text-accent transition-colors"
+                    >
+                      {d.title}
+                    </a>
+                  </h3>
+                  <span class="relative z-10"><StatusBadge status={d.status} /></span>
+                </div>
+
+                <p class="font-serif text-base text-muted leading-relaxed max-w-prose">{d.oneLiner}</p>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0.5 pt-1 max-w-2xl">
+                  <div class="spec-row">
+                    <dt>Class</dt>
+                    <span class="leader" aria-hidden="true"></span>
+                    <dd>{d.category}</dd>
+                  </div>
+                  <div class="spec-row">
+                    <dt>Region</dt>
+                    <span class="leader" aria-hidden="true"></span>
+                    <dd>{d.region}{location && ` · ${location}`}</dd>
+                  </div>
+                  <div class="spec-row">
+                    <dt>Period</dt>
+                    <span class="leader" aria-hidden="true"></span>
+                    <dd>{d.period}</dd>
+                  </div>
+                  <div class="spec-row">
+                    <dt>Distrib.</dt>
+                    <span class="leader" aria-hidden="true"></span>
+                    <dd>{distribution}</dd>
+                  </div>
+                </dl>
+
+                <div class="flex flex-wrap items-center gap-3 pt-1 relative z-10">
+                  <StoreLinksRow links={d.links} />
+                  <div class="flex flex-wrap gap-1.5">
+                    {d.stack.slice(0, 4).map((s) => <span class="chip">{s}</span>)}
+                    {d.stack.length > 4 && <span class="chip">+{d.stack.length - 4}</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div class="hidden lg:block">
+                <div class="relative overflow-hidden rounded-md border border-border bg-paper/60 aspect-[4/3] transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                  {heroImg ? (
+                    <img src={heroImg} alt={`${d.title} screenshot`} loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-contain object-center p-4" />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center text-muted text-center text-[10px] font-mono uppercase tracking-[0.24em] p-6">
+                      Screenshots pending
+                    </div>
+                  )}
+                </div>
+              </div>
+            </article>
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+</Base>
+
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-catalog-root]");
+    if (!root) return;
+    const list = root.querySelector("[data-catalog-list]");
+    const buttons = Array.from(root.querySelectorAll("[data-sort]"));
+
+    const sortBy = (key) => {
+      const rows = Array.from(list.querySelectorAll("[data-row]"));
+      const isString = key === "region" || key === "category";
+
+      rows.sort((a, b) => {
+        const av = a.getAttribute(`data-sort-${key}`) ?? "";
+        const bv = b.getAttribute(`data-sort-${key}`) ?? "";
+        if (isString) return av.localeCompare(bv);
+        return Number(av) - Number(bv);
+      });
+
+      rows.forEach((r) => list.appendChild(r));
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-sort");
+        if (!key) return;
+        buttons.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle("chip-accent", active);
+          b.setAttribute("aria-pressed", String(active));
+        });
+        sortBy(key);
+      });
+    });
+  })();
+</script>

@@ -1,0 +1,76 @@
+---
+title: "Locket"
+oneLiner: "Real-time location sharing with battery + speed telemetry and WebSocket group chat. Native bridges everywhere."
+status: "verified"
+category: "Real-time & Native Bridges"
+role: "Flutter Developer (Lead)"
+employer: "Sadguru Soft"
+client: "Wanderlust Inc."
+publisher: "Wanderlust Inc."
+period: "2022 — 2023"
+featured: true
+order: 4
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Kotlin"
+  - "Swift"
+  - "Method Channels"
+  - "Background services"
+  - "WebSockets"
+  - "Foreground notifications"
+links:
+  apkPure: "https://apkpure.com/locket-location-sharing-app/io.locket"
+hero: "/work/locket/hero-placeholder.svg"
+gallery: []
+accent: "236 242 255"
+needsAssets: true
+todos:
+  - "Provide hero + 3 gallery screenshots."
+  - "Confirm dates."
+  - "Confirm the public release window — the Play Store listing for `io.locket` was live and has since been delisted; APKPure mirror remains."
+---
+
+## Overview
+
+Locket is a real-time location-sharing app — closer in spirit to Life360 than to the famous photo-widget Locket. It broadcasts granular telemetry (location, battery, moving speed, status — sleeping / at home / at school) to a circle of contacts and adds a WebSocket-backed group chat on top. I led the Flutter build at Sadguru Soft, with the heavy native-platform work as the technically interesting part.
+
+## Problem &amp; context
+
+"Real-time location sharing" is one of those features that looks simple in Figma and is misery to ship. Background location is regulated by both app stores, battery costs are unforgiving, users notice every dropped update, and Flutter's plugin ecosystem only gets you so far before you need to drop into native code.
+
+The product also had a credible threat of being confused with another app — Locket Widget by Locket Labs, a US-based photo-widget product. Disambiguation mattered: this Locket was about location, not photos.
+
+## My approach &amp; key decisions
+
+- **Native iOS + Android background services own the location loop.** The Dart side never owns the location loop directly — it asks the platform for state and reacts to events that come back over Method Channels.
+- **Compact telemetry deltas over WebSocket.** Location, battery, speed, and a derived "status" field, packaged tightly and pushed near real time to the contact group.
+- **One transport doing two jobs.** Group chat is layered on top of the same WebSocket connection that carries telemetry.
+- **Discipline on platform policy.** A foreground notification on Android, plus the right combination of background modes on iOS, to stay within store rules and keep battery cost defensible.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for UI, with significant **Kotlin** and **Swift** for the background services and serial telemetry plumbing.
+- **Bridge:** Method Channels between Flutter and the native services.
+- **Transport:** WebSocket carrying both telemetry and group chat.
+- **Platform compliance:** Android foreground service with a persistent notification; iOS background modes configured per platform policy.
+- **Distribution:** Published on Google Play under the `io.locket` bundle by Wanderlust Inc. The Play listing has since been delisted; the APKPure mirror of the same bundle remains.
+
+## Challenges
+
+- **Battery vs. accuracy trade-offs** — the duty cycle on the location loop is what makes or breaks this category. Tuned per-platform; iOS leans on its native location APIs more aggressively than Android.
+- **Store-policy navigation.** Background location is a sensitive permission on both stores; getting the consent and disclosure flows right was a real piece of the work.
+- **Same-name confusion.** "Locket" is a heavily-trafficked product name on both stores. The right disambiguation is the `io.locket` bundle, not Locket Widget's `com.locket.Locket`.
+
+## Results &amp; impact
+
+- Shipped on Google Play under the `io.locket` bundle and the Wanderlust Inc. publisher.
+- Has since been delisted from the public Play Store; the APKPure mirror of the same bundle is the working install path today.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Locket (Location Sharing) project line.
+- APKPure mirror — [apkpure.com/locket-location-sharing-app](https://apkpure.com/locket-location-sharing-app/io.locket).
+- Round 2 verification (`RESEARCH.md`) including explicit disambiguation from Locket Widget by Locket Labs.
+- Mitul's confirmation that `io.locket` is the correct bundle, since delisted from the Play Store.

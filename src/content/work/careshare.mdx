@@ -1,0 +1,72 @@
+---
+title: "CareShare"
+oneLiner: "Consumer health-care app integrating Google Fit, Apple Health, IAP, and FCM-driven engagement."
+status: "unlisted"
+category: "Health"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+period: "2021 — 2022"
+featured: false
+order: 18
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Google Fit"
+  - "Apple Health"
+  - "REST APIs"
+  - "Camera"
+  - "FCM"
+  - "In-App Purchase"
+  - "Local Storage"
+  - "Animations"
+links: {}
+hero: "/work/careshare/01.png"
+gallery:
+  - "/work/careshare/01.png"
+  - "/work/careshare/02.png"
+  - "/work/careshare/03.png"
+accent: "227 255 240"
+todos:
+  - "Confirm exact dates."
+  - "Confirm whether to anonymise the client or use the public name."
+---
+
+## Overview
+
+CareShare was a consumer health care and assistance app — pulling activity data from Google Fit and Apple Health, layering on engagement features (camera-based check-ins, push reminders, IAP), and presenting it through a polished consumer mobile UI. Built at Sadguru Soft.
+
+## Problem &amp; context
+
+Multi-platform health-data integration is its own discipline. Google Fit and Apple Health expose subtly different data shapes and permission models, and a consumer health app has to harmonise them while still respecting each platform's privacy expectations.
+
+Beyond the data integrations, the product had a polished consumer surface — camera-driven check-ins, FCM-driven engagement, IAP for premium features.
+
+## My approach &amp; key decisions
+
+- **Cross-platform health-data ingestion** unifying Google Fit (Android) and Apple Health (iOS) into a single internal data model.
+- **Camera-based check-ins** as a soft verification mechanism within the engagement loop.
+- **FCM for daily engagement, IAP for premium features** — the standard consumer-app commerce + retention stack.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), iOS + Android.
+- **Health data:** Google Fit (Android) + Apple Health (iOS) via platform integration.
+- **Commerce:** IAP for premium features.
+- **Notifications:** FCM for daily engagement.
+- **Media:** Camera capture for check-ins.
+
+## Challenges
+
+- **Two different health-data APIs.** Same metrics, different shapes, different permission models — unification is non-trivial.
+- **Privacy framing.** Health data, even consumer-grade, has expectations about handling.
+
+## Results &amp; impact
+
+- Not currently in public app stores. Listed here as a real piece of client work rather than pretending it doesn't exist.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*. (Note: CareShare appears in Mitul's old portfolio data with the full feature set above; not in the most recent April 2026 resume cut.)
+- Old portfolio data — confirmed via the portfolio-next source in `inputs/`.
+- Round 1 + 2 verification (`RESEARCH.md`) — confirmed no public store listing matches the consumer health-tracker + Google Fit / Apple Health profile.

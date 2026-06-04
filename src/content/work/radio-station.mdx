@@ -1,0 +1,58 @@
+---
+title: "Radio Station"
+oneLiner: "Online radio streaming app — early Flutter project, small and focused."
+status: "early"
+category: "Media"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+period: "2020"
+featured: false
+order: 19
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Audio streaming"
+links: {}
+hero: "/work/radio-station/01.png"
+gallery:
+  - "/work/radio-station/01.png"
+  - "/work/radio-station/02.png"
+  - "/work/radio-station/03.png"
+accent: "239 229 255"
+todos:
+  - "Confirm dates."
+  - "If you'd rather not feature this at all, set `featured: false` and we can move it to an 'Earlier work' strip or omit entirely."
+---
+
+## Overview
+
+A small, focused Flutter project from the early years — an online radio streaming app. Included here for completeness and as a record of where the Flutter journey started; the interesting work in this portfolio is everything that came after.
+
+## Problem &amp; context
+
+Audio streaming on mobile is a great early-career exercise — touches platform audio APIs, foreground services on Android for background playback, lifecycle handling when the user puts the phone down, and a media-controls UX that has to feel right without much surface area.
+
+## My approach &amp; key decisions
+
+- **Standard Flutter audio streaming.** Off-the-shelf was the right call for a small project.
+- **Foreground-friendly playback** so audio kept playing when the app was backgrounded.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for Android.
+- **Playback:** Audio streaming + standard platform background-playback patterns.
+
+## Challenges
+
+- **Background playback lifecycle** is the classic gotcha here. The platform-specific behaviours differ enough that early Flutter projects always learn this lesson.
+
+## Results &amp; impact
+
+- An early Flutter project; small in scope by design.
+- Not in public app stores.
+
+## Sources
+
+- Mitul's old portfolio listing — "Online Radio Station Application".
+- Round 1 verification (`RESEARCH.md`) — no plausible public store match (name is generic; project is from 2020 era).

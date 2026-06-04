@@ -1,0 +1,67 @@
+---
+title: "Setera TPMS"
+oneLiner: "Hardware-interfacing Android app for tyre-pressure sensor telemetry — USB Host APIs over Method Channels."
+status: "internal"
+category: "Hardware · Sensor Utility"
+role: "Mobile Developer"
+employer: "Sadguru Soft"
+client: "Setera (automotive hardware partner)"
+period: "2023 — 2024"
+featured: false
+order: 16
+region: "International / unknown"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Kotlin"
+  - "Android USB Host APIs"
+  - "Method Channels"
+  - "Serial communication"
+links: {}
+hero: "/work/setera-tpms/hero-placeholder.svg"
+gallery: []
+accent: "243 255 243"
+needsAssets: true
+todos:
+  - "Provide screenshots if any (internal tool — may not have any)."
+  - "Confirm dates."
+  - "Confirm whether the client name 'Setera' is safe to mention publicly."
+---
+
+## Overview
+
+Setera TPMS is a hardware-interfacing utility — an Android client talking to tyre-pressure sensors over USB to read and write low-level sensor telemetry. The interesting half of the app lives below the Flutter layer, in native Kotlin. Built at Sadguru Soft for an automotive hardware partner.
+
+## Problem &amp; context
+
+USB sensor telemetry is the kind of work where most-of-the-app is plumbing and the win is in not crashing. Pure Flutter doesn't talk to USB devices on Android — the platform exposes the APIs but they need careful native handling around permission flows, device enumeration, and stream lifecycle.
+
+This was a B2B tool for technicians working with TPMS (tyre-pressure monitoring system) hardware. The audience is small, the requirements are exacting, and the value is in the lack of surprises.
+
+## My approach &amp; key decisions
+
+- **Native Kotlin owns the serial protocol.** Flutter handles the technician-facing UI; the low-level read/write code stays in native land where it belongs.
+- **Method Channels expose a clean Dart-side API** for the UI to call into, while keeping the serial protocol pinned to Kotlin.
+- **Explicit error surfaces.** When the hardware doesn't cooperate, the technician sees what happened — not a generic failure.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for the technician UI.
+- **Native:** Kotlin for Android USB Host integration and the serial protocol.
+- **Bridge:** Method Channels between Flutter and the native USB layer.
+- **Distribution:** Internal hardware-partner tool. Not on public app stores.
+
+## Challenges
+
+- **USB device permission and lifecycle on Android.** Enumeration, attachment events, permission requests, and stream cleanup — none of it is forgiving.
+- **Serial protocol reliability.** Sensor telemetry over serial is unforgiving about partial reads and timing.
+
+## Results &amp; impact
+
+- Internal automotive-partner tool — never on public app stores.
+- Used by the hardware partner's technician workflow.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Setera TPMS (Sensor Utility) project line.
+- Round 1 + 2 verification (`RESEARCH.md`) — confirmed no public store listing exists, consistent with an internal B2B tool.

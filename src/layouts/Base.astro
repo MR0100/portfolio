@@ -1,0 +1,206 @@
+---
+import "~/styles/globals.css";
+import Nav from "~/components/Nav.astro";
+import Footer from "~/components/Footer.astro";
+import BackgroundFX from "~/components/BackgroundFX.astro";
+import CyberDrones from "~/components/CyberDrones.astro";
+import { profile } from "~/data/profile";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = `${profile.headline}. ${profile.tagline}`,
+  image = "/og-default.svg",
+  type = "website",
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} · ${profile.shortName}` : `${profile.shortName} · ${profile.headline}`;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://mitulvaghasiya.com").toString();
+const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content={profile.shortName} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts: Inter + Fraunces + JetBrains Mono via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+
+    <!-- Theme bootstrap: pick saved or system theme before paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem("theme");
+          const system = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          const mode = saved || system;
+          if (mode === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- No-JS fallback: reveal animations are JS-driven, so force content visible without it -->
+    <noscript>
+      <style>
+        .reveal { opacity: 1 !important; transform: none !important; }
+      </style>
+    </noscript>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="sitemap" href="/sitemap.xml" />
+  </head>
+  <body class="min-h-screen flex flex-col antialiased">
+    <!-- Drifting atmospheres — fixed behind everything, GPU-cheap, reduced-motion safe -->
+    <div class="atmosphere" aria-hidden="true">
+      <span class="atmosphere-orb atmosphere-orb--teal"></span>
+      <span class="atmosphere-orb atmosphere-orb--sepia"></span>
+      <span class="atmosphere-orb atmosphere-orb--accent-soft"></span>
+    </div>
+
+    <!-- Reactive cyberpunk background: scanlines, cursor reveal, glitch sweep, HUD reticle -->
+    <BackgroundFX />
+
+    <!-- Roaming recon drones that track + flee the cursor -->
+    <CyberDrones />
+
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-bg"
+    >
+      Skip to content
+    </a>
+
+    <Nav />
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <!-- Reveal-on-scroll IntersectionObserver + sibling stagger -->
+    <script is:inline>
+      (function () {
+        // Assign stagger index for any container marked `.reveal-stagger` — each child
+        // .reveal gets its own --reveal-i so siblings animate ~60ms apart.
+        document.querySelectorAll(".reveal-stagger").forEach((container) => {
+          container.querySelectorAll(":scope > .reveal").forEach((el, i) => {
+            el.style.setProperty("--reveal-i", i);
+          });
+        });
+
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduceMotion) {
+          document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in-view"));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in-view");
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: "0px 0px -10% 0px", threshold: 0.05 }
+        );
+        document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+      })();
+    </script>
+
+    <!-- Heading decode: scramble each [data-scramble] heading as it enters view -->
+    <script is:inline>
+      (function () {
+        const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const els = document.querySelectorAll("[data-scramble]");
+        if (!els.length || rm) return;
+        const CH = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&/<>*+-_=01";
+
+        const run = (el) => {
+          const finalHTML = el.innerHTML;
+          const finalText = el.textContent || "";
+          const len = finalText.length;
+          const frames = 26;
+          let f = 0;
+          el.classList.add("is-scrambling");
+          const tick = () => {
+            const reveal = Math.floor((f / frames) * len);
+            let out = "";
+            for (let i = 0; i < len; i++) {
+              const c = finalText[i];
+              if (c === " " || c === "\n") { out += c; }
+              else if (i < reveal) { out += c; }
+              else { out += CH[Math.floor(Math.random() * CH.length)]; }
+            }
+            el.textContent = out;
+            f++;
+            if (f <= frames) { requestAnimationFrame(tick); }
+            else { el.innerHTML = finalHTML; el.classList.remove("is-scrambling"); }
+          };
+          requestAnimationFrame(tick);
+        };
+
+        const io = new IntersectionObserver(
+          (entries) => entries.forEach((e) => {
+            if (e.isIntersecting) { io.unobserve(e.target); run(e.target); }
+          }),
+          { threshold: 0.6 }
+        );
+        els.forEach((el) => io.observe(el));
+      })();
+    </script>
+
+    <!-- Hero name: occasional auto chromatic-glitch (every ~7–13s) -->
+    <script is:inline>
+      (function () {
+        const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (rm) return;
+        const name = document.querySelector("h1.glitch");
+        if (!name) return;
+        const burst = () => {
+          name.classList.add("glitch-auto");
+          setTimeout(() => name.classList.remove("glitch-auto"), 420);
+          setTimeout(burst, 7000 + Math.random() * 6000);
+        };
+        setTimeout(burst, 4000 + Math.random() * 4000);
+      })();
+    </script>
+  </body>
+</html>

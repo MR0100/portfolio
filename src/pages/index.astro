@@ -1,0 +1,28 @@
+---
+import Base from "~/layouts/Base.astro";
+import PersonJsonLd from "~/components/PersonJsonLd.astro";
+import Lead from "~/components/home/Lead.astro";
+import Now from "~/components/home/Now.astro";
+import Story from "~/components/home/Story.astro";
+import Numbers from "~/components/home/Numbers.astro";
+import Atlas from "~/components/home/Atlas.astro";
+import Picks from "~/components/home/Picks.astro";
+import Track from "~/components/home/Track.astro";
+import Stack from "~/components/home/Stack.astro";
+import GetInTouch from "~/components/home/GetInTouch.astro";
+---
+
+<Base>
+  <PersonJsonLd />
+
+  <Lead />
+  <Now />
+  <div class="reveal"><Story /></div>
+  <div class="reveal"><Numbers /></div>
+  <div class="reveal"><Atlas /></div>
+  <!-- Picks is a sticky scroll-sequence; it must NOT sit inside a transformed (.reveal) ancestor. -->
+  <Picks />
+  <div class="reveal"><Track /></div>
+  <div class="reveal"><Stack /></div>
+  <div class="reveal"><GetInTouch /></div>
+</Base>

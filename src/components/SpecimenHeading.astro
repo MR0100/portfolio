@@ -1,0 +1,17 @@
+---
+interface Props {
+  num: string; // "01"
+  title: string;
+  trailing?: string; // optional right-side note (e.g. count, status)
+}
+
+const { num, title, trailing } = Astro.props;
+---
+
+<div class="specimen-heading">
+  <span class="num">§ {num}</span>
+  <span>—</span>
+  <span class="text-text">{title}</span>
+  <span class="sep" aria-hidden="true"></span>
+  {trailing && <span>{trailing}</span>}
+</div>

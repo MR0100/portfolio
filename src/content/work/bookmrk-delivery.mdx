@@ -1,0 +1,72 @@
+---
+title: "BookMrk Delivery"
+oneLiner: "Driver-side logistics app for BookMrk — Google Maps SDK, background geolocation, last-mile routing."
+status: "brand-verified"
+category: "Logistics"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "BookMRK (bookmrk.in)"
+period: "2020 — 2022"
+featured: false
+order: 13
+region: "South Asia"
+country: "India"
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Google Maps SDK"
+  - "Background geolocation"
+  - "REST APIs"
+  - "FCM"
+  - "Local Storage"
+links:
+  liveSite: "https://www.bookmrk.in/"
+hero: "/work/bookmrk-delivery/01.png"
+gallery:
+  - "/work/bookmrk-delivery/01.png"
+  - "/work/bookmrk-delivery/02.png"
+accent: "241 233 254"
+todos:
+  - "Confirm dates."
+  - "Confirm any specific operational metric (deliveries / drivers / accuracy) that's safe to mention."
+---
+
+## Overview
+
+BookMrk Delivery is the driver-side companion to the [BookMrk](/work/bookmrk) consumer app. Drivers see assigned orders, navigate via Google Maps SDK, broadcast their location for live customer tracking, and update order status as they go. Built at Sadguru Soft for the BookMRK brand.
+
+## Problem &amp; context
+
+Last-mile logistics apps are about doing the unglamorous work well. Battery cost has to be defensible across a full day of driving. Location updates have to keep flowing even when the app is backgrounded. The user is one-handed at best — every screen has to be obvious. And dispatch has to be confident the driver's location is the real one.
+
+## My approach &amp; key decisions
+
+- **Google Maps SDK directly**, not a Flutter wrapper, for the platform-specific control needed in a logistics context.
+- **Native background geolocation** so location broadcasting survives backgrounding without draining batteries past defensibility.
+- **Last-mile routing optimisation in the order list** to avoid the obvious "Google Maps just gave me a weird order" problem.
+- **Live status broadcast** so the consumer app's tracking screen actually reflects reality.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart), Android primary (driver fleets are usually standardised on Android).
+- **Maps:** Google Maps SDK with platform-native integration.
+- **Location:** Native background geolocation, foreground service on Android for compliance.
+- **Backend:** REST APIs to the BookMRK dispatch service.
+- **Notifications:** FCM for new-order pings.
+
+## Challenges
+
+- **Battery vs. accuracy across a working day.** Background location is the line-item that decides whether drivers actually keep the app open.
+- **Order routing realism.** Sorting orders by "shortest route" is harder than it sounds with real traffic and delivery time windows.
+- **Reliability.** A delivery app that drops out costs the company money — uptime and error surfaces matter.
+
+## Results &amp; impact
+
+- Companion to [BookMrk](/work/bookmrk); same brand, same client.
+- Not currently in public app stores. Driver-side companion apps are typically only distributed to drivers via internal channels, so absence from public stores is not unusual.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, BookMrk-Delivery project line.
+- Brand site — [bookmrk.in](https://www.bookmrk.in/).
+- Round 2 verification (`RESEARCH.md`) — no public store listing under the bookmrk-delivery name.

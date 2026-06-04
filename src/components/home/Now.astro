@@ -1,0 +1,137 @@
+---
+import { getCollection } from "astro:content";
+import { experience, profile } from "~/data/profile";
+
+const all = await getCollection("work");
+const current = experience[0];
+
+// Apps currently shipping at the current employer — derived, links to case studies.
+const shipping = all
+  .filter((e) => e.data.employer === current.company)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// Single source of truth in profile.ts.
+const learningList = profile.currentlyLearning;
+---
+
+<section class="container-page py-8 md:py-10">
+  <div class="hud overflow-hidden rounded-lg border border-border bg-paper/40">
+    <!-- Console header -->
+    <div class="flex items-center justify-between gap-3 border-b border-border/70 bg-bg/40 px-4 py-2.5">
+      <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+        <span class="text-accent">◢</span>
+        <span class="text-text">status</span>
+        <span aria-hidden="true">//</span>
+        <span>now</span>
+      </div>
+      <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+        <!-- signal strength -->
+        <span class="eq" aria-hidden="true" title="Signal: strong">
+          <i></i><i></i><i></i><i></i>
+        </span>
+        <span class="hidden sm:inline" aria-hidden="true">·</span>
+        <!-- live clock (IST) -->
+        <span class="inline-flex items-center gap-1.5">
+          <span class="relative inline-flex h-1.5 w-1.5">
+            <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
+            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
+          </span>
+          <span data-clock class="tabular-nums text-text">--:--:--</span>
+          <span>IST</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <dl class="divide-y divide-border/60">
+      <!-- 01 · Currently -->
+      <div class="grid grid-cols-[28px_1fr] md:grid-cols-[28px_140px_1fr_auto] items-baseline gap-x-4 gap-y-1 px-4 py-5 md:py-6">
+        <span class="font-mono text-[11px] tabular-nums text-accent">01</span>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted col-start-2 md:col-start-2">Currently</dt>
+        <dd class="col-span-2 md:col-span-1 md:col-start-3 space-y-0.5">
+          <div class="font-display text-xl md:text-2xl font-semibold tracking-tight leading-tight">{current.title}</div>
+          <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{current.company} · Surat, IN</div>
+        </dd>
+        <dd class="col-start-2 md:col-start-4 md:justify-self-end">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+            <span class="relative inline-flex h-1.5 w-1.5">
+              <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
+              <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
+            </span>
+            Active
+          </span>
+        </dd>
+      </div>
+
+      <!-- 02 · Shipping -->
+      <div class="grid grid-cols-[28px_1fr] md:grid-cols-[28px_140px_1fr_auto] items-baseline gap-x-4 gap-y-1 px-4 py-5 md:py-6">
+        <span class="font-mono text-[11px] tabular-nums text-accent">02</span>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted col-start-2 md:col-start-2">Shipping</dt>
+        <dd class="col-span-2 md:col-span-1 md:col-start-3 space-y-1">
+          <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {shipping.map((e, i) => (
+              <>
+                <a
+                  href={`/work/${e.slug}`}
+                  class="font-display text-xl md:text-2xl font-semibold tracking-tight leading-tight hover:text-accent transition-colors"
+                >{e.data.title}</a>
+                {i < shipping.length - 1 && <span class="text-muted" aria-hidden="true">·</span>}
+              </>
+            ))}
+          </div>
+          <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">B2B diamond trading · iOS + Android</div>
+        </dd>
+        <dd class="col-start-2 md:col-start-4 md:justify-self-end">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+            <svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            Deployed
+          </span>
+        </dd>
+      </div>
+
+      <!-- 03 · Learning -->
+      <div class="grid grid-cols-[28px_1fr] md:grid-cols-[28px_140px_1fr_auto] items-baseline gap-x-4 gap-y-1 px-4 py-5 md:py-6">
+        <span class="font-mono text-[11px] tabular-nums text-accent">03</span>
+        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted col-start-2 md:col-start-2">Learning</dt>
+        <dd class="col-span-2 md:col-span-1 md:col-start-3 space-y-1">
+          <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {learningList.map((s, i) => (
+              <>
+                <span class="font-display text-xl md:text-2xl font-semibold tracking-tight leading-tight">{s}</span>
+                {i < learningList.length - 1 && <span class="text-muted" aria-hidden="true">/</span>}
+              </>
+            ))}
+          </div>
+          <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Always something on the bench</div>
+        </dd>
+        <dd class="col-start-2 md:col-start-4 md:justify-self-end">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-sepia/40 bg-sepia/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-sepia">
+            <span class="inline-flex h-1.5 w-1.5 rounded-full bg-sepia"></span>
+            In progress
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    const el = document.querySelector("[data-clock]");
+    if (!el) return;
+    const fmt = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const tick = () => {
+      try {
+        el.textContent = fmt.format(new Date());
+      } catch (e) {}
+    };
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>

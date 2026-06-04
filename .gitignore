@@ -1,0 +1,15 @@
+node_modules
+dist
+.astro
+.env
+.env.production
+.DS_Store
+
+# Build artifacts
+.vercel
+.netlify
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea

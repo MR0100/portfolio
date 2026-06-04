@@ -1,0 +1,93 @@
+---
+import { skillGroups } from "~/data/profile";
+
+const dotFor = (lvl?: string) => {
+  switch (lvl) {
+    case "expert": return "bg-accent";
+    case "strong": return "bg-accent/55";
+    case "familiar": return "bg-muted/50";
+    case "learning": return "bg-sepia";
+    default: return "bg-transparent";
+  }
+};
+---
+
+<section id="skills" class="border-y border-border bg-paper/40">
+  <div class="container-page py-16 md:py-24" data-toolkit-motion>
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-10">
+      <div class="space-y-3">
+        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">The toolkit</div>
+        <h2 class="font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]" data-scramble>
+          What I build with.
+        </h2>
+      </div>
+      <a href="/resume#skills" class="font-mono text-xs uppercase tracking-[0.24em] text-accent hover:text-accent-hover transition-colors">
+        Search all skills →
+      </a>
+    </div>
+
+    <div class="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        skillGroups.map((group) => (
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <h3 class="font-mono text-[11px] uppercase tracking-[0.22em] text-text whitespace-nowrap">{group.title}</h3>
+              <span class="h-px flex-1 bg-border" aria-hidden="true" />
+            </div>
+            <ul class="flex flex-wrap gap-1.5">
+              {group.skills.map((s) => (
+                <li class="tk-chip chip transition-[transform,border-color,color] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:text-accent">
+                  {s.level && <span class={`h-1.5 w-1.5 rounded-full ${dotFor(s.level)}`} aria-hidden="true" />}
+                  {s.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 flex flex-wrap items-center gap-5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+      <span class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" /> Expert</span>
+      <span class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent/55" aria-hidden="true" /> Strong</span>
+      <span class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-muted/50" aria-hidden="true" /> Familiar</span>
+      <span class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-sepia" aria-hidden="true" /> Learning</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tk-chip { opacity: 0; transform: translateY(6px); }
+  .tk-chip.tk-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 360ms ease-out, transform 360ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tk-chip { opacity: 1; transform: none; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const root = document.querySelector("[data-toolkit-motion]");
+    if (!root) return;
+    const chips = Array.from(root.querySelectorAll(".tk-chip"));
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (rm) { chips.forEach((c) => c.classList.add("tk-in")); return; }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const i = chips.indexOf(e.target);
+          // stagger within the row the chip belongs to, capped so later chips don't lag too long
+          e.target.style.transitionDelay = (Math.min(i, 24) * 35) + "ms";
+          e.target.classList.add("tk-in");
+          io.unobserve(e.target);
+        });
+      },
+      { threshold: 0.2 }
+    );
+    chips.forEach((c) => io.observe(c));
+  })();
+</script>

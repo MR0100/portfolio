@@ -1,0 +1,44 @@
+---
+import { profile } from "~/data/profile";
+---
+
+<section id="contact" class="container-page py-24 md:py-36">
+  <div class="text-center max-w-3xl mx-auto space-y-7">
+    <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Let's build something</div>
+    <h2 class="font-display text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]" data-scramble>
+      Got a hard mobile problem?
+    </h2>
+    <p class="font-serif text-lg md:text-2xl text-text/85 leading-snug">
+      Open to senior IC, lead, and architecture roles — full-time or contract. Email is the fastest way to reach me.
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-3 pt-2">
+      <a
+        href={profile.socials.email}
+        class="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-bg hover:bg-accent-hover transition-colors"
+      >
+        {profile.email} →
+      </a>
+      <a
+        href={profile.socials.linkedin}
+        target="_blank"
+        rel="noreferrer noopener"
+        class="inline-flex items-center gap-2 rounded-md border border-border bg-paper/60 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+      >
+        LinkedIn
+      </a>
+      <a
+        href={profile.socials.github}
+        target="_blank"
+        rel="noreferrer noopener"
+        class="inline-flex items-center gap-2 rounded-md border border-border bg-paper/60 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+      >
+        GitHub
+      </a>
+    </div>
+
+    <div class="pt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+      {profile.location} · Replies within a day or two
+    </div>
+  </div>
+</section>

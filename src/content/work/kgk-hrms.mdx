@@ -1,0 +1,77 @@
+---
+title: "KGK HRMS"
+oneLiner: "Enterprise HR management app for KGK Group — RBAC, encrypted local storage, full HR workflows."
+status: "verified"
+category: "Enterprise"
+role: "Mobile Development Team Lead"
+employer: "KGK InfoTech LLP"
+client: "KGK Group"
+publisher: "KGK Diamonds BVBA"
+period: "2025 — Present"
+featured: false
+order: 7
+region: "South Asia"
+city: "Surat"
+country: "India"
+lat: 21.1702
+lng: 72.8311
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Clean Architecture"
+  - "BLoC"
+  - "REST APIs"
+  - "Role-based access control (RBAC)"
+  - "Encrypted local storage"
+links:
+  playStore: "https://play.google.com/store/apps/details?id=com.kgkhrms.app"
+hero: "/work/kgk-hrms/hero-placeholder.svg"
+gallery: []
+accent: "236 242 255"
+needsAssets: true
+todos:
+  - "Provide hero + 2–3 gallery screenshots."
+  - "Confirm we should not show an iOS badge at all (current default — iOS is internal-distribution only)."
+---
+
+## Overview
+
+KGK HRMS is the internal HR system for the KGK Group — employee directory, leave, attendance, payroll touchpoints — built as a secure enterprise mobile app. I lead the mobile team that ships it as part of my current role at KGK InfoTech LLP.
+
+## Problem &amp; context
+
+An HR app sits on top of the most sensitive corporate data the average employee touches. For a multi-country organisation like KGK, the requirements were strict:
+
+- Role-based access control at every screen, not just at the API.
+- Encrypted-at-rest caching for any data the app held locally.
+- Clean integration with KGK's existing HR back-office systems.
+- Distribution gated to staff — public store visibility for Android (so installs are simple) and internal-only distribution for iOS.
+
+## My approach &amp; key decisions
+
+- **RBAC enforced both server-side and client-side.** No screen renders content the user doesn't have rights for, even before the API responds.
+- **Encrypted local storage** with key handling that survives app reinstalls without leaking material.
+- **Clean Architecture + BLoC** so the team could move at speed across feature areas without stepping on shared state — the same architecture pattern we use across the KGK mobile portfolio.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart). Clean Architecture; BLoC for state.
+- **Auth:** Role-based access control; secure session handling.
+- **Storage:** Encrypted at rest for any cached HR data.
+- **Distribution:** Published on **Google Play** at `com.kgkhrms.app` (publisher: KGK Diamonds BVBA). The iOS counterpart ships internally only — no public App Store listing by design.
+
+## Challenges
+
+- **Belt-and-braces RBAC.** The server enforces it, but the client also has to know what to show — and the two cannot drift.
+- **Sensitive data on devices that get lost.** Encryption-at-rest with key handling that doesn't get clever and break itself.
+
+## Results &amp; impact
+
+- Live on **Google Play** for KGK staff Android distribution.
+- iOS counterpart shipping internally to staff devices.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, KGK HRMS project line.
+- Play Store listing — [play.google.com/store/apps/details?id=com.kgkhrms.app](https://play.google.com/store/apps/details?id=com.kgkhrms.app).
+- Mitul's confirmation that iOS is internal-only by design.

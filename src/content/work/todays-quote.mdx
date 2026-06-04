@@ -1,0 +1,77 @@
+---
+title: "Today's Quote — Be Inspired"
+oneLiner: "Daily quote app with a leaderboard mini-game — Korean-market consumer app for 1zLabs."
+status: "verified"
+category: "Consumer · Lifestyle"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "1zLabs / onezlabs"
+publisher: "onezlabs"
+period: "2022 — 2023"
+featured: false
+order: 10
+region: "East Asia"
+city: "Seoul"
+country: "South Korea"
+lat: 37.5665
+lng: 126.9780
+stack:
+  - "Flutter"
+  - "Dart"
+  - "Firebase"
+  - "FCM"
+  - "Local Storage"
+  - "2D mini-game (Flame)"
+  - "Micro-animations"
+links:
+  playStore: "https://play.google.com/store/apps/details?id=com.onezlabs.todaysquote"
+hero: "/work/todays-quote/01.png"
+gallery:
+  - "/work/todays-quote/01.png"
+  - "/work/todays-quote/02.png"
+  - "/work/todays-quote/03.png"
+accent: "244 244 244"
+todos:
+  - "Confirm dates."
+  - "Confirm the in-app mini-game mechanic (current understanding: 'Play Games with Quotes — leaderboard' feature)."
+---
+
+## Overview
+
+Today's Quote — Be Inspired is the third app in the 1zLabs (Seoul) suite I shipped at Sadguru Soft (alongside Havitglam and Tarot Cat). Daily motivation, smooth transitions, and a leaderboard mini-game embedded inside — the piece that explains the otherwise-unusual "2D-Game" tag on this project's tech stack.
+
+## Problem &amp; context
+
+Quote apps are a saturated category. The differentiator here was two-fold: a) the polish — micro-animations and transitions that feel deliberate rather than templated — and b) an in-app mini-game tied to the quote feed that gives users a "play with quotes / climb the leaderboard" reason to return.
+
+For a Korean consumer audience, content delivery, push reliability and visual register all mattered as much as the underlying mechanic.
+
+## My approach &amp; key decisions
+
+- **Daily content delivery via FCM**, with a local-push backup so users still get the day's quote if the device misses the FCM window.
+- **A 2D mini-game inside the same Flutter app** — a leaderboard mechanic tied to quotes, sitting alongside the main feed.
+- **Micro-animations and transitions** carried consistently across the surfaces so the app feels like a single deliberate product rather than two stapled together.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for Android.
+- **Backend:** Firebase for content + leaderboard state.
+- **Notifications:** FCM for daily quotes + local push fallback.
+- **Game piece:** Embedded 2D mini-game (Flutter-friendly game engine — Flame is the standard choice in the ecosystem).
+- **Distribution:** Live on Google Play at `com.onezlabs.todaysquote` (publisher: onezlabs / 1zLabs).
+
+## Challenges
+
+- **Two products in one app.** A quote feed and a 2D game live very different lives technically; making them feel like one product is its own design problem.
+- **Generic name in a saturated category.** "Today's Quote" alone is too generic to find on either store search; the right disambiguation is the `com.onezlabs.todaysquote` bundle on the 1zLabs developer account.
+
+## Results &amp; impact
+
+- Live on **Google Play** under the onezlabs / 1zLabs publisher account.
+- Part of the three-app 1zLabs suite alongside [Havitglam](/work/havitglam) and [Tarot Cat](/work/tarot-cat).
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Today's Quote project line.
+- Play Store listing — [play.google.com/store/apps/details?id=com.onezlabs.todaysquote](https://play.google.com/store/apps/details?id=com.onezlabs.todaysquote).
+- Mitul's confirmation that Today's Quote was deployed for the same 1zLabs / onezlabs client as Havitglam and Tarot Cat (Round 3 verification, `RESEARCH.md`).

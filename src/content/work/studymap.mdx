@@ -1,0 +1,78 @@
+---
+title: "Studymap"
+oneLiner: "Japanese ed-tech: AI-generated study content and synchronised group study sessions."
+status: "verified"
+category: "Ed-tech"
+role: "Flutter Developer"
+employer: "Sadguru Soft"
+client: "Remody Inc. (Tokyo)"
+publisher: "Remody Inc."
+period: "2022 — 2024"
+featured: true
+order: 6
+region: "East Asia"
+city: "Tokyo"
+country: "Japan"
+lat: 35.6762
+lng: 139.6503
+stack:
+  - "Flutter"
+  - "Dart"
+  - "REST APIs"
+  - "Reactive programming"
+  - "Real-time sync"
+  - "Local Storage"
+links:
+  appStore: "https://apps.apple.com/jp/app/studymap/id1613502226"
+  playStore: "https://play.google.com/store/apps/details?id=jp.co.remody.remody"
+hero: "/work/studymap/hero-placeholder.svg"
+gallery: []
+accent: "236 242 255"
+needsAssets: true
+todos:
+  - "Provide hero + 3 gallery screenshots (Japanese UI is fine — it's part of the story)."
+  - "Confirm dates and any specific feature you want highlighted."
+---
+
+## Overview
+
+Studymap is a Tokyo ed-tech app — built for **Remody Inc.** — that pairs AI-generated study content with synchronised group study sessions, turning solitary cramming into a shared, real-time experience. I shipped it as a Flutter developer at Sadguru Soft, working with the Tokyo product team.
+
+## Problem &amp; context
+
+Two halves of the product had to land together. The first half was clean ingestion of AI-generated study material into a mobile UI — typed models, sensible caching, no surprises when the content engine changed shape. The second half was a real-time group study mode where multiple users move through the same content together with low-latency state updates.
+
+It also had to feel right for a Japanese-language audience. Localisation in Japanese isn't a translation pass — it's typography, line-breaking, input methods, and a whole UX register that defaults to Latin-first apps don't handle well.
+
+## My approach &amp; key decisions
+
+- **Reactive programming at the core of the session state** so multi-user updates flow predictably to the UI.
+- **A typed Dart model** for the AI-generated content so the UI bound to known shapes, not parsed-on-the-fly JSON.
+- **A tight state machine for sessions** — joining, leaving, advancing through content, recovering from disconnects.
+- **Localisation as a first-class concern**, not a sprint at the end.
+
+## Architecture &amp; stack
+
+- **Client:** Flutter (Dart) for iOS + Android, with localisation for Japanese (and English by extension).
+- **Data:** REST APIs to the AI content service and the session service.
+- **State:** Reactive streams driving session UI; explicit state machine for session lifecycle.
+- **Storage:** Local persistence for offline-friendly behaviours within a session.
+- **Distribution:** Live on Apple's Japan App Store (`id1613502226`) and Google Play (`jp.co.remody.remody`), both under Remody Inc.
+
+## Challenges
+
+- **Latency on the shared session path.** A study session feels broken if the people in it aren't on the same page — the round-trip from user action to all-participants-updated had to feel instant.
+- **Japanese typography.** Line-breaking, mixing scripts (kanji + kana + Latin), and rendering quality at small sizes.
+- **Region-gated discoverability.** App Store / Play Store URLs for the build are region-gated to Japan; outside-JP browsers may see redirects or unavailability messages.
+
+## Results &amp; impact
+
+- Live on **both iOS (JP)** and **Android (Play Store)** under Remody Inc., serving a Japanese ed-tech audience.
+- Distribution confirmed via direct store evidence and cross-referenced via aggregator listings during research.
+
+## Sources
+
+- Resume — *MITUL R. VAGHASIYA, April 2026*, Studymap (Educational) project line.
+- App Store listing (JP) — [apps.apple.com/jp/app/studymap](https://apps.apple.com/jp/app/studymap/id1613502226).
+- Play Store listing — [play.google.com/store/apps/details?id=jp.co.remody.remody](https://play.google.com/store/apps/details?id=jp.co.remody.remody).
+- Round 2 verification (`RESEARCH.md`) including identification of Remody Inc. as the publisher and the Japan-targeted distribution.

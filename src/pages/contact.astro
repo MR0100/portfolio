@@ -1,0 +1,94 @@
+---
+import Base from "~/layouts/Base.astro";
+import SpecimenHeading from "~/components/SpecimenHeading.astro";
+import SpecBlock from "~/components/SpecBlock.astro";
+import SpecRow from "~/components/SpecRow.astro";
+import { profile } from "~/data/profile";
+---
+
+<Base title="Contact" description={`Get in touch with ${profile.name}.`}>
+  <section class="container-page pt-10 md:pt-14">
+    <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <div>Specimen Sheets · Vol. III · Contact</div>
+      <div>Initiate transmission</div>
+    </div>
+    <div class="mt-4 rule-thin"></div>
+
+    <header class="mt-12 max-w-4xl">
+      <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-4">Channels open</div>
+      <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.92]">
+        Let's talk<span class="text-accent">.</span>
+      </h1>
+      <p class="mt-5 font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-2xl">
+        Open to senior IC, lead, and architecture roles. Email is the fastest channel.
+      </p>
+    </header>
+  </section>
+
+  <section class="container-page mt-16 grid gap-10 lg:grid-cols-[1fr_1fr]">
+    <SpecBlock label="Channels" trailing="00.A">
+      <SpecRow label="Email"><a href={profile.socials.email} class="link-underline">{profile.email}</a></SpecRow>
+      <SpecRow label="GitHub"><a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="link-underline">github.com/MR0100</a></SpecRow>
+      <SpecRow label="LinkedIn"><a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="link-underline">/in/mitul-vaghasiya-075a53166</a></SpecRow>
+      <SpecRow label="Twitter / X"><a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="link-underline">@_MR_0100</a></SpecRow>
+      <SpecRow label="Based">{profile.location}</SpecRow>
+      <SpecRow label="Languages">{profile.languagesSpoken.join(" / ")}</SpecRow>
+    </SpecBlock>
+
+    <div class="border border-border bg-paper/40 rounded-md overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-border/60 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+        <span>Submit form</span>
+        <span>00.B</span>
+      </div>
+      <form
+        action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+        method="POST"
+        class="p-6 space-y-5"
+      >
+        <div class="rounded-md border border-dashed border-sepia/40 bg-sepia/5 p-3 text-xs text-sepia font-sans">
+          TODO: replace <code class="font-mono">YOUR_FORMSPREE_ID</code> in <code class="font-mono">src/pages/contact.astro</code> with your Formspree form id.
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="name" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+          />
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="email" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+          />
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="message" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="6"
+            required
+            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-y"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition-colors hover:bg-accent-hover"
+        >
+          Send transmission →
+        </button>
+      </form>
+    </div>
+  </section>
+</Base>
