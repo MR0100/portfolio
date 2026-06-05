@@ -1,0 +1,363 @@
+---
+import "~/styles/globals.css";
+
+// 10 ambient / scroll-driven background animation concepts. None track the cursor
+// (that's the spacewar game's job). Order here MUST match the V[] array in the script.
+const variants = [
+  { n: "01", name: "Warp Starfield", concept: "Stars streak toward hyperspace — scroll punches the throttle." },
+  { n: "02", name: "Data Rain", concept: "Cascading glyph columns; scroll speeds the downpour." },
+  { n: "03", name: "Constellation Net", concept: "A drifting node lattice that wires up its neighbours." },
+  { n: "04", name: "Contour Ridgelines", concept: "Topographic ridges breathing like a live terrain map." },
+  { n: "05", name: "Flow Field", concept: "Particles ride an invisible current; scroll bends the flow." },
+  { n: "06", name: "Sonar Pings", concept: "Radar pulses bloom from the dark on a slow clock." },
+  { n: "07", name: "Hex Pulse", concept: "A honeycomb grid lit by expanding shockwaves." },
+  { n: "08", name: "Wireframe Drift", concept: "Rotating polyhedra adrift; scroll parallaxes their depth." },
+  { n: "09", name: "Glitch Bands", concept: "Scanlines torn by RGB-split datamosh sweeps." },
+  { n: "10", name: "Circuit Pulse", concept: "Signals race along etched circuit traces." },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Background FX · 10 variants</title>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <header class="container-page py-10">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · ambient background FX</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">10 background variants</h1>
+      <p class="mt-3 max-w-2xl font-serif text-lg text-muted">
+        Indirect, ambient motion — driven by scroll and time, never the cursor. Scroll through
+        all ten; each reacts as it enters view. Tell me the number you like and I'll wire it in
+        site-wide alongside the spacewar game.
+      </p>
+    </header>
+
+    {
+      variants.map((v, i) => (
+        <section class="bgv" data-bgv={i}>
+          <canvas class="bgv-canvas" data-bgv-canvas={i}></canvas>
+          <div class="bgv-grain" />
+          <div class="bgv-label">
+            <span class="bgv-num">{v.n}</span>
+            <div>
+              <h2 class="bgv-name">{v.name}</h2>
+              <p class="bgv-concept">{v.concept}</p>
+            </div>
+          </div>
+        </section>
+      ))
+    }
+
+    <footer class="container-page py-16 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-muted">
+      End of reel · pick a number
+    </footer>
+
+    <style>
+      html { scroll-behavior: smooth; }
+      .bgv {
+        position: relative;
+        height: 86vh;
+        min-height: 540px;
+        overflow: hidden;
+        border-top: 1px solid rgb(var(--border));
+        background: rgb(var(--bg));
+      }
+      .bgv-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* faint vignette so labels stay legible over busy frames */
+      .bgv-grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(120% 90% at 20% 90%, rgb(var(--bg) / 0.7), transparent 55%);
+      }
+      .bgv-label {
+        position: absolute;
+        left: clamp(1rem, 4vw, 4rem);
+        bottom: clamp(1.5rem, 6vh, 4rem);
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        max-width: min(90%, 34rem);
+      }
+      .bgv-num {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        line-height: 0.8;
+        color: rgb(var(--accent));
+        text-shadow: 0 0 24px rgb(var(--accent) / 0.35);
+      }
+      .bgv-name {
+        font-family: var(--font-display, serif);
+        font-size: clamp(1.25rem, 3vw, 2rem);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .bgv-concept {
+        margin-top: 0.35rem;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: rgb(var(--muted));
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        const C = { teal: "94,234,212", red: "244,63,94", white: "232,236,240", dim: "96,116,140" };
+        const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const rnd = (a = 1, b = 0) => b + Math.random() * (a - b);
+
+        // Shared scroll state — a single ticker decays the velocity so per-variant loops just read it.
+        let scrollY = window.scrollY || 0;
+        let scrollV = 0;
+        window.addEventListener("scroll", () => { const y = window.scrollY; scrollV += y - scrollY; scrollY = y; }, { passive: true });
+        (function decay() { scrollV *= 0.9; requestAnimationFrame(decay); })();
+
+        const V = [
+          // 01 — Warp Starfield
+          {
+            init(w, h) { const s = []; const m = Math.hypot(w, h) / 2; for (let i = 0; i < 240; i++) s.push({ a: rnd(6.283), r: rnd(m), spd: rnd(2.4, 0.5) }); return { s, m }; },
+            step(ctx, w, h, t, st) {
+              ctx.fillStyle = "rgba(9,13,20,0.34)"; ctx.fillRect(0, 0, w, h);
+              const cx = w / 2, cy = h / 2, boost = 1 + Math.min(9, Math.abs(scrollV) * 0.45);
+              ctx.lineCap = "round";
+              for (const p of st.s) {
+                const sp = p.spd * boost, r0 = p.r, r1 = p.r + sp * 6;
+                p.r += sp; if (p.r > st.m) { p.a = rnd(6.283); p.r = rnd(30, 2); p.spd = rnd(2.4, 0.5); }
+                const ca = Math.cos(p.a), sa = Math.sin(p.a), o = Math.min(1, p.r / st.m);
+                ctx.strokeStyle = "rgba(" + (o > 0.62 ? C.white : C.teal) + "," + (0.12 + o * 0.6).toFixed(3) + ")";
+                ctx.lineWidth = 0.5 + o * 1.7;
+                ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
+              }
+            },
+          },
+          // 02 — Data Rain
+          {
+            init(w, h) { const cols = [], n = Math.floor(w / 16); for (let i = 0; i < n; i++) cols.push({ x: i * 16 + 5, y: rnd(0, -h), spd: rnd(4.5, 1.6) }); return { cols, gl: "01ｱｲｳｴｵｶｷｸｹｺ#%<>*+=/\\|≡░▚╳" }; },
+            step(ctx, w, h, t, st) {
+              ctx.fillStyle = "rgba(8,12,18,0.10)"; ctx.fillRect(0, 0, w, h);
+              ctx.font = "14px ui-monospace, monospace";
+              const boost = 1 + Math.min(3, Math.abs(scrollV) * 0.2);
+              for (const c of st.cols) {
+                c.y += c.spd * boost; if (c.y > h + 24) { c.y = rnd(0, -220); c.spd = rnd(4.5, 1.6); }
+                ctx.fillStyle = "rgba(" + C.white + ",0.92)"; ctx.fillText(st.gl[Math.floor(rnd(st.gl.length))], c.x, c.y);
+                ctx.fillStyle = "rgba(" + C.teal + ",0.5)"; ctx.fillText(st.gl[Math.floor(rnd(st.gl.length))], c.x, c.y - 16);
+              }
+            },
+          },
+          // 03 — Constellation Net
+          {
+            init(w, h) { const ns = []; for (let i = 0; i < 66; i++) ns.push({ x: rnd(w), y: rnd(h), vx: rnd(0.35, -0.35), vy: rnd(0.35, -0.35) }); return { ns }; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              const kick = scrollV * 0.0008;
+              for (const n of st.ns) { n.x += n.vx; n.y += n.vy + kick; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1; n.x = (n.x + w) % w; n.y = (n.y + h) % h; }
+              const D = 132;
+              for (let i = 0; i < st.ns.length; i++) for (let j = i + 1; j < st.ns.length; j++) {
+                const a = st.ns[i], b = st.ns[j], dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy);
+                if (d < D) { ctx.strokeStyle = "rgba(" + C.teal + "," + ((1 - d / D) * 0.34).toFixed(3) + ")"; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+              }
+              for (const n of st.ns) { ctx.fillStyle = "rgba(" + C.teal + ",0.85)"; ctx.beginPath(); ctx.arc(n.x, n.y, 1.7, 0, 6.283); ctx.fill(); }
+            },
+          },
+          // 04 — Contour Ridgelines
+          {
+            init() { return {}; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              const sp = 26, rows = Math.floor(h / sp) + 3, off = (scrollY * 0.16) % sp;
+              for (let r = 0; r < rows; r++) {
+                const baseY = r * sp - off, hot = r % 5 === 0;
+                ctx.beginPath();
+                for (let x = 0; x <= w; x += 10) {
+                  const yy = baseY - (Math.sin(x * 0.012 + t * 0.02 + r * 0.4) * 10 + Math.sin(x * 0.027 - t * 0.013 + r) * 6);
+                  x === 0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+                }
+                ctx.strokeStyle = hot ? "rgba(" + C.teal + ",0.5)" : "rgba(" + C.dim + ",0.45)";
+                ctx.lineWidth = hot ? 1.3 : 0.7; ctx.stroke();
+              }
+            },
+          },
+          // 05 — Flow Field
+          {
+            init(w, h) { const p = []; for (let i = 0; i < 430; i++) p.push({ x: rnd(w), y: rnd(h) }); return { p }; },
+            step(ctx, w, h, t, st) {
+              ctx.fillStyle = "rgba(9,13,20,0.055)"; ctx.fillRect(0, 0, w, h);
+              const bend = scrollY * 0.0013;
+              ctx.lineWidth = 0.85; ctx.strokeStyle = "rgba(" + C.teal + ",0.32)";
+              ctx.beginPath();
+              for (const q of st.p) {
+                const a = (Math.sin(q.x * 0.0075 + t * 0.012) + Math.cos(q.y * 0.0075 - t * 0.009)) * Math.PI + bend;
+                const nx = q.x + Math.cos(a) * 1.5, ny = q.y + Math.sin(a) * 1.5;
+                ctx.moveTo(q.x, q.y); ctx.lineTo(nx, ny);
+                q.x = nx; q.y = ny;
+                if (q.x < 0 || q.x > w || q.y < 0 || q.y > h) { q.x = rnd(w); q.y = rnd(h); }
+              }
+              ctx.stroke();
+            },
+          },
+          // 06 — Sonar Pings
+          {
+            init() { return { rings: [], next: 0 }; },
+            step(ctx, w, h, t, st) {
+              ctx.fillStyle = "rgba(9,13,20,0.12)"; ctx.fillRect(0, 0, w, h);
+              if (t > st.next) { st.rings.push({ x: rnd(w), y: rnd(h), r: 2, max: rnd(280, 150) }); st.next = t + rnd(60, 24); }
+              if (Math.abs(scrollV) > 6 && st.rings.length < 26) st.rings.push({ x: rnd(w), y: rnd(h), r: 2, max: rnd(210, 120) });
+              for (let i = st.rings.length - 1; i >= 0; i--) {
+                const g = st.rings[i]; g.r += 1.7; const o = 1 - g.r / g.max;
+                if (o <= 0) { st.rings.splice(i, 1); continue; }
+                ctx.strokeStyle = "rgba(" + C.teal + "," + (o * 0.5).toFixed(3) + ")"; ctx.lineWidth = 1.2;
+                ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 6.283); ctx.stroke();
+                ctx.fillStyle = "rgba(" + C.teal + "," + (o * 0.9).toFixed(3) + ")"; ctx.beginPath(); ctx.arc(g.x, g.y, 1.7, 0, 6.283); ctx.fill();
+              }
+            },
+          },
+          // 07 — Hex Pulse
+          {
+            init(w, h) {
+              const R = 22, dx = R * 1.5, dy = R * Math.sqrt(3), hexes = []; let col = 0;
+              for (let x = -R; x < w + R; x += dx) { const oy = (col % 2) * dy / 2; for (let y = -R; y < h + R; y += dy) hexes.push({ x, y: y + oy }); col++; }
+              return { hexes, R, rings: [], next: 0 };
+            },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              if (t > st.next) { st.rings.push({ x: rnd(w), y: rnd(h), r: 0 }); st.next = t + rnd(95, 42); }
+              if (Math.abs(scrollV) > 8) st.rings.push({ x: rnd(w), y: rnd(h), r: 0 });
+              const lim = Math.hypot(w, h);
+              for (const g of st.rings) g.r += 4.2; st.rings = st.rings.filter((g) => g.r < lim);
+              const R = st.R;
+              for (const hx of st.hexes) {
+                let glow = 0;
+                for (const g of st.rings) { const f = 1 - Math.abs(Math.hypot(hx.x - g.x, hx.y - g.y) - g.r) / 58; if (f > glow) glow = f; }
+                glow = Math.max(0, glow);
+                ctx.strokeStyle = glow > 0.05 ? "rgba(" + C.teal + "," + (0.1 + glow * 0.7).toFixed(3) + ")" : "rgba(" + C.dim + ",0.14)";
+                ctx.lineWidth = glow > 0.05 ? 1 + glow : 0.55;
+                ctx.beginPath();
+                for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, px = hx.x + Math.cos(a) * R * 0.92, py = hx.y + Math.sin(a) * R * 0.92; k ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+                ctx.closePath(); ctx.stroke();
+              }
+            },
+          },
+          // 08 — Wireframe Drift
+          {
+            init(w, h) {
+              const cube = { v: [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]] };
+              const shapes = []; for (let i = 0; i < 4; i++) shapes.push({ x: rnd(w), y: rnd(h), s: rnd(64, 32), sp: rnd(0.02, 0.006), ph: rnd(6.28) });
+              return { cube, shapes };
+            },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              ctx.lineWidth = 1; ctx.strokeStyle = "rgba(" + C.teal + ",0.5)";
+              for (const sh of st.shapes) {
+                const ax = t * sh.sp, ay = t * sh.sp * 0.7 + sh.ph;
+                const span = h + 240, cy = (((sh.y - scrollY * 0.09) % span) + span) % span - 120;
+                const pts = st.cube.v.map(([x, y, z]) => {
+                  let X = x * Math.cos(ay) + z * Math.sin(ay), Z = -x * Math.sin(ay) + z * Math.cos(ay);
+                  let Y = y * Math.cos(ax) - Z * Math.sin(ax); Z = y * Math.sin(ax) + Z * Math.cos(ax);
+                  const p = 2.7 / (2.7 + Z);
+                  return [sh.x + X * sh.s * p, cy + Y * sh.s * p];
+                });
+                ctx.beginPath();
+                for (const [a, b] of st.cube.e) { ctx.moveTo(pts[a][0], pts[a][1]); ctx.lineTo(pts[b][0], pts[b][1]); }
+                ctx.stroke();
+              }
+            },
+          },
+          // 09 — Glitch Bands
+          {
+            init() { return { bands: [], next: 0, scan: 0 }; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              ctx.fillStyle = "rgba(" + C.dim + ",0.09)";
+              for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1);
+              st.scan = (st.scan + 2.4) % (h + 80);
+              ctx.fillStyle = "rgba(" + C.teal + ",0.06)"; ctx.fillRect(0, st.scan - 40, w, 40);
+              const spawn = (n) => { for (let i = 0; i < n; i++) st.bands.push({ y: rnd(h), h: rnd(28, 6), dx: rnd(46, -46), life: rnd(24, 8), c: Math.random() < 0.5 ? C.red : C.teal }); };
+              if (t > st.next) { spawn(2 + Math.floor(rnd(4))); st.next = t + rnd(72, 20); }
+              if (Math.abs(scrollV) > 6) spawn(3);
+              for (let i = st.bands.length - 1; i >= 0; i--) {
+                const b = st.bands[i]; b.life--; if (b.life <= 0) { st.bands.splice(i, 1); continue; }
+                ctx.fillStyle = "rgba(" + b.c + ",0.5)"; ctx.fillRect(b.dx, b.y, w, b.h);
+                ctx.fillStyle = "rgba(" + C.white + ",0.16)"; ctx.fillRect(b.dx + 6, b.y + 2, w, Math.max(1, b.h - 4));
+              }
+            },
+          },
+          // 10 — Circuit Pulse
+          {
+            init(w, h) {
+              const paths = [];
+              for (let i = 0; i < 7; i++) {
+                const pts = []; let x = rnd(w), y = rnd(h); pts.push([x, y]);
+                const segs = Math.floor(rnd(7, 4));
+                for (let k = 0; k < segs; k++) { if (k % 2 === 0) x = Math.max(12, Math.min(w - 12, x + rnd(190, -190))); else y = Math.max(12, Math.min(h - 12, y + rnd(170, -170))); pts.push([x, y]); }
+                paths.push(pts);
+              }
+              return { paths, pulses: [], next: 0 };
+            },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h);
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.35)"; ctx.lineWidth = 1;
+              for (const p of st.paths) {
+                ctx.beginPath(); p.forEach((pt, i) => (i ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]))); ctx.stroke();
+                ctx.fillStyle = "rgba(" + C.teal + ",0.5)"; for (const pt of p) { ctx.beginPath(); ctx.arc(pt[0], pt[1], 1.8, 0, 6.283); ctx.fill(); }
+              }
+              if (t > st.next) { st.pulses.push({ pi: Math.floor(rnd(st.paths.length)), seg: 0, p: 0 }); st.next = t + rnd(40, 12); }
+              if (Math.abs(scrollV) > 7) st.pulses.push({ pi: Math.floor(rnd(st.paths.length)), seg: 0, p: 0 });
+              for (let i = st.pulses.length - 1; i >= 0; i--) {
+                const pu = st.pulses[i], path = st.paths[pu.pi];
+                pu.p += 0.06; if (pu.p >= 1) { pu.p = 0; pu.seg++; if (pu.seg >= path.length - 1) { st.pulses.splice(i, 1); continue; } }
+                const a = path[pu.seg], b = path[pu.seg + 1], x = a[0] + (b[0] - a[0]) * pu.p, y = a[1] + (b[1] - a[1]) * pu.p;
+                ctx.fillStyle = "rgba(" + C.teal + ",0.45)"; ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.283); ctx.fill();
+                ctx.fillStyle = "rgba(" + C.white + ",0.95)"; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 6.283); ctx.fill();
+              }
+            },
+          },
+        ];
+
+        const controllers = [];
+        document.querySelectorAll("[data-bgv-canvas]").forEach((canvas) => {
+          const v = V[+canvas.dataset.bgvCanvas];
+          if (!v) return;
+          const ctx = canvas.getContext("2d");
+          let st = null, w = 0, h = 0, t = 0, raf = null, ready = false;
+          const size = () => {
+            const r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+            w = Math.max(1, r.width); h = Math.max(1, r.height);
+            canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          };
+          const warm = () => {
+            size(); st = v.init(w, h);
+            for (let i = 0; i < 72; i++) { t++; try { v.step(ctx, w, h, t, st); } catch (e) {} }
+            ready = true;
+          };
+          const loop = () => { t++; try { v.step(ctx, w, h, t, st); } catch (e) {} raf = requestAnimationFrame(loop); };
+          const io = new IntersectionObserver((es) => {
+            es.forEach((e) => {
+              if (e.isIntersecting) {
+                if (!ready) warm();
+                if (!RM && !raf) loop();
+              } else if (raf) { cancelAnimationFrame(raf); raf = null; }
+            });
+          }, { threshold: 0.04 });
+          io.observe(canvas);
+          let rt;
+          window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (ready) { size(); st = v.init(w, h); } }, 180); }, { passive: true });
+          controllers.push({ canvas: canvas, warm: warm });
+        });
+        window.__bgvCtl = controllers;
+      })();
+    </script>
+  </body>
+</html>

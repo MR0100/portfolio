@@ -3,10 +3,10 @@ import { profile } from "~/data/profile";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 
 const links = [
-  { href: "/", label: "00 — Index" },
-  { href: "/work", label: "01 — Catalog" },
-  { href: "/resume", label: "02 — Datasheet" },
-  { href: "/contact", label: "03 — Contact" },
+  { href: "/", label: "Home" },
+  { href: "/work", label: "Work" },
+  { href: "/resume", label: "Resume" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const path = Astro.url.pathname;
@@ -18,9 +18,6 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
     <a href="/" class="flex items-baseline gap-2.5 group">
       <span class="font-display text-lg font-semibold tracking-tight">
         M. Vaghasiya<span class="text-accent">.</span>
-      </span>
-      <span class="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.24em] text-muted group-hover:text-accent transition-colors">
-        Spec. Sheets Vol. I
       </span>
     </a>
 

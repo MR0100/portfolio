@@ -1,0 +1,204 @@
+---
+import "~/styles/globals.css";
+
+// 14 unique, theme-aware background effects for the work-experience section.
+const variants = [
+  { v: "spine", name: "Timeline Spine", note: "A glowing spine with a pulse travelling + nodes lighting" },
+  { v: "wave", name: "Oscilloscope", note: "A pulsing signal waveform — career heartbeat" },
+  { v: "embers", name: "Rising Embers", note: "Soft motes drifting upward — quiet ascent" },
+  { v: "blueprint", name: "Blueprint Schematic", note: "Drifting draft marks: crosshairs, dims, corner ticks" },
+  { v: "stars", name: "Drift Starfield", note: "Calm parallax stars, gently twinkling (no warp)" },
+  { v: "rain", name: "Data Rain", note: "Cascading glyph columns — matrix code" },
+  { v: "radar", name: "Radar Sweep", note: "A rotating sweep revealing blips on rings" },
+  { v: "flow", name: "Flow Field", note: "Particles riding an invisible current" },
+  { v: "wire", name: "Wireframe Drift", note: "Rotating wireframe polyhedra adrift" },
+  { v: "dots", name: "Dot-Matrix Wave", note: "A dot grid rippling outward from centre" },
+  { v: "eq", name: "Equalizer", note: "Telemetry bars rising and falling along the base" },
+  { v: "ripple", name: "Sonar Rings", note: "Concentric rings blooming from centre" },
+  { v: "ticker", name: "Data Ticker", note: "Scrolling monospace code/data lines" },
+  { v: "scan", name: "Diagonal Scan", note: "A hatch field swept by a moving light band" },
+];
+
+const rows = [
+  { period: "2023 — NOW", role: "Role title", org: "Company · Location" },
+  { period: "2021 — 2023", role: "Role title", org: "Company · Location" },
+  { period: "2019 — 2021", role: "Role title", org: "Company · Location" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Experience FX · 14 variants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <button id="theme" type="button" aria-label="Toggle theme">◐ Toggle light / dark</button>
+
+    <header class="container-page py-10">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · work-experience FX</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">14 backdrops for the track record</h1>
+      <p class="mt-3 max-w-2xl font-serif text-lg text-muted">
+        Same timeline view, fourteen different background styles — all theme-aware.
+        <b>Toggle light / dark (top-right)</b> to check the fade. Tell me the number(s) you like.
+      </p>
+    </header>
+
+    {
+      variants.map((it, i) => (
+        <section class="efx">
+          <canvas class="efx-canvas" data-fx={it.v} aria-hidden="true"></canvas>
+          <div class="container-page relative z-10 w-full">
+            <div class="efx-tag">{String(i + 1).padStart(2, "0")} · {it.name} · <span class="text-muted">{it.note}</span></div>
+            <div class="mock">
+              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">The track record</div>
+              <h2 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]">Junior → Lead, six years.</h2>
+              <div class="mock-rows">
+                {rows.map((r) => (
+                  <div class="mock-row">
+                    <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent tabular-nums">{r.period}</span>
+                    <div>
+                      <div class="font-display text-xl font-semibold tracking-tight">{r.role}</div>
+                      <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted mt-0.5">{r.org}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ))
+    }
+
+    <footer class="container-page py-16 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-muted">
+      End of reel · pick a number
+    </footer>
+
+    <style>
+      .efx { position: relative; overflow: hidden; min-height: 92vh; display: flex; align-items: center; padding: 4rem 0; border-top: 1px solid rgb(var(--border)); }
+      .efx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.85; }
+      .efx-tag { font-family: var(--font-mono, monospace); font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: rgb(var(--accent)); margin-bottom: 2.5rem; }
+      .mock { max-width: 42rem; }
+      .mock-rows { margin-top: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+      .mock-row { display: grid; grid-template-columns: 120px 1fr; gap: 1.5rem; align-items: baseline; padding-bottom: 1.5rem; border-bottom: 1px solid rgb(var(--border) / 0.6); }
+      #theme { position: fixed; top: 1rem; right: 1rem; z-index: 50; font-family: var(--font-mono, monospace); font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; color: rgb(var(--text)); background: rgb(var(--paper)); border: 1px solid rgb(var(--border)); border-radius: 0.4rem; padding: 0.6rem 0.9rem; cursor: pointer; }
+    </style>
+
+    <script is:inline>
+      (function () {
+        const C = { dim: "96,116,140", red: "244,63,94", teal: "94,234,212", text: "240,235,222", bg: "11,17,26", sepia: "217,161,99" };
+        const css = (v, fb) => { const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ","); return s || fb; };
+        const readColors = () => { C.teal = css("--accent", C.teal); C.text = css("--text", C.text); C.bg = css("--bg", C.bg); C.sepia = css("--sepia", C.sepia); C.dim = css("--muted", C.dim); };
+        readColors();
+        new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        document.getElementById("theme").addEventListener("click", () => { document.documentElement.classList.toggle("dark"); (window.__fx || []).forEach((c) => { try { c.warm(); } catch (e) {} }); });
+        const rnd = (a = 1, b = 0) => b + Math.random() * (a - b);
+
+        const V = {
+          spine: {
+            init(w, h) { const n = 4, nodes = []; for (let i = 0; i < n; i++) nodes.push((i + 0.7) / (n + 0.4)); return { nodes, p: 0 }; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h); const x = w * 0.14;
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.35)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+              st.p = (st.p + 0.004) % 1; const py = st.p * h;
+              const g = ctx.createLinearGradient(x, py - 90, x, py + 90); g.addColorStop(0, "rgba(" + C.teal + ",0)"); g.addColorStop(0.5, "rgba(" + C.teal + ",0.85)"); g.addColorStop(1, "rgba(" + C.teal + ",0)");
+              ctx.strokeStyle = g; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x, py - 90); ctx.lineTo(x, py + 90); ctx.stroke();
+              for (const ny0 of st.nodes) { const ny = ny0 * h, near = Math.abs(ny - py) < 70; ctx.fillStyle = near ? "rgba(" + C.teal + ",1)" : "rgba(" + C.dim + ",0.6)"; ctx.beginPath(); ctx.arc(x, ny, near ? 5 : 3, 0, 6.283); ctx.fill(); if (near) { ctx.strokeStyle = "rgba(" + C.teal + ",0.4)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, ny, 5 + (1 - Math.abs(ny - py) / 70) * 16, 0, 6.283); ctx.stroke(); } }
+            },
+          },
+          wave: {
+            init() { return {}; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h); const cy = h * 0.5;
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.12)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+              ctx.strokeStyle = "rgba(" + C.teal + ",0.5)"; ctx.lineWidth = 1.5; ctx.beginPath();
+              for (let x = 0; x <= w; x += 4) { const y = cy + Math.sin(x * 0.011 + t * 0.05) * 38 * Math.sin(x * 0.0018 + t * 0.01) + Math.sin(x * 0.05 - t * 0.08) * 7; x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+              ctx.stroke();
+            },
+          },
+          embers: {
+            init(w, h) { const p = []; for (let i = 0; i < 70; i++) p.push({ x: rnd(w), y: rnd(h), sp: rnd(0.8, 0.3), r: rnd(2, 0.6), tw: rnd(6.28) }); return { p }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); for (const e of st.p) { e.y -= e.sp; e.x += Math.sin(t * 0.02 + e.tw) * 0.3; if (e.y < -5) { e.y = h + 5; e.x = rnd(w); } const a = (0.5 + Math.sin(t * 0.05 + e.tw) * 0.3) * 0.6; ctx.fillStyle = "rgba(" + (e.tw > 3 ? C.teal : C.sepia) + "," + Math.max(0, a).toFixed(2) + ")"; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, 6.283); ctx.fill(); } },
+          },
+          blueprint: {
+            init(w, h) { const m = []; for (let i = 0; i < 9; i++) m.push({ x: rnd(w), y: rnd(h), s: rnd(64, 30), ph: rnd(6.28), type: i % 3 }); return { m }; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h); ctx.lineWidth = 1;
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.06)"; for (let gx = 0; gx < w; gx += 42) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); } for (let gy = 0; gy < h; gy += 42) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+              for (const o of st.m) { const x = o.x + Math.cos(t * 0.003 + o.ph) * 16, y = o.y + Math.sin(t * 0.004 + o.ph) * 16;
+                if (o.type === 0) { ctx.strokeStyle = "rgba(" + C.teal + ",0.3)"; ctx.beginPath(); ctx.moveTo(x - o.s / 2, y); ctx.lineTo(x + o.s / 2, y); ctx.moveTo(x, y - o.s / 2); ctx.lineTo(x, y + o.s / 2); ctx.stroke(); ctx.strokeStyle = "rgba(" + C.dim + ",0.25)"; ctx.beginPath(); ctx.arc(x, y, o.s / 3, 0, 6.283); ctx.stroke(); }
+                else if (o.type === 1) { ctx.strokeStyle = "rgba(" + C.dim + ",0.3)"; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + o.s, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.moveTo(x + o.s, y - 4); ctx.lineTo(x + o.s, y + 4); ctx.stroke(); }
+                else { ctx.strokeStyle = "rgba(" + C.teal + ",0.25)"; const c = 7; ctx.beginPath(); ctx.moveTo(x, y + c); ctx.lineTo(x, y); ctx.lineTo(x + c, y); ctx.moveTo(x + o.s - c, y); ctx.lineTo(x + o.s, y); ctx.lineTo(x + o.s, y + c); ctx.stroke(); } }
+            },
+          },
+          stars: {
+            init(w, h) { const s = []; for (let i = 0; i < 90; i++) s.push({ x: rnd(w), y: rnd(h), r: rnd(1.6, 0.4), sp: rnd(0.25, 0.05), tw: rnd(6.28) }); return { s }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); for (const p of st.s) { p.x -= p.sp; if (p.x < -3) { p.x = w + 3; p.y = rnd(h); } const a = (0.4 + Math.sin(t * 0.04 + p.tw) * 0.3) * 0.5; ctx.fillStyle = "rgba(" + C.text + "," + Math.max(0, a).toFixed(2) + ")"; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill(); } },
+          },
+          rain: {
+            init(w, h) { const cols = [], n = Math.floor(w / 18); for (let i = 0; i < n; i++) cols.push({ x: i * 18 + 5, y: rnd(0, -h), sp: rnd(4, 1.5) }); return { cols, gl: "01<>/\\#%=+*ｱｲｳｴｵ" }; },
+            step(ctx, w, h, t, st) { ctx.fillStyle = "rgba(" + C.bg + ",0.12)"; ctx.fillRect(0, 0, w, h); ctx.font = "13px ui-monospace, monospace"; for (const c of st.cols) { c.y += c.sp; if (c.y > h + 20) c.y = rnd(0, -180); ctx.fillStyle = "rgba(" + C.text + ",0.65)"; ctx.fillText(st.gl[Math.floor(rnd(st.gl.length))], c.x, c.y); ctx.fillStyle = "rgba(" + C.teal + ",0.45)"; ctx.fillText(st.gl[Math.floor(rnd(st.gl.length))], c.x, c.y - 15); } },
+          },
+          radar: {
+            init(w, h) { const b = []; for (let i = 0; i < 10; i++) b.push({ a: rnd(6.28), r: rnd(0.92, 0.18) }); return { b, ang: 0 }; },
+            step(ctx, w, h, t, st) {
+              ctx.clearRect(0, 0, w, h); const cx = w * 0.5, cy = h * 0.5, R = Math.min(w, h) * 0.55;
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.18)"; ctx.lineWidth = 1; for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.arc(cx, cy, R * i / 3, 0, 6.283); ctx.stroke(); }
+              st.ang += 0.012; ctx.save(); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, st.ang - 0.5, st.ang); ctx.closePath(); ctx.fillStyle = "rgba(" + C.teal + ",0.1)"; ctx.fill(); ctx.restore();
+              ctx.strokeStyle = "rgba(" + C.teal + ",0.4)"; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(st.ang) * R, cy + Math.sin(st.ang) * R); ctx.stroke();
+              for (const p of st.b) { const da = ((st.ang - p.a) % 6.283 + 6.283) % 6.283, lit = da < 0.6; const x = cx + Math.cos(p.a) * p.r * R, y = cy + Math.sin(p.a) * p.r * R; ctx.fillStyle = "rgba(" + C.teal + "," + (lit ? 0.9 : 0.18).toFixed(2) + ")"; ctx.beginPath(); ctx.arc(x, y, lit ? 3.5 : 2, 0, 6.283); ctx.fill(); }
+            },
+          },
+          flow: {
+            init(w, h) { const p = []; for (let i = 0; i < 300; i++) p.push({ x: rnd(w), y: rnd(h) }); return { p }; },
+            step(ctx, w, h, t, st) { ctx.fillStyle = "rgba(" + C.bg + ",0.05)"; ctx.fillRect(0, 0, w, h); ctx.strokeStyle = "rgba(" + C.teal + ",0.28)"; ctx.lineWidth = 0.8; ctx.beginPath(); for (const q of st.p) { const a = (Math.sin(q.x * 0.008 + t * 0.01) + Math.cos(q.y * 0.008 - t * 0.008)) * Math.PI; const nx = q.x + Math.cos(a) * 1.3, ny = q.y + Math.sin(a) * 1.3; ctx.moveTo(q.x, q.y); ctx.lineTo(nx, ny); q.x = nx; q.y = ny; if (q.x < 0 || q.x > w || q.y < 0 || q.y > h) { q.x = rnd(w); q.y = rnd(h); } } ctx.stroke(); },
+          },
+          wire: {
+            init(w, h) { const cube = { v: [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]] }; const sh = []; for (let i = 0; i < 3; i++) sh.push({ x: rnd(w), y: rnd(h), s: rnd(70, 40), sp: rnd(0.015, 0.005), ph: rnd(6.28) }); return { cube, sh }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); ctx.strokeStyle = "rgba(" + C.teal + ",0.4)"; ctx.lineWidth = 1; for (const s of st.sh) { const ax = t * s.sp, ay = t * s.sp * 0.7 + s.ph; const pts = st.cube.v.map(([x, y, z]) => { let X = x * Math.cos(ay) + z * Math.sin(ay), Z = -x * Math.sin(ay) + z * Math.cos(ay); let Y = y * Math.cos(ax) - Z * Math.sin(ax); Z = y * Math.sin(ax) + Z * Math.cos(ax); const p = 2.6 / (2.6 + Z); return [s.x + X * s.s * p, s.y + Y * s.s * p]; }); ctx.beginPath(); for (const [a, b] of st.cube.e) { ctx.moveTo(pts[a][0], pts[a][1]); ctx.lineTo(pts[b][0], pts[b][1]); } ctx.stroke(); } },
+          },
+          dots: {
+            init() { return {}; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); const gap = 26, cx = w * 0.5, cy = h * 0.5; for (let y = gap / 2; y < h; y += gap) for (let x = gap / 2; x < w; x += gap) { const d = Math.hypot(x - cx, y - cy); const ph = Math.sin(d * 0.02 - t * 0.05); const r = 1 + (ph * 0.5 + 0.5) * 2.2, a = 0.1 + (ph * 0.5 + 0.5) * 0.45; ctx.fillStyle = "rgba(" + C.teal + "," + a.toFixed(2) + ")"; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill(); } },
+          },
+          eq: {
+            init(w, h) { const n = Math.floor(w / 24), bars = []; for (let i = 0; i < n; i++) bars.push({ ph: rnd(6.28), sp: rnd(0.06, 0.02) }); return { bars }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); const bw = 18, gap = 24, baseY = h * 0.86; st.bars.forEach((b, i) => { const x = i * gap + 4, hh = (Math.sin(t * b.sp + b.ph) * 0.5 + 0.5) * h * 0.38 + 10; const g = ctx.createLinearGradient(0, baseY - hh, 0, baseY); g.addColorStop(0, "rgba(" + C.teal + ",0.5)"); g.addColorStop(1, "rgba(" + C.teal + ",0.06)"); ctx.fillStyle = g; ctx.fillRect(x, baseY - hh, bw, hh); }); },
+          },
+          ripple: {
+            init() { return { rings: [], next: 0 }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); const cx = w * 0.5, cy = h * 0.5, max = Math.hypot(w, h) * 0.5; if (t > st.next) { st.rings.push({ r: 0 }); st.next = t + 48; } for (let i = st.rings.length - 1; i >= 0; i--) { const g = st.rings[i]; g.r += 2.2; const o = 1 - g.r / max; if (o <= 0) { st.rings.splice(i, 1); continue; } ctx.strokeStyle = "rgba(" + C.teal + "," + (o * 0.5).toFixed(3) + ")"; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(cx, cy, g.r, 0, 6.283); ctx.stroke(); } },
+          },
+          ticker: {
+            init(w, h) { const lines = [], n = Math.floor(h / 26), s = ["0x4F2A", "FLUTTER · KOTLIN · SWIFT", "git push origin main", "▸ build ok", "module.load()", "async / await", "</> commit", "≡ deploy"]; for (let i = 0; i < n; i++) lines.push({ y: i * 26 + 18, x: rnd(0, -400), sp: rnd(1.2, 0.4), txt: s[i % s.length] }); return { lines }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); ctx.font = "11px ui-monospace, monospace"; ctx.fillStyle = "rgba(" + C.dim + ",0.32)"; for (const l of st.lines) { l.x += l.sp; if (l.x > w) l.x = -ctx.measureText(l.txt).width - rnd(350, 60); ctx.fillText(l.txt, l.x, l.y); } },
+          },
+          scan: {
+            init() { return { off: 0 }; },
+            step(ctx, w, h, t, st) { ctx.clearRect(0, 0, w, h); ctx.strokeStyle = "rgba(" + C.dim + ",0.1)"; ctx.lineWidth = 1; const gap = 30; for (let i = -h; i < w; i += gap) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + h, h); ctx.stroke(); } st.off = (st.off + 2.4) % (w + h); const x = st.off - h; const g = ctx.createLinearGradient(x, 0, x + 130, h); g.addColorStop(0, "rgba(" + C.teal + ",0)"); g.addColorStop(0.5, "rgba(" + C.teal + ",0.13)"); g.addColorStop(1, "rgba(" + C.teal + ",0)"); ctx.fillStyle = g; ctx.save(); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 130, 0); ctx.lineTo(x + 130 + h, h); ctx.lineTo(x + h, h); ctx.closePath(); ctx.fill(); ctx.restore(); },
+          },
+        };
+
+        document.querySelectorAll("[data-fx]").forEach((canvas) => {
+          const v = V[canvas.dataset.fx]; if (!v) return;
+          const host = canvas.parentElement; const ctx = canvas.getContext("2d");
+          let st = null, w = 0, h = 0, t = 0, dpr = 1, raf = null, ready = false;
+          const size = () => { const r = host.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); w = Math.max(1, r.width); h = Math.max(1, r.height); canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+          const warm = () => { size(); st = v.init(w, h); for (let i = 0; i < 70; i++) { t++; try { v.step(ctx, w, h, t, st); } catch (e) {} } ready = true; };
+          const loop = () => { if (window.__freeze) { raf = null; return; } t++; try { v.step(ctx, w, h, t, st); } catch (e) {} raf = requestAnimationFrame(loop); };
+          new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) { if (!ready) warm(); if (!raf) loop(); } else if (raf) { cancelAnimationFrame(raf); raf = null; } }); }, { threshold: 0.04 }).observe(host);
+          new ResizeObserver(() => { if (ready) { size(); st = v.init(w, h); } }).observe(host);
+          (window.__fx = window.__fx || []).push({ canvas, warm });
+        });
+      })();
+    </script>
+  </body>
+</html>

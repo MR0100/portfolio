@@ -1,16 +1,17 @@
 ---
 import { profile } from "~/data/profile";
+import CyberDrones from "~/components/CyberDrones.astro";
 
-const rotators = [
-  "Flutter apps",
-  "native bridges",
-  "clean architecture",
-  "real-time systems",
-  "60 fps UIs",
-];
+const positionWords = profile.headline.split(" ");
+const rotators = ["Flutter", "Kotlin", "Swift", "Compose"];
 ---
 
-<section class="relative flex min-h-[calc(100svh_-_4rem)] flex-col">
+<section data-game-host class="relative overflow-hidden flex min-h-[calc(100svh_-_4rem)] flex-col">
+  <!-- The spacewar game lives ONLY in the hero, behind the text, and scrolls with it.
+       The engine shuts off when the hero leaves the viewport. (The dot-grid is the
+       parallaxing .grid-zone layer in index.astro, spanning the first three sections.) -->
+  <CyberDrones />
+
   <!-- Main content — vertically centered in the viewport -->
   <div class="container-page flex flex-1 flex-col justify-center py-12">
     <!-- Top-left meta -->
@@ -26,22 +27,27 @@ const rotators = [
       <span>{profile.location}</span>
     </div>
 
-    <!-- Big type -->
-    <h1 class="mt-8 md:mt-10 font-display font-semibold tracking-tight leading-[0.88] text-[clamp(3rem,11vw,9rem)] glitch cursor-default">
-      Mitul<br />
-      Vaghasiya<span class="text-accent neon">.</span>
+    <!-- Position — the big headline, glitches per word -->
+    <h1 class="mt-8 md:mt-10 font-display font-semibold tracking-tight leading-[1.05] text-[clamp(1.85rem,6vw,4.5rem)] cursor-default">
+      {positionWords.map((w, i) => (
+        <Fragment>{i > 0 && " "}<span class="glitch" data-text={w}>{w}</span></Fragment>
+      ))}
     </h1>
 
-    <!-- Subhead with rotator -->
-    <p class="mt-8 max-w-3xl font-serif text-2xl md:text-3xl lg:text-4xl leading-tight text-text/85">
-      Senior mobile engineer. {profile.yearsExperience} years shipping&nbsp;
+    <!-- Name — small, below the position -->
+    <p class="mt-4 font-mono text-xs md:text-sm uppercase tracking-[0.3em] text-muted">
+      {profile.shortName}<span class="text-accent">.</span>
+    </p>
+
+    <!-- Tagline -->
+    <p class="mt-7 max-w-3xl font-serif text-xl md:text-2xl lg:text-3xl leading-snug text-text/85">
+      High-performance mobile apps for clients across three continents — built in&nbsp;
       <span
         class="inline-block text-accent italic"
         data-rotator
         data-rotator-items={JSON.stringify(rotators)}
-        style="min-width: 11ch;"
-      >Flutter apps</span>
-      &nbsp;for clients across three continents.
+        style="min-width: 7ch;"
+      >Flutter</span>
     </p>
 
     <!-- CTAs -->
@@ -50,7 +56,7 @@ const rotators = [
         href="/work"
         class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-bg hover:bg-accent-hover transition-colors"
       >
-        See the work →
+        View work →
       </a>
       <a
         href="#contact"
@@ -62,7 +68,7 @@ const rotators = [
         href="/resume"
         class="inline-flex items-center gap-2 rounded-md px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors"
       >
-        Read the resume
+        Read resume
       </a>
     </div>
   </div>

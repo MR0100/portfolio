@@ -9,8 +9,8 @@ import { profile } from "~/data/profile";
 <Base title="Contact" description={`Get in touch with ${profile.name}.`}>
   <section class="container-page pt-10 md:pt-14">
     <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Specimen Sheets · Vol. III · Contact</div>
-      <div>Initiate transmission</div>
+      <div>Contact</div>
+      <div>Email is fastest</div>
     </div>
     <div class="mt-4 rule-thin"></div>
 
@@ -37,58 +37,46 @@ import { profile } from "~/data/profile";
 
     <div class="border border-border bg-paper/40 rounded-md overflow-hidden">
       <div class="flex items-center justify-between px-4 py-2 border-b border-border/60 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-        <span>Submit form</span>
+        <span>Reach out</span>
         <span>00.B</span>
       </div>
-      <form
-        action="https://formspree.io/f/YOUR_FORMSPREE_ID"
-        method="POST"
-        class="p-6 space-y-5"
-      >
-        <div class="rounded-md border border-dashed border-sepia/40 bg-sepia/5 p-3 text-xs text-sepia font-sans">
-          TODO: replace <code class="font-mono">YOUR_FORMSPREE_ID</code> in <code class="font-mono">src/pages/contact.astro</code> with your Formspree form id.
+      <div class="p-6 space-y-4">
+        <p class="font-serif text-base text-text/85 leading-relaxed">
+          Email is the fastest channel. I usually reply within a day or two.
+        </p>
+        <div class="flex flex-col gap-3 pt-1">
+          <a
+            href={profile.socials.email}
+            class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-bg hover:bg-accent-hover transition-colors"
+          >
+            {profile.email} →
+          </a>
+          <a
+            href={profile.socials.linkedin}
+            target="_blank"
+            rel="noreferrer noopener"
+            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+          >
+            LinkedIn
+          </a>
+          <a
+            href={profile.socials.github}
+            target="_blank"
+            rel="noreferrer noopener"
+            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+          >
+            GitHub
+          </a>
+          <a
+            href={profile.socials.twitter}
+            target="_blank"
+            rel="noreferrer noopener"
+            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+          >
+            Twitter / X
+          </a>
         </div>
-
-        <div class="space-y-1.5">
-          <label for="name" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Name</label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
-          />
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="email" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
-          />
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="message" class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Message</label>
-          <textarea
-            id="message"
-            name="message"
-            rows="6"
-            required
-            class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-y"
-          ></textarea>
-        </div>
-
-        <button
-          type="submit"
-          class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition-colors hover:bg-accent-hover"
-        >
-          Send transmission →
-        </button>
-      </form>
+      </div>
     </div>
   </section>
 </Base>

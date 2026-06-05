@@ -69,12 +69,13 @@ Beyond connectivity, the product had to make sense of multi-source data — sens
 
 - **Battery cost on long outdoor sessions.** Field sessions can run for hours; live-location + WebSocket telemetry had to coexist with a phone that still had charge at the end of the day.
 - **Sync correctness on flaky networks.** The reconciliation rules between the offline outbox and the server state had to be robust against partial successes and retries.
-- **Two distinct user roles to consider** — Ukko publishes both an agronomist-facing app and a grower-facing companion; this build is the agronomist tool (`com.ukkoag.enterprise`).
+- **Two product surfaces from Ukko** — `com.ukkoag.enterprise` (this build) and `com.ukkoag.farmer` (the farmer-facing companion). The enterprise build serves both agronomist and grower workflows across the field decision-making cycle.
 
 ## Results &amp; impact
 
-- Live on **both iOS and Google Play** under the Ukko Agro publisher account.
-- Part of a working AgTech platform serving North American farm operations — the brand sits at the company's own developer page on both stores.
+- Live on **both iOS App Store (v2.3.0, 188.6 MB, 3.7 ★ on 12 ratings)** and **Google Play (Android)** under the **Ukko Agro Inc.** publisher account. Last iOS build shipped 22 May 2026.
+- The published store pitch describes the app as a **Field Adaptive and Integrated Modeling (FAIM)** tool — machine learning that ingests data from a customer's network of on-farm weather stations to drive in-field decisions.
+- Part of a working AgTech platform serving North American farm operations.
 
 ## Sources
 

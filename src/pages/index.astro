@@ -15,14 +15,40 @@ import GetInTouch from "~/components/home/GetInTouch.astro";
 <Base>
   <PersonJsonLd />
 
-  <Lead />
-  <Now />
-  <div class="reveal"><Story /></div>
+  <!-- First three sections share a single parallaxing dot-grid backdrop.
+       (The spacewar game is mounted inside the hero, in Lead.astro.) -->
+  <div class="grid-zone">
+    <div class="zone-grid" aria-hidden="true"></div>
+    <Lead />
+    <Now />
+    <div class="reveal"><Story /></div>
+  </div>
+
   <div class="reveal"><Numbers /></div>
-  <div class="reveal"><Atlas /></div>
   <!-- Picks is a sticky scroll-sequence; it must NOT sit inside a transformed (.reveal) ancestor. -->
   <Picks />
   <div class="reveal"><Track /></div>
+  <!-- Atlas (where the work shipped) now sits below the work-experience track record -->
+  <div class="reveal"><Atlas /></div>
   <div class="reveal"><Stack /></div>
   <div class="reveal"><GetInTouch /></div>
+
+  <!-- Parallax the first-three-sections dot-grid: it drifts slower than the page. -->
+  <script is:inline>
+    (function () {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const zone = document.querySelector(".grid-zone");
+      const grid = zone && zone.querySelector(".zone-grid");
+      if (!grid) return;
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        const y = Math.max(0, Math.min(-zone.getBoundingClientRect().top, zone.offsetHeight));
+        grid.style.transform = "translate3d(0," + (y * 0.3).toFixed(1) + "px,0)";
+      };
+      window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener("resize", update, { passive: true });
+      update();
+    })();
+  </script>
 </Base>

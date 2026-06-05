@@ -9,15 +9,14 @@ export const profile = {
   bioShort:
     "Senior Mobile Engineer leading the mobile practice at KGK InfoTech LLP. 6+ years architecting Flutter, Kotlin, Java and Swift apps, with a focus on Clean Architecture, performance, and shipping at scale.",
   bioLong: [
-    "I lead the mobile practice at KGK InfoTech LLP — owning architecture, mentorship, and shipping for a portfolio of cross-platform and native apps. Before that I spent five years at Sadguru Soft, rising from junior Flutter dev to senior, leading client engagements across India, Canada, Japan and Korea.",
+    "I lead the mobile practice at KGK InfoTech LLP — owning architecture, mentorship, and shipping for a portfolio of cross-platform and native apps. Before that I spent 5+ years at Sadguru Soft, rising from junior Flutter dev to senior, leading client engagements across India, Canada, Japan and Korea.",
     "My focus is on the boring parts of mobile engineering done well: clean architecture, fast startup, no dropped frames, and disciplined release pipelines. The visible result is apps that feel responsive on entry-level Androids and survive heavy data on the iOS side.",
     "I'm equally comfortable writing Flutter, dropping into Kotlin/Swift for native bridges, or running the CI that ships the build. I mentor the engineers around me, run code review, and translate fuzzy business intent into shippable scope.",
   ],
   email: "mr.vaghasiya197@gmail.com",
-  phone: "+91 6353824140", // TODO confirm public visibility
   resumeFile: "/resume/mitul-vaghasiya-resume.pdf",
   // Surfaced on the home "status console" — keep honest, matches the GitHub README.
-  currentlyLearning: ["Rust", "Server-side Dart", "PostgreSQL"],
+  currentlyLearning: ["Rust", "Server-side Dart"],
   socials: {
     github: "https://github.com/MR0100",
     linkedin: "https://www.linkedin.com/in/mitul-vaghasiya-075a53166",
@@ -137,7 +136,7 @@ export const experience: Role[] = [
     period: "Nov 2019 — Mar 2025",
     location: "Surat, Gujarat, India",
     highlights: [
-      "Promoted from Jr. Flutter Dev → Flutter Dev → Expert Flutter Dev → Senior Mobile App Developer.",
+      "Promoted four times in 5+ years: Jr Flutter Dev → Flutter Dev → Expert Flutter Dev → Senior Mobile App Developer.",
       "Led technical strategy, Agile sprint planning, and international client consulting (India, Canada, Japan, Korea).",
       "Engineered Flutter ↔ native bridges via Method Channels; optimised memory and widget lifecycles to 60 fps and significantly faster app launch times.",
       "Standardised cross-project architecture by enforcing Clean Architecture, SOLID, and rigorous code reviews.",
@@ -160,6 +159,6 @@ export const certifications = [
     title: "Certified Frontend Engineer in Flutter",
     issuer: "Pro5",
     note: "Ranked in top 5% of professionals",
-    url: null as string | null, // TODO add link
+    url: "https://drive.google.com/file/d/1O7zn6UVjArLrAM5f_UywToehhe3oCe3-/view?usp=sharing" as string | null,
   },
 ];

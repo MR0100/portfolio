@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import SectionFX from "~/components/SectionFX.astro";
 
 const all = await getCollection("work");
 
@@ -9,18 +10,31 @@ const cities = new Set(
   all.filter((e) => e.data.city).map((e) => `${e.data.city},${e.data.country}`),
 ).size;
 
-// `to`/`suffix` drive the count-up; everything else is the same content as before.
+const continentMap: Record<string, string> = {
+  "South Asia": "Asia",
+  "East Asia": "Asia",
+  "Southeast Asia": "Asia",
+  "North America": "North America",
+  "South America": "South America",
+  "Europe": "Europe",
+};
+const continents = new Set(
+  all.map((e) => continentMap[e.data.region]).filter(Boolean),
+).size;
+
+// Lead with the most verifiable claim (`verified`). Cities + continents fold into one tile.
 const stats = [
-  { to: 6, suffix: "+", l: "Years in the field", s: "Jr. → Lead" },
-  { to: all.length, suffix: "", l: "Apps shipped", s: "Cross-platform & native" },
   { to: verified, suffix: "", l: "Live in app stores", s: "Verified listings" },
-  { to: 3, suffix: "", l: "Continents served", s: `${cities} cities` },
+  { to: cities, suffix: "", l: "Cities served", s: `Across ${continents} continents` },
+  { to: all.length, suffix: "", l: "Apps shipped", s: "Cross-platform & native" },
+  { to: 6, suffix: "+", l: "Years in the field", s: "Jr. → Lead" },
   { to: industries, suffix: "", l: "Industries", s: "Diamonds → health → agtech" },
 ];
 ---
 
-<section class="border-y border-border bg-paper/40" data-numbers>
-  <div class="container-page py-14 md:py-20">
+<section class="relative overflow-hidden border-y border-border bg-paper/40" data-numbers>
+  <SectionFX variant="hex" />
+  <div class="container-page py-14 md:py-20 relative z-10">
     <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-10">
       <span class="text-accent">◢</span>
       <span>By the numbers</span>
@@ -31,7 +45,7 @@ const stats = [
         stats.map((s) => (
           <div class="space-y-2">
             <dd class="font-display text-5xl md:text-7xl font-semibold tracking-tight tabular-nums leading-none text-accent">
-              <span class="inline-block" data-countup data-to={s.to} data-suffix={s.suffix}>{s.to}{s.suffix}</span>
+              <span class="inline-block glitch" data-countup data-to={s.to} data-suffix={s.suffix}>{s.to}{s.suffix}</span>
             </dd>
             <dt class="font-display text-base font-semibold tracking-tight">{s.l}</dt>
             <dd class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{s.s}</dd>
@@ -58,7 +72,8 @@ const stats = [
     const glitchOnce = (el) => {
       const to = el.getAttribute("data-to") || "";
       const suffix = el.getAttribute("data-suffix") || "";
-      el.classList.add("num-glitching");
+      el.setAttribute("data-text", to + suffix); // for the RGB-split slice layers
+      el.classList.add("glitch-auto");
       const scramble = () => {
         let s = "";
         for (const ch of to) {
@@ -69,7 +84,7 @@ const stats = [
       scramble();
       setTimeout(scramble, 80);
       setTimeout(() => { el.textContent = to + suffix; }, 170);
-      setTimeout(() => { el.classList.remove("num-glitching"); }, 440);
+      setTimeout(() => { el.classList.remove("glitch-auto"); }, 480);
     };
 
     // Each number schedules its own next glitch at a random delay, capped at 15s.

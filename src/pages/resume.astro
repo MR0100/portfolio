@@ -24,19 +24,19 @@ const cities = new Set(
 const industries = new Set(all.map((e) => e.data.category));
 ---
 
-<Base title="Datasheet" description={`Full datasheet for ${profile.name} — experience, skills, education, contact.`}>
+<Base title="Resume" description={`Full resume for ${profile.name} — experience, skills, education, contact.`}>
   <section class="container-page pt-10 md:pt-14">
     <!-- Ribbon -->
     <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Specimen Sheets · Vol. II · Datasheet</div>
-      <div>Generated from {all.length} catalogued entries</div>
+      <div>Resume · 2026.06</div>
+      <div>Generated from {all.length} projects</div>
     </div>
     <div class="mt-4 rule-thin"></div>
 
     <!-- Title -->
     <header class="mt-10 md:mt-14 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-12 lg:items-end">
       <div class="space-y-6">
-        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Curriculum vitae</div>
+        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Resume</div>
         <h1 class="font-display text-5xl md:text-7xl lg:text-[5.5rem] font-semibold tracking-tight leading-[0.92]">
           {profile.name}<span class="text-accent">.</span>
         </h1>
@@ -108,7 +108,7 @@ const industries = new Set(all.map((e) => e.data.category));
 
   <!-- § I — Experience as a datasheet -->
   <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="01" title="Experience · travel log" trailing={`${experience.length} entries`} />
+    <SpecimenHeading num="01" title="Experience" trailing={`${experience.length} roles`} />
 
     <ol class="mt-12 space-y-16 relative md:pl-10">
       {experience.map((role) => {
@@ -141,7 +141,7 @@ const industries = new Set(all.map((e) => e.data.category));
               {projectsAtThisEmployer.length > 0 && (
                 <div class="mt-6 pt-6 border-t border-border/60">
                   <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-3">
-                    Specimens shipped here · {projectsAtThisEmployer.length}
+                    Projects shipped here · {projectsAtThisEmployer.length}
                   </div>
                   <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-2 font-serif text-base">
                     {projectsAtThisEmployer.map((e) => (
@@ -169,7 +169,7 @@ const industries = new Set(all.map((e) => e.data.category));
 
   <!-- § II — Skills (searchable) -->
   <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="02" title="Skills · atlas key" trailing="searchable" />
+    <SpecimenHeading num="02" title="Skills" trailing="searchable" />
     <p class="mt-4 max-w-2xl font-serif text-base md:text-lg text-muted">
       Search or filter by category. Hit <kbd class="rounded border border-border px-1.5 py-0.5 font-mono text-xs">/</kbd> anywhere to jump to the search box.
     </p>
@@ -180,7 +180,7 @@ const industries = new Set(all.map((e) => e.data.category));
 
   <!-- § III — Schooling -->
   <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="03" title="Schooling" />
+    <SpecimenHeading num="03" title="Education" />
     <div class="mt-8 rule-thin mb-12"></div>
 
     <div class="grid gap-12 md:grid-cols-2">
@@ -207,9 +207,6 @@ const industries = new Set(all.map((e) => e.data.category));
               )}
             </div>
             <div class="font-serif text-base text-muted">{cert.issuer}{cert.note ? ` · ${cert.note}` : ""}</div>
-            {!cert.url && (
-              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">TODO: Pro5 verification link</div>
-            )}
           </div>
         ))}
       </div>
@@ -218,7 +215,7 @@ const industries = new Set(all.map((e) => e.data.category));
 
   <!-- § IV — Contact -->
   <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="04" title="Contact channels" />
+    <SpecimenHeading num="04" title="Contact" />
     <div class="mt-8 rule-thin mb-10"></div>
 
     <SpecBlock label="Channels" trailing="04.A">

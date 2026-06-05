@@ -54,48 +54,46 @@ const defenders = [
   <template data-attacker-template>
     <div class="attacker" data-attacker style="width:46px">
       <svg viewBox="0 0 60 40" width="100%" height="100%" style="overflow:visible">
-        <g stroke="rgb(244 63 94)" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round">
-          <line x1="30" y1="23" x2="13" y2="10" />
-          <line x1="30" y1="23" x2="47" y2="10" />
-          <line x1="30" y1="23" x2="13" y2="36" />
-          <line x1="30" y1="23" x2="47" y2="36" />
-        </g>
-        <g fill="rgb(244 63 94)" fill-opacity="0.14" stroke="rgb(244 63 94)" stroke-opacity="0.6" stroke-width="1.2">
-          <circle cx="13" cy="10" r="7" />
-          <circle cx="47" cy="10" r="7" />
-          <circle cx="13" cy="36" r="7" />
-          <circle cx="47" cy="36" r="7" />
-        </g>
-        <rect class="a-hull" x="21" y="14" width="18" height="18" rx="5" fill="rgb(22 7 11)" stroke="rgb(244 63 94)" stroke-opacity="0.85" stroke-width="1.5" />
-        <circle cx="30" cy="23" r="6" fill="rgb(10 4 6)" stroke="rgb(244 63 94)" stroke-opacity="0.55" stroke-width="1" />
-        <circle class="a-core" data-core cx="30" cy="23" r="3.2" fill="rgb(244 63 94)" />
-        <circle cx="13" cy="36" r="1.6" fill="rgb(244 63 94)" fill-opacity="0.85" />
-        <circle cx="47" cy="36" r="1.6" fill="rgb(244 63 94)" fill-opacity="0.85" />
-        <circle class="a-glow" cx="13" cy="10" r="1.9" fill="rgb(255 120 80)" />
-        <circle class="a-glow" cx="47" cy="10" r="1.9" fill="rgb(255 120 80)" />
+        <!-- dome (drawn first; its lower half is hidden by the disc) -->
+        <ellipse cx="30" cy="15" rx="10" ry="8" fill="rgb(22 7 11)" stroke="rgb(244 63 94)" stroke-opacity="0.85" stroke-width="1.3" />
+        <!-- glowing core inside the dome -->
+        <ellipse class="a-core" data-core cx="30" cy="14" rx="5" ry="3.6" fill="rgb(244 63 94)" />
+        <circle cx="30" cy="14" r="1.6" fill="rgb(255 210 205)" />
+        <!-- saucer disc -->
+        <ellipse class="a-hull" cx="30" cy="24" rx="26" ry="7.5" fill="rgb(20 6 10)" stroke="rgb(244 63 94)" stroke-opacity="0.9" stroke-width="1.5" />
+        <!-- upper-rim accent -->
+        <path d="M8 22 Q30 16 52 22" fill="none" stroke="rgb(244 63 94)" stroke-opacity="0.45" stroke-width="1" />
+        <!-- underside rim lights -->
+        <circle class="a-glow" cx="13" cy="27.5" r="1.5" fill="rgb(255 120 80)" />
+        <circle class="a-glow" cx="22" cy="29" r="1.5" fill="rgb(255 120 80)" />
+        <circle class="a-glow" cx="30" cy="29.5" r="1.5" fill="rgb(255 120 80)" />
+        <circle class="a-glow" cx="38" cy="29" r="1.5" fill="rgb(255 120 80)" />
+        <circle class="a-glow" cx="47" cy="27.5" r="1.5" fill="rgb(255 120 80)" />
       </svg>
     </div>
   </template>
 
-  <div class="breach" data-breach>
-    <div class="breach-grid"></div>
-    <div class="breach-readout">
-      <span class="breach-line">▌ SECTOR BREACHED</span>
-      <span class="breach-sub">TERRITORY LOST — REINITIALIZING DEFENSE GRID</span>
+  <div class="breach" data-breach aria-hidden="true">
+    <div class="breach-scan"></div>
+    <div class="breach-bands"></div>
+    <div class="breach-center">
+      <div class="breach-msg" data-breach-msg></div>
+      <div class="breach-meter" data-breach-meter><i></i></div>
+      <div class="breach-timer" data-breach-timer></div>
     </div>
   </div>
 </div>
 
 <style>
-  /* display:contents → the wrapper makes no box, so the canvas + ships stack in
-     the page's root context. Everything lives on the background layer (z:-1):
-     behind the page text, above the dot-grid body background. */
+  /* display:contents → the wrapper makes no box, so the canvas + ships position
+     against the hero host (their positioned ancestor) and SCROLL WITH it, clipped to
+     the hero. Background layer (z:-1): behind the hero text, above the dot grid (z:-2). */
   [data-drones] { display: contents; }
 
-  .dcv { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  .dcv { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
   .drone, .attacker {
-    position: fixed; left: 0; top: 0; z-index: -1;
+    position: absolute; left: 0; top: 0; z-index: -1;
     transform: translate3d(-200px, -200px, 0);
     will-change: transform; pointer-events: none;
   }
@@ -125,26 +123,70 @@ const defenders = [
   @keyframes a-glow { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.5; } }
   .attacker.is-hit .a-hull { stroke-opacity: 1; stroke: rgb(255 255 255); }
 
-  /* ---- Breach (loss) overlay ---- */
-  .breach { position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0; display: grid; place-items: center; overflow: hidden; }
-  .breach.is-breaching { animation: breach-flash 1900ms ease-out 1; }
-  @keyframes breach-flash { 0% { opacity: 0; } 4% { opacity: 1; } 100% { opacity: 0; } }
-  .breach::before {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgb(180 10 30 / 0.5) 100%), rgb(120 6 22 / 0.22);
-    mix-blend-mode: screen;
-  }
-  .breach-grid { position: absolute; inset: 0; background-image: repeating-linear-gradient(to bottom, rgb(255 60 80 / 0.10) 0, rgb(255 60 80 / 0.10) 1px, transparent 1px, transparent 4px); }
-  .breach.is-breaching .breach-grid { animation: breach-shake 90ms steps(2, end) infinite; }
-  @keyframes breach-shake { 0% { transform: translate3d(-3px, 0, 0); } 50% { transform: translate3d(3px, 1px, 0); } 100% { transform: translate3d(-2px, -1px, 0); } }
-  .breach-readout { position: relative; text-align: center; font-family: ui-monospace, "JetBrains Mono", monospace; color: rgb(255 210 215); text-shadow: 2px 0 rgb(255 40 70 / 0.9), -2px 0 rgb(40 180 255 / 0.6); }
-  .breach.is-breaching .breach-readout { animation: breach-jitter 70ms steps(2, end) infinite; }
-  @keyframes breach-jitter { 0% { transform: translate3d(-2px, 0, 0); } 50% { transform: translate3d(2px, -1px, 0); } 100% { transform: translate3d(-1px, 1px, 0); } }
-  .breach-line { display: block; font-size: clamp(22px, 6vw, 64px); font-weight: 600; letter-spacing: 0.14em; }
-  .breach-sub { display: block; margin-top: 0.7em; font-size: clamp(9px, 1.5vw, 13px); letter-spacing: 0.36em; color: rgb(255 150 160); }
-
   @media (hover: none), (pointer: coarse) { [data-drones] { display: none; } }
   @media (prefers-reduced-motion: reduce) { [data-drones] { display: none !important; } }
+</style>
+
+<!-- Breach takeover styles are GLOBAL: the crash restyles <body> + page elements
+     that live outside this component's scope, and the overlay is re-parented to <html>. -->
+<style is:global>
+  .breach {
+    position: fixed; inset: 0; z-index: 2147483600; pointer-events: none;
+    opacity: 0; display: grid; place-items: center; overflow: hidden;
+    --bc: 255 60 80;
+    font-family: ui-monospace, "JetBrains Mono", monospace;
+  }
+  .breach.is-crash { opacity: 1; }
+  .breach.is-empty { opacity: 1; background: #050507; }
+  /* repair: TRANSPARENT so the page visibly rebuilds underneath; status HUD drops to the bottom */
+  .breach.is-repair { opacity: 1; background: transparent; place-items: end center; }
+  .breach.is-repair .breach-center { padding-bottom: 8vh; }
+  .breach.is-repair .breach-msg { font-size: clamp(14px, 2.3vw, 24px); letter-spacing: 0.32em; }
+
+  .breach-scan {
+    position: absolute; inset: 0; opacity: 0; mix-blend-mode: screen; transition: opacity 350ms ease;
+    background:
+      radial-gradient(125% 95% at 50% 50%, transparent 32%, rgb(var(--bc) / 0.55) 100%),
+      repeating-linear-gradient(to bottom, rgb(var(--bc) / 0.13) 0 1px, transparent 1px 3px);
+  }
+  .breach.is-crash .breach-scan, .breach.is-empty .breach-scan, .breach.is-repair .breach-scan { opacity: 1; }
+  .breach.is-repair .breach-scan {
+    background:
+      radial-gradient(125% 95% at 50% 50%, transparent 38%, rgb(var(--accent) / 0.30) 100%),
+      repeating-linear-gradient(to bottom, rgb(var(--accent) / 0.10) 0 1px, transparent 1px 3px);
+  }
+
+  .breach-bands { position: absolute; inset: 0; opacity: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 13px, rgb(var(--bc) / 0.2) 13px 21px); }
+  .breach.is-crash .breach-bands { opacity: 1; animation: breach-bands 100ms steps(2, end) infinite; }
+  @keyframes breach-bands {
+    0% { transform: translateX(-7px); clip-path: inset(0 0 62% 0); }
+    50% { transform: translateX(9px); clip-path: inset(44% 0 22% 0); }
+    100% { transform: translateX(-3px); clip-path: inset(72% 0 0 0); }
+  }
+
+  .breach-center { position: relative; text-align: center; padding: 0 6vw; }
+  .breach-msg {
+    font-size: clamp(28px, 7.5vw, 84px); font-weight: 600; letter-spacing: 0.1em; color: rgb(255 255 255);
+    text-shadow: 3px 0 rgb(244 63 94 / 0.95), -3px 0 rgb(var(--accent) / 0.75);
+  }
+  .breach.is-crash .breach-msg, .breach.is-empty .breach-msg { animation: breach-jit 80ms steps(2, end) infinite; }
+  @keyframes breach-jit { 0% { transform: translate(-3px, 1px); } 50% { transform: translate(3px, -2px); } 100% { transform: translate(-1px, 1px); } }
+  .breach.is-repair .breach-msg { color: rgb(var(--accent)); text-shadow: 0 0 16px rgb(var(--accent) / 0.55); animation: none; }
+
+  .breach-meter { width: min(360px, 62vw); height: 4px; margin: 26px auto 14px; border-radius: 3px; overflow: hidden;
+    background: rgb(var(--accent) / 0.16); opacity: 0; transition: opacity 300ms ease; }
+  .breach-meter > i { display: block; height: 100%; width: 0; background: rgb(var(--accent)); box-shadow: 0 0 12px rgb(var(--accent)); }
+  .breach-timer { font-size: 11px; letter-spacing: 0.42em; color: rgb(var(--accent) / 0.85); opacity: 0; transition: opacity 300ms ease; }
+  .breach.is-repair .breach-meter, .breach.is-repair .breach-timer { opacity: 1; }
+
+  /* page pieces glitching just before they fall apart */
+  .breach-shake { animation: breach-shake-el 80ms steps(2, end) infinite !important; }
+  @keyframes breach-shake-el {
+    0% { transform: translate(-2px, 1px) skewX(-1deg); }
+    50% { transform: translate(3px, -2px) skewX(2deg); }
+    100% { transform: translate(-1px, 2px) skewX(0); }
+  }
 </style>
 
 <script is:inline>
@@ -159,7 +201,11 @@ const defenders = [
     const breach = root.querySelector("[data-breach]");
     const ctx = canvas.getContext("2d");
 
-    const W = () => window.innerWidth, H = () => window.innerHeight;
+    // The game is confined to the hero (its host). Canvas + ships are absolute inside
+    // it, so they SCROLL WITH the hero; all coordinates are hero-local.
+    const host = document.querySelector("[data-game-host]");
+    if (!host) return;
+    const W = () => host.clientWidth, H = () => host.clientHeight;
     const NAV = 64;
 
     // --- tunables ---
@@ -190,16 +236,23 @@ const defenders = [
     let dpr = 1;
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = W() * dpr; canvas.height = H() * dpr;
-      canvas.style.width = W() + "px"; canvas.style.height = H() + "px";
+      const w = host.clientWidth || 1, h = host.clientHeight || 1;
+      canvas.width = w * dpr; canvas.height = h * dpr; // backing store; CSS display size comes from inset:0
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     window.addEventListener("resize", resize);
+    window.addEventListener("load", resize);
+    new ResizeObserver(resize).observe(host); // keep the canvas synced as the hero lays out / resizes
 
-    // --- cursor (defenders only; attackers ignore it entirely) ---
+    // --- cursor (defenders only; attackers ignore it entirely) — hero-local coords ---
     let mx = -9999, my = -9999, lastMove = -9999, F = 0;
-    window.addEventListener("mousemove", (e) => { mx = e.clientX; my = e.clientY; lastMove = F; }, { passive: true });
+    window.addEventListener("mousemove", (e) => {
+      const r = host.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      if (x >= 0 && y >= 0 && x <= r.width && y <= r.height) { mx = x; my = y; lastMove = F; }
+      else { mx = -9999; my = -9999; } // cursor outside the hero → leader roams
+    }, { passive: true });
     window.addEventListener("mouseleave", () => { mx = -9999; my = -9999; });
     const cursorActive = () => mx > -9000 && (F - lastMove) < CURSOR_IDLE;
 
@@ -218,6 +271,38 @@ const defenders = [
     const leader = defenders.find((d) => d.leader) || defenders[0];
     const supporters = defenders.filter((d) => !d.leader);
     const aliveSups = () => supporters.filter((s) => s.alive);
+
+    // --- resume across page navigations (MPA): persist the squad's position + HP to
+    // sessionStorage on page-hide, restore it on the next home load so the game picks
+    // up where it left off rather than respawning from scratch. ---
+    const SNAP_KEY = "spacewar.snapshot.v1";
+    const saveSnapshot = () => {
+      if (breaching) return;
+      try {
+        sessionStorage.setItem(SNAP_KEY, JSON.stringify({
+          lx: Math.round(leader.x), ly: Math.round(leader.y),
+          sup: supporters.map((s) => [Math.round(s.x), Math.round(s.y), s.alive ? s.hp : SUPPORT_HP]),
+        }));
+      } catch (e) {}
+    };
+    const restoreSnapshot = () => {
+      try {
+        const raw = sessionStorage.getItem(SNAP_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        if (isFinite(d.lx) && isFinite(d.ly)) { leader.x = d.lx; leader.y = d.ly; }
+        if (Array.isArray(d.sup)) d.sup.forEach((v, i) => {
+          const s = supporters[i];
+          if (!s || !Array.isArray(v)) return;
+          if (isFinite(v[0]) && isFinite(v[1])) { s.x = v[0]; s.y = v[1]; }
+          const hp = v[2] | 0;
+          s.hp = hp > 0 ? Math.min(SUPPORT_HP, hp) : SUPPORT_HP; // returns intact, never mid-breach
+        });
+      } catch (e) {}
+    };
+    restoreSnapshot();
+    window.addEventListener("pagehide", saveSnapshot);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveSnapshot(); });
 
     // --- attackers / fx pools ---
     const attackers = [];
@@ -301,20 +386,105 @@ const defenders = [
     function triggerBreach() {
       if (breaching) return;
       breaching = true; mode = "patrol"; target = null;
-      breach.classList.remove("is-breaching"); void breach.offsetWidth; breach.classList.add("is-breaching");
-      setTimeout(resetGame, 1850);
+      try { breachTakeover(); }
+      catch (e) { setTimeout(() => location.reload(), 4000); } // never leave the site dead
     }
-    function resetGame() {
-      attackers.splice(0).forEach((a) => a.el.remove());
-      supporters.forEach((s) => {
-        s.alive = true; s.hp = SUPPORT_HP; s.reviveAt = 0;
-        s.x = leader.x + (Math.random() - 0.5) * 140; s.y = leader.y + (Math.random() - 0.5) * 140;
-        s.vx = 0; s.vy = 0; s.trail.length = 0; s.el.classList.remove("is-dead");
-      });
-      leader.trail.length = 0;
-      bolts.length = 0; sparks.length = 0;
-      mode = "patrol"; target = null; nextSpawn = 240; breaching = false;
-      breach.classList.remove("is-breaching");
+
+    // Full-site crash → "Breached..." → REBUILD (page reassembles in teal, fonts
+    // decode) → smooth in-place restart. No abrupt reload in the normal path.
+    function breachTakeover() {
+      const CH = "▚▙█▓▒░#%&@!?/\\<>*+=01╳╱╲§";
+      const msgEl = breach.querySelector("[data-breach-msg]");
+      const meterFill = breach.querySelector("[data-breach-meter] > i");
+      const timerEl = breach.querySelector("[data-breach-timer]");
+      document.documentElement.appendChild(breach); // out of <body> so the body-fade can't hide it
+
+      const W0 = window.innerWidth, H0 = window.innerHeight;
+      const shards = Array.from(document.querySelectorAll(
+        "nav > *, main h1, main h2, main h3, main h4, main p, main img, main button, main a, main li, footer > *"
+      )).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 4 && r.height > 4 && r.bottom > -40 && r.top < H0 + 40;
+      }).slice(0, 120);
+      // headings we scramble — keep the originals so we can decode them back on rebuild
+      const heads = Array.from(document.querySelectorAll("main h1, main h2, main h3")).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.bottom > 0 && r.top < H0 && el.textContent.trim();
+      }).map((el) => ({ el, orig: el.textContent }));
+
+      const rnd = () => CH[Math.floor(Math.random() * CH.length)];
+      const garble = (orig, reveal) => { let o = ""; for (let i = 0; i < orig.length; i++) { const c = orig[i]; o += (c === " " || c === "\n" || (reveal != null && i < reveal)) ? c : rnd(); } return o; };
+      let safety = setTimeout(() => { try { location.reload(); } catch (e) {} }, 16000);
+
+      function restoreGameState() {
+        attackers.splice(0).forEach((a) => a.el.remove());
+        supporters.forEach((s) => {
+          s.alive = true; s.hp = SUPPORT_HP; s.reviveAt = 0;
+          s.x = leader.x + (Math.random() - 0.5) * 140; s.y = leader.y + (Math.random() - 0.5) * 140;
+          s.vx = 0; s.vy = 0; s.trail.length = 0; s.el.classList.remove("is-dead");
+        });
+        leader.trail.length = 0; bolts.length = 0; sparks.length = 0;
+        mode = "patrol"; target = null; nextSpawn = 240; breaching = false;
+      }
+      function finishRestore() {
+        if (safety) { clearTimeout(safety); safety = null; }
+        heads.forEach(({ el, orig }) => { el.textContent = orig; });
+        restoreGameState();
+        // smooth transition: fade the teal overlay away to reveal the live, rebuilt page
+        breach.style.transition = "opacity 800ms ease";
+        breach.style.opacity = "0";
+        setTimeout(() => {
+          shards.forEach((el) => { el.style.transition = ""; el.style.transform = ""; el.style.opacity = ""; });
+          document.body.style.transition = ""; document.body.style.opacity = "";
+          breach.classList.remove("is-crash", "is-empty", "is-repair");
+          breach.style.opacity = ""; breach.style.transition = "";
+          msgEl.textContent = ""; timerEl.textContent = ""; meterFill.style.transition = "none"; meterFill.style.width = "0";
+        }, 850);
+      }
+
+      // PHASE 1 — glitch + scramble the fonts
+      msgEl.textContent = "";
+      breach.classList.add("is-crash");
+      shards.forEach((el) => el.classList.add("breach-shake"));
+      heads.forEach(({ el, orig }) => { let t = 0; const iv = setInterval(() => { el.textContent = garble(orig); if (++t > 14) clearInterval(iv); }, 55); });
+
+      // PHASE 2 — shatter / fall (staggered)
+      setTimeout(() => {
+        shards.forEach((el, i) => setTimeout(() => {
+          el.classList.remove("breach-shake");
+          el.style.transition = "transform " + (1.0 + Math.random() * 0.9).toFixed(2) + "s cubic-bezier(.55,.06,.9,.25), opacity 1.2s ease-in";
+          el.style.transform = "translate(" + ((Math.random() - 0.5) * W0 * 0.5 | 0) + "px," + ((H0 * (0.7 + Math.random() * 0.7)) | 0) + "px) rotate(" + ((Math.random() - 0.5) * 90 | 0) + "deg)";
+          el.style.opacity = "0";
+        }, (i % 50) * 16));
+      }, 1200);
+
+      // PHASE 3 — empty the screen
+      setTimeout(() => { document.body.style.transition = "opacity 650ms ease-in"; document.body.style.opacity = "0"; }, 3000);
+
+      // PHASE 4 — "Breached..." holds
+      setTimeout(() => { breach.classList.add("is-empty"); msgEl.textContent = "Breached..."; }, 3900);
+
+      // PHASE 5 — REBUILD: reassemble the page in teal + decode the fonts
+      setTimeout(() => {
+        attackers.splice(0).forEach((a) => a.el.remove()); bolts.length = 0; sparks.length = 0; // clear the enemy before rebuilding
+        breach.classList.remove("is-empty");
+        breach.classList.add("is-repair");
+        msgEl.textContent = "RESTORING SYSTEM";
+        meterFill.style.transition = "width 2700ms linear";
+        requestAnimationFrame(() => { meterFill.style.width = "100%"; });
+        // bring the page back: fade body in, fly every shard home, decode headings
+        document.body.style.transition = "opacity 1000ms ease-out";
+        document.body.style.opacity = "1";
+        shards.forEach((el, i) => setTimeout(() => {
+          el.style.transition = "transform " + (0.85 + Math.random() * 0.7).toFixed(2) + "s cubic-bezier(.18,.7,.25,1), opacity .7s ease-out";
+          el.style.transform = ""; el.style.opacity = "";
+        }, (i % 50) * 14));
+        heads.forEach(({ el, orig }) => { let f = 0; const fr = 26; const iv = setInterval(() => { el.textContent = garble(orig, Math.floor((f / fr) * orig.length)); if (++f > fr) { clearInterval(iv); el.textContent = orig; } }, 32); });
+
+        // PHASE 6 — countdown, then the smooth in-place restart (no hard refresh)
+        let n = 3; timerEl.textContent = "REBUILDING · " + n;
+        const iv = setInterval(() => { n -= 1; if (n <= 0) { clearInterval(iv); finishRestore(); } else timerEl.textContent = "REBUILDING · " + n; }, 850);
+      }, 6500);
     }
 
     const clampSpeed = (o, max) => { const s = Math.hypot(o.vx, o.vy); if (s > max) { o.vx = (o.vx / s) * max; o.vy = (o.vy / s) * max; } };
@@ -326,11 +496,18 @@ const defenders = [
       if (o.y > h - pad) { o.y = h - pad; o.vy = -Math.abs(o.vy) - 0.2; o.wander = -Math.PI / 2; }
     };
 
-    const step = () => { try { tick(); } catch (e) {} requestAnimationFrame(step); };
+    // Engine on/off: the loop runs only while the hero is in view. When the whole hero
+    // scrolls out of the viewport every engine shuts off (rAF cancelled); it resumes on return.
+    let raf = null, running = false;
+    const step = () => { try { tick(); } catch (e) {} raf = requestAnimationFrame(step); };
+    const startEngine = () => { if (running) return; running = true; resize(); raf = requestAnimationFrame(step); };
+    const stopEngine = () => { running = false; if (raf) cancelAnimationFrame(raf); raf = null; };
+    new IntersectionObserver((es) => { (es[0] && es[0].isIntersecting) ? startEngine() : stopEngine(); }, { threshold: 0 }).observe(host);
 
     const tick = () => {
       F++;
       const w = W(), h = H();
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) resize(); // self-heal to the hero size
       ctx.clearRect(0, 0, w, h);
       ctx.lineCap = "round";
 
@@ -386,7 +563,7 @@ const defenders = [
 
           a.phase += 0.04;
           const bob = Math.sin(a.phase) * 2;
-          const rot = Math.max(-14, Math.min(14, a.vx * 3)); // bank like the defender drones (symmetric quad)
+          const rot = Math.max(-12, Math.min(12, a.vx * 3)); // a saucer just banks + hovers (no nose to aim)
           a.el.style.transform = `translate3d(${a.x - a.hw}px, ${a.y - a.hh + bob}px, 0) rotate(${rot}deg)`;
           drawTrail(a.trail, a.x, a.y + bob, REDDOT, 2.6);
         } catch (e) {}
@@ -411,16 +588,24 @@ const defenders = [
           let ax, ay;
 
           if (d.leader) {
-            ax = Math.cos(d.wander) * 0.09; ay = Math.sin(d.wander) * 0.09;
             if (cursorActive()) {
-              ax += (mx - d.x) * 0.0026; ay += (my - d.y) * 0.0026; // follow the cursor
+              ax = Math.cos(d.wander) * 0.09 + (mx - d.x) * 0.0026; // follow the cursor
+              ay = Math.sin(d.wander) * 0.09 + (my - d.y) * 0.0026;
             } else {
-              // idle → FLY a circle centred on screen (radius = IDLE_AREA * half
-              // the shorter side); only steer back when it drifts outside, so it
-              // roams the whole area instead of homing to the exact centre.
+              // idle → glide smoothly between random waypoints that live INSIDE the
+              // area (never near the edge). Momentum curves the path between them,
+              // so it roams freely without ever heading to / bouncing on the boundary.
               const cx0 = w * 0.5, cy0 = h * 0.5, R = (Math.min(w, h) / 2) * IDLE_AREA;
-              const ex = d.x - cx0, ey = d.y - cy0;
-              if (Math.hypot(ex, ey) > R) { ax += (cx0 - d.x) * 0.005; ay += (cy0 - d.y) * 0.005; }
+              if (d.wpx === undefined || Math.hypot(d.wpx - d.x, d.wpy - d.y) < 60) {
+                let nx, ny, tries = 0;
+                do {
+                  const a = Math.random() * 6.28, r = Math.sqrt(Math.random()) * R * 0.7;
+                  nx = cx0 + Math.cos(a) * r; ny = cy0 + Math.sin(a) * r;
+                } while (Math.hypot(nx - d.x, ny - d.y) < R * 0.5 && ++tries < 6);
+                d.wpx = nx; d.wpy = ny;
+              }
+              ax = (d.wpx - d.x) * 0.0016 + Math.cos(d.wander) * 0.02;
+              ay = (d.wpy - d.y) * 0.0016 + Math.sin(d.wander) * 0.02;
             }
             if (target) { ax += (target.x - d.x) * 0.0008; ay += (target.y - d.y) * 0.0008; }
           } else {
@@ -526,6 +711,6 @@ const defenders = [
       }
     };
 
-    requestAnimationFrame(() => { readTeal(); root.classList.add("is-ready"); step(); });
+    requestAnimationFrame(() => { readTeal(); root.classList.add("is-ready"); }); // the IntersectionObserver starts/stops the loop
   })();
 </script>

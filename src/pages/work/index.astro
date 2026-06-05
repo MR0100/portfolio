@@ -34,21 +34,21 @@ const counts = {
 ---
 
 <Base
-  title="Catalog"
-  description="The full sortable catalog of every app Mitul Vaghasiya has shipped."
+  title="Work"
+  description="The complete index of every app Mitul Vaghasiya has shipped — sortable by status, region, category, and period."
 >
   <section class="container-page pt-10 md:pt-14">
     <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Specimen Sheets · Atlas of Work · Vol. I</div>
-      <div>{all.length} entries</div>
+      <div>Work</div>
+      <div>{all.length} projects</div>
     </div>
     <div class="mt-4 rule-thin"></div>
 
     <h1 class="mt-10 font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95] max-w-4xl">
-      Catalog<span class="text-accent">.</span>
+      Work<span class="text-accent">.</span>
     </h1>
     <p class="mt-4 max-w-2xl font-serif text-lg md:text-xl text-muted leading-relaxed">
-      The complete index. Sort by status, region, category, or year. Every entry links to its full specimen page.
+      The complete index. Sort by status, region, category, or year. Every entry links to its full case study.
     </p>
 
     <!-- At-a-glance stats -->
@@ -78,7 +78,7 @@ const counts = {
 
   <!-- Map -->
   <section class="container-page mt-12">
-    <SpecimenHeading num="00" title="Plate · atlas of work" trailing={`${counts.regions} regions`} />
+    <SpecimenHeading num="00" title="Atlas" trailing={`${counts.regions} regions`} />
     <div class="mt-6 border border-border bg-paper/40 rounded-md p-3 md:p-4">
       <WorldMap />
     </div>
@@ -86,12 +86,12 @@ const counts = {
 
   <!-- Sortable catalog -->
   <section class="container-page mt-20" data-catalog-root>
-    <SpecimenHeading num="01" title="Catalog · specimen index" trailing={`${all.length} entries`} />
+    <SpecimenHeading num="01" title="All projects" trailing={`${all.length} entries`} />
 
     <!-- Sort toolbar -->
     <div class="mt-6 flex flex-wrap items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
       <span>Sort by</span>
-      <button type="button" data-sort="order" class="chip chip-accent" aria-pressed="true">Order</button>
+      <button type="button" data-sort="order" class="chip chip-accent" aria-pressed="true">Featured</button>
       <button type="button" data-sort="status" class="chip" aria-pressed="false">Status</button>
       <button type="button" data-sort="region" class="chip" aria-pressed="false">Region</button>
       <button type="button" data-sort="category" class="chip" aria-pressed="false">Category</button>

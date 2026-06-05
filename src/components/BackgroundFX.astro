@@ -72,15 +72,15 @@
     100% { background-position: 0 128%; }
   }
 
+  /* A soft cursor glow only — no dot-grid here (the dot-grid is the parallaxing
+     .zone-grid confined to the home's first three sections). This glow brightens that
+     real grid where it exists, so the two never form a second, fixed, site-wide grid. */
   .bgfx-reveal {
     position: absolute;
     inset: 0;
     opacity: 0;
     transition: opacity 500ms ease-out;
-    background:
-      radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--accent) / 0.07), transparent 72%),
-      radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--grid) / 0.55) 1px, transparent 1.4px);
-    background-size: 100% 100%, 22px 22px;
+    background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--accent) / 0.08), transparent 72%);
   }
   .bgfx-back.is-active .bgfx-reveal { opacity: 1; }
 
@@ -156,18 +156,28 @@
 
     let mx = window.innerWidth / 2, my = window.innerHeight / 2;
     let rx = mx, ry = my;
-    let active = false, raf = null;
+    let active = false, raf = null, idleT = null;
     const pad = (n) => String(Math.round(n)).padStart(4, "0");
+
+    // Hide the grid-reveal + cursor reticle once the pointer goes still.
+    const hide = () => {
+      active = false;
+      back.classList.remove("is-active");
+      if (front) front.classList.remove("is-active");
+    };
 
     const onMove = (e) => {
       mx = e.clientX; my = e.clientY;
       if (!active) {
         active = true;
+        rx = mx; ry = my; // re-appear right at the cursor, not from a stale spot
         back.classList.add("is-active");
         if (front) front.classList.add("is-active");
       }
       back.style.setProperty("--mx", ((mx / window.innerWidth) * 100).toFixed(2) + "%");
       back.style.setProperty("--my", ((my / window.innerHeight) * 100).toFixed(2) + "%");
+      clearTimeout(idleT);
+      idleT = setTimeout(hide, 3000); // …and they come back the moment it moves again
       if (!raf) raf = requestAnimationFrame(loop);
     };
 

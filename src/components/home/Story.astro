@@ -1,5 +1,14 @@
 ---
+import { getCollection } from "astro:content";
 import { profile } from "~/data/profile";
+
+const all = await getCollection("work");
+const verified = all.filter((e) => e.data.status === "verified").length;
+
+const numberWord = (n: number) => {
+  const words = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+  return words[n] ?? String(n);
+};
 ---
 
 <!-- Magazine pull-quote feature -->
@@ -9,7 +18,7 @@ import { profile } from "~/data/profile";
   <!-- Monumental statement -->
   <blockquote class="max-w-5xl">
     <p class="font-display text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.0]" data-scramble>
-      I make mobile apps that feel <span class="text-accent italic">fast</span> and don't <span class="text-accent italic">fall over</span>.
+      Six years, <span class="text-accent italic">{numberWord(all.length)} apps shipped</span>, <span class="text-accent italic">{numberWord(verified)} still live</span> in the stores.
     </p>
   </blockquote>
 

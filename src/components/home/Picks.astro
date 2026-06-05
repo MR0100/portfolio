@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import StatusBadge from "~/components/StatusBadge.astro";
 import StoreLinksRow from "~/components/StoreLinksRow.astro";
+import SectionFX from "~/components/SectionFX.astro";
 
 const all = await getCollection("work");
 const featured = all
@@ -17,78 +18,50 @@ const distribution = (links: typeof featured[number]["data"]["links"]) =>
     .filter(Boolean)
     .join(" / ") || "Internal";
 
-// Full-viewport pinned stage (100vh) + scroll runway per tab. Tune `stepVh` for pacing.
-const stepVh = 42;
-const trackVh = 100 + featured.length * stepVh;
+const N = featured.length;
 ---
 
-<section class="container-page" data-picks>
-  <div data-track class="relative" style={`--track:${trackVh}vh`}>
-    <!-- the whole section is pinned: header + tabs + panels stay in frame together -->
-    <div class="flex flex-col justify-center gap-8 py-16 md:gap-10 md:py-0 md:sticky md:top-0 md:h-screen md:[min-height:100svh]">
-      <!-- header -->
-      <div class="flex flex-wrap items-end justify-between gap-4">
-        <div class="space-y-3">
+<section class="relative" data-picks>
+  <!-- the whole journey scrolls within this tall track; the stage stays pinned -->
+  <div data-journey>
+    <div class="journey-stage">
+      <!-- Warp starfield (zooms out into a tunnel-exit at the end of the journey) -->
+      <div class="pk-bg" aria-hidden="true"><SectionFX variant="warp" /></div>
+
+      <!-- header / HUD -->
+      <div class="pk-head">
+        <div class="pk-head-l">
           <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Selected work</div>
-          <h2 class="font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]" data-scramble>
+          <h2 class="pk-h2 font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]" data-scramble>
             A few I'm proud of.
           </h2>
         </div>
-        <a href="/work" class="font-mono text-xs uppercase tracking-[0.24em] text-accent hover:text-accent-hover transition-colors">
-          All {all.length} →
-        </a>
+        <div class="pk-head-r font-mono text-xs uppercase tracking-[0.24em]">
+          <span class="pk-counter text-muted tabular-nums" data-counter>01 / {String(N).padStart(2, "0")}</span>
+          <a href="/work" class="text-accent hover:text-accent-hover transition-colors">All {all.length} →</a>
+        </div>
       </div>
 
-      <!-- switcher: tab rail + cross-fading panels -->
-      <div class="grid gap-8 md:grid-cols-[260px_1fr] md:gap-12">
-        <div role="tablist" aria-label="Selected projects" class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0">
-          {featured.map((e, i) => (
-            <button
-              role="tab"
-              aria-selected={i === 0 ? "true" : "false"}
-              data-tab={i}
-              class="text-left whitespace-nowrap rounded-md px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors aria-selected:bg-accent/10 aria-selected:text-accent text-muted hover:text-text"
-            >
-              <span class="text-accent/60 mr-2 tabular-nums">{String(i + 1).padStart(2, "0")}</span>{e.data.title}
-            </button>
-          ))}
-          <div class="hidden md:block mt-4 h-px w-full bg-border/60 relative overflow-hidden">
-            <div data-progress class="absolute inset-y-0 left-0 bg-accent transition-[width] duration-300 ease-out" style="width:0%"></div>
-          </div>
-        </div>
-
-        <!-- stacked panels: all occupy the same grid cell; active one fades/slides in -->
-        <div class="grid">
-          {featured.map((e, i) => {
-            const d = e.data;
-            const img = d.hero || d.gallery[0];
-            return (
-              <div
-                role="tabpanel"
-                data-panel={i}
-                aria-hidden={i !== 0 ? "true" : "false"}
-                class:list={[
-                  "col-start-1 row-start-1 grid gap-6 sm:grid-cols-[1fr_320px] sm:gap-10 sm:items-start transition-all duration-500 ease-out",
-                  i === 0 ? "opacity-100 translate-y-0 z-10" : "opacity-0 translate-y-4 pointer-events-none",
-                ]}
-              >
-                <div class="space-y-4 order-2 sm:order-1">
+      <!-- case-study cards: in flow on the fallback, absolute + flown in/out in the journey -->
+      <div class="cs-list">
+        {featured.map((e, i) => {
+          const d = e.data;
+          const img = d.hero || d.gallery[0];
+          return (
+            <article class="cs-card" data-card={i}>
+              <div class="cs-frame container-page">
+                <div class="cs-shot">
+                  {img && <img src={img} alt={`${d.title} screenshot`} loading="lazy" decoding="async" />}
+                </div>
+                <div class="cs-text">
+                  <span class="cs-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
                   <div class="flex items-center gap-3">
                     <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{d.category}</span>
                     <StatusBadge status={d.status} />
                   </div>
-                  <h3 class="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-tight">{d.title}</h3>
+                  <h3 class="cs-title font-display font-semibold tracking-tight">{d.title}</h3>
                   <p class="font-serif text-lg text-muted leading-relaxed max-w-md">{d.oneLiner}</p>
-                  <dl class="grid grid-cols-2 gap-x-6 gap-y-3 max-w-sm pt-1">
-                    <div>
-                      <dt class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Role</dt>
-                      <dd class="mt-0.5 font-serif text-base text-text leading-snug">{d.role}</dd>
-                    </div>
-                    <div>
-                      <dt class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Distribution</dt>
-                      <dd class="mt-0.5 font-serif text-base text-text leading-snug">{distribution(d.links)}</dd>
-                    </div>
-                  </dl>
+                  <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{d.role} · {distribution(d.links)}</div>
                   <div class="flex flex-wrap gap-1.5">{d.stack.slice(0, 6).map((s) => <span class="chip">{s}</span>)}</div>
                   <div class="flex flex-wrap items-center gap-4 pt-1">
                     <StoreLinksRow links={d.links} size="md" />
@@ -97,81 +70,220 @@ const trackVh = 100 + featured.length * stepVh;
                     </a>
                   </div>
                 </div>
-                <div class="order-1 sm:order-2 aspect-[4/3] rounded-lg border border-border bg-paper/40 overflow-hidden">
-                  {img && <img src={img} alt={`${d.title} screenshot`} loading="lazy" decoding="async" class="h-full w-full object-contain p-4" />}
-                </div>
               </div>
-            );
-          })}
-        </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  [data-track] { min-height: 0; }
-  @media (min-width: 768px) {
-    [data-track] { min-height: var(--track); }
+  /* ───────── FALLBACK (mobile / reduced-motion / no-JS): a clean editorial list ───────── */
+  .pk-bg {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    margin-bottom: -100vh;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    --sfx-opacity: 0.5;
   }
+  .journey-stage { position: relative; z-index: 1; }
+  .pk-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 5rem 0 0;
+    margin: 0 auto;
+    max-width: 80rem;
+    padding-left: clamp(1rem, 4vw, 4rem);
+    padding-right: clamp(1rem, 4vw, 4rem);
+  }
+  .pk-head-r { display: flex; align-items: center; gap: 1.5rem; }
+  .pk-counter { display: none; } /* journey only */
+
+  .cs-list { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6rem; padding: 4rem 0 5rem; }
+  .cs-frame {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (min-width: 900px) { .cs-frame { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+  .cs-shot {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.6rem;
+    overflow: hidden;
+    background: rgb(var(--paper) / 0.45);
+    box-shadow: 0 30px 70px rgb(0 0 0 / 0.45);
+  }
+  .cs-shot img { width: 100%; height: 100%; object-fit: contain; padding: 1rem; display: block; }
+  .cs-text { position: relative; isolation: isolate; display: flex; flex-direction: column; gap: 0.85rem; }
+  .cs-num {
+    position: absolute;
+    top: -3.2rem;
+    left: -0.4rem;
+    z-index: -1;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-weight: 700;
+    font-size: clamp(5rem, 8vw, 7.5rem);
+    line-height: 0.8;
+    color: rgb(var(--accent) / 0.09);
+    pointer-events: none;
+  }
+  .cs-title { font-size: clamp(2.1rem, 4vw, 3.6rem); line-height: 1.0; }
+
+  /* ───────── JOURNEY (md+ / motion-ok): pinned stage, cards fly through space ───────── */
+  [data-picks].is-journey .journey-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    perspective: 1400px;
+  }
+  [data-picks].is-journey .pk-bg {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    margin: 0;
+  }
+  [data-picks].is-journey .pk-head {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    align-items: center;
+    padding-top: clamp(1.5rem, 3vh, 2.5rem);
+  }
+  [data-picks].is-journey .pk-h2 { display: none; }
+  [data-picks].is-journey .pk-counter { display: inline; }
+
+  /* static so the absolute cards anchor to the sticky stage (full height), not the list */
+  [data-picks].is-journey .cs-list { display: block; padding: 0; position: static; }
+  [data-picks].is-journey .cs-card {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    will-change: transform, opacity;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+  [data-picks].is-journey .cs-frame { width: 100%; }
+  [data-picks].is-journey .cs-num { top: -3.6rem; }
 </style>
 
 <script is:inline>
   (function () {
-    const root = document.querySelector("[data-picks]");
-    if (!root) return;
-    const track = root.querySelector("[data-track]");
-    const tabs = Array.from(root.querySelectorAll("[data-tab]"));
-    const panels = Array.from(root.querySelectorAll("[data-panel]"));
-    const progress = root.querySelector("[data-progress]");
-    const N = tabs.length;
+    const section = document.querySelector("[data-picks]");
+    if (!section) return;
+    const track = section.querySelector("[data-journey]");
+    const stage = section.querySelector(".journey-stage");
+    const cards = Array.from(section.querySelectorAll("[data-card]"));
+    const counter = section.querySelector("[data-counter]");
+    const head = section.querySelector(".pk-head");
+    const N = cards.length;
     if (!N) return;
-    const mq = window.matchMedia("(min-width: 768px)");
 
-    let active = -1;
-    const setActive = (i) => {
-      if (i === active) return;
-      active = i;
-      tabs.forEach((t, k) => t.setAttribute("aria-selected", k === i ? "true" : "false"));
-      panels.forEach((p, k) => {
-        const on = k === i;
-        p.classList.toggle("opacity-100", on);
-        p.classList.toggle("translate-y-0", on);
-        p.classList.toggle("z-10", on);
-        p.classList.toggle("opacity-0", !on);
-        p.classList.toggle("translate-y-4", !on);
-        p.classList.toggle("pointer-events-none", !on);
-        p.setAttribute("aria-hidden", on ? "false" : "true");
-      });
-      if (progress) progress.style.width = Math.round(((i + 1) / N) * 100) + "%";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const wide = window.matchMedia("(min-width: 900px)");
+    const STEP_VH = 85; // scroll runway per case study (tune for pacing)
+    const END = 0.4; // short tail after the last card → Experience appears soon
+    const EXIT_START = 0.7; // tunnel-exit begins this many steps before the track ends
+
+    let dirs = [];
+    const buildDirs = () =>
+      (dirs = cards.map(() => ({
+        ea: Math.random() * 6.283, // random ENTER angle
+        xa: Math.random() * 6.283, // random EXIT angle
+        erot: (Math.random() - 0.5) * 28,
+        xrot: (Math.random() - 0.5) * 50,
+        fold: (Math.random() < 0.5 ? 1 : -1) * (55 + Math.random() * 45),
+        eScale: 0.28 + Math.random() * 0.27, // enter small/far (random), grows in
+        hScale: 0.94 + Math.random() * 0.1, // held size varies → "not the same size"
+        xScale: 0.3 + Math.random() * 0.3, // recede small/far (random), shrinks out
+      })));
+    buildDirs();
+
+    const place = (card, lp, d) => {
+      if (lp <= -1.04 || lp >= 1.04) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+      const off = Math.max(window.innerWidth, window.innerHeight) * 1.18;
+      card.style.visibility = "visible";
+      let tx, ty, tz, rot, ry, sc, op;
+      if (lp < 0) {
+        // entering: fly in from a random direction out of deep space, GROWING to size
+        const t = lp + 1, e = 1 - Math.pow(1 - t, 3), k = 1 - e;
+        tx = Math.cos(d.ea) * off * k; ty = Math.sin(d.ea) * off * k; tz = -900 * k;
+        rot = d.erot * k; ry = 0; sc = d.eScale + (d.hScale - d.eScale) * e; op = Math.min(1, e * 1.3);
+      } else {
+        // exiting: fold + spin away into depth, SHRINKING as it recedes
+        const e = lp * lp;
+        tx = Math.cos(d.xa) * off * e; ty = Math.sin(d.xa) * off * e; tz = -800 * e;
+        rot = d.xrot * e; ry = d.fold * e; sc = d.hScale + (d.xScale - d.hScale) * e; op = Math.max(0, 1 - e * 1.25);
+      }
+      card.style.opacity = op.toFixed(3);
+      card.style.transform =
+        "translate3d(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px," + tz.toFixed(0) + "px) rotate(" +
+        rot.toFixed(1) + "deg) rotateY(" + ry.toFixed(1) + "deg) scale(" + sc.toFixed(3) + ")";
     };
-    setActive(0);
 
-    let ticking = false;
+    const render = (p) => {
+      for (let i = 0; i < N; i++) place(cards[i], p - i, dirs[i]);
+      const ex = Math.max(0, Math.min(1, (p - (N - EXIT_START)) / (END + EXIT_START)));
+      window.__sfxExit = ex;
+      stage.style.setProperty("--sfx-opacity", (0.55 * (1 - ex * 0.92)).toFixed(2));
+      if (head) head.style.opacity = (1 - Math.max(0, Math.min(1, (ex - 0.35) / 0.65))).toFixed(2);
+      if (counter) {
+        const cur = Math.min(N, Math.max(1, Math.floor(p + 0.5) + 1));
+        counter.textContent = String(cur).padStart(2, "0") + " / " + String(N).padStart(2, "0");
+      }
+    };
+
+    let raf = 0;
     const update = () => {
-      ticking = false;
-      if (!mq.matches) return; // scroll-driven only on md+
-      const dist = track.offsetHeight - window.innerHeight;
-      if (dist <= 0) return;
-      const scrolled = Math.min(Math.max(-track.getBoundingClientRect().top, 0), dist);
-      let idx = Math.floor((scrolled / dist) * N);
-      if (idx >= N) idx = N - 1;
-      if (idx < 0) idx = 0;
-      setActive(idx);
+      raf = 0;
+      const scrollable = track.offsetHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const sc = Math.min(Math.max(-track.getBoundingClientRect().top, 0), scrollable);
+      render((sc / scrollable) * (N + END)); // 0..N = cards, short tail = tunnel exit
     };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
 
-    tabs.forEach((t, i) => t.addEventListener("click", () => {
-      if (!mq.matches) { setActive(i); return; }
-      const dist = track.offsetHeight - window.innerHeight;
-      if (dist <= 0) { setActive(i); return; }
-      const within = ((i + 0.5) / N) * dist;
-      const top = window.scrollY + track.getBoundingClientRect().top + within;
-      window.scrollTo({ top, behavior: "smooth" });
-    }));
+    let active = false;
+    const activate = () => {
+      if (active) return; active = true;
+      section.classList.add("is-journey");
+      track.style.height = (N + END) * STEP_VH + "vh";
+      window.addEventListener("scroll", onScroll, { passive: true });
+      update();
+    };
+    const deactivate = () => {
+      if (!active) return; active = false;
+      section.classList.remove("is-journey");
+      track.style.height = "";
+      window.removeEventListener("scroll", onScroll);
+      cards.forEach((c) => { c.style.transform = ""; c.style.opacity = ""; c.style.visibility = ""; });
+      window.__sfxExit = 0;
+      stage.style.removeProperty("--sfx-opacity");
+      if (head) head.style.opacity = "";
+    };
 
-    update();
+    const apply = () => { (!reduce.matches && wide.matches) ? activate() : deactivate(); };
+    apply();
+    wide.addEventListener && wide.addEventListener("change", apply);
+    reduce.addEventListener && reduce.addEventListener("change", apply);
+    window.addEventListener("resize", () => { apply(); buildDirs(); if (active) update(); }, { passive: true });
+
+    // expose for staged verification in the throttled preview harness
+    window.__journey = { activate, update, setP: render };
   })();
 </script>

@@ -1,15 +1,17 @@
 ---
 title: "Setera TPMS"
 oneLiner: "Hardware-interfacing Android app for tyre-pressure sensor telemetry — USB Host APIs over Method Channels."
-status: "internal"
+status: "verified"
 category: "Hardware · Sensor Utility"
 role: "Mobile Developer"
 employer: "Sadguru Soft"
-client: "Setera (automotive hardware partner)"
+client: "Setera"
+publisher: "Setera (setera.seg.br)"
 period: "2023 — 2024"
 featured: false
 order: 16
-region: "International / unknown"
+region: "South America"
+country: "Brazil"
 stack:
   - "Flutter"
   - "Dart"
@@ -17,7 +19,8 @@ stack:
   - "Android USB Host APIs"
   - "Method Channels"
   - "Serial communication"
-links: {}
+links:
+  liveSite: "https://setera.seg.br/"
 hero: "/work/setera-tpms/hero-placeholder.svg"
 gallery: []
 accent: "243 255 243"
@@ -25,18 +28,17 @@ needsAssets: true
 todos:
   - "Provide screenshots if any (internal tool — may not have any)."
   - "Confirm dates."
-  - "Confirm whether the client name 'Setera' is safe to mention publicly."
 ---
 
 ## Overview
 
-Setera TPMS is a hardware-interfacing utility — an Android client talking to tyre-pressure sensors over USB to read and write low-level sensor telemetry. The interesting half of the app lives below the Flutter layer, in native Kotlin. Built at Sadguru Soft for an automotive hardware partner.
+Setera TPMS is a hardware-interfacing utility — an Android client talking to tyre-pressure sensors over USB to read and write low-level sensor telemetry. Built at Sadguru Soft for **Setera**, a Brazilian fleet telemetry company whose product line covers vehicle tracking, CANBUS data readers, driver-monitoring cameras, and tyre temperature + pressure sensors. The interesting half of this app lives below the Flutter layer, in native Kotlin.
 
 ## Problem &amp; context
 
 USB sensor telemetry is the kind of work where most-of-the-app is plumbing and the win is in not crashing. Pure Flutter doesn't talk to USB devices on Android — the platform exposes the APIs but they need careful native handling around permission flows, device enumeration, and stream lifecycle.
 
-This was a B2B tool for technicians working with TPMS (tyre-pressure monitoring system) hardware. The audience is small, the requirements are exacting, and the value is in the lack of surprises.
+This was a B2B tool for technicians working with Setera's TPMS (tyre-pressure monitoring system) hardware in the field. The audience is small, the requirements are exacting, and the value is in the lack of surprises.
 
 ## My approach &amp; key decisions
 
@@ -49,7 +51,7 @@ This was a B2B tool for technicians working with TPMS (tyre-pressure monitoring 
 - **Client:** Flutter (Dart) for the technician UI.
 - **Native:** Kotlin for Android USB Host integration and the serial protocol.
 - **Bridge:** Method Channels between Flutter and the native USB layer.
-- **Distribution:** Internal hardware-partner tool. Not on public app stores.
+- **Distribution:** Setera-internal technician tool, paired with the company's TPMS sensor hardware. Brand presence at [setera.seg.br](https://setera.seg.br/); not on public app stores.
 
 ## Challenges
 
@@ -58,10 +60,11 @@ This was a B2B tool for technicians working with TPMS (tyre-pressure monitoring 
 
 ## Results &amp; impact
 
-- Internal automotive-partner tool — never on public app stores.
-- Used by the hardware partner's technician workflow.
+- Setera-internal technician tool paired with the company's TPMS sensor lineup. Not on public app stores; brand presence at [setera.seg.br](https://setera.seg.br/).
+- Setera's broader product range — visible on the brand site — covers fleet telemetry (STR-1010+), CANBUS data readers, tyre temperature + pressure monitoring, driver-monitoring cameras with facial recognition, and jamming-detection / anti-vandalism automatic-blocking systems. This app sits in the TPMS slice of that lineup.
 
 ## Sources
 
-- Resume — *MITUL R. VAGHASIYA, April 2026*, Setera TPMS (Sensor Utility) project line.
-- Round 1 + 2 verification (`RESEARCH.md`) — confirmed no public store listing exists, consistent with an internal B2B tool.
+- Resume — _MITUL R. VAGHASIYA, April 2026_, Setera TPMS (Sensor Utility) project line.
+- Brand site — [setera.seg.br](https://setera.seg.br/) — confirms Setera as the Brazilian fleet-telemetry hardware company with a TPMS product line.
+- Round 1 + 2 verification (`RESEARCH.md`) — no public store listing, consistent with an internal B2B technician tool paired with the partner's sensor hardware.

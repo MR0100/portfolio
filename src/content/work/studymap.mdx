@@ -1,7 +1,7 @@
 ---
 title: "Studymap"
 oneLiner: "Japanese ed-tech: AI-generated study content and synchronised group study sessions."
-status: "verified"
+status: "unlisted"
 category: "Ed-tech"
 role: "Flutter Developer"
 employer: "Sadguru Soft"
@@ -23,20 +23,19 @@ stack:
   - "Real-time sync"
   - "Local Storage"
 links:
-  appStore: "https://apps.apple.com/jp/app/studymap/id1613502226"
-  playStore: "https://play.google.com/store/apps/details?id=jp.co.remody.remody"
+  liveSite: "https://www.remody.co.jp/"
 hero: "/work/studymap/hero-placeholder.svg"
 gallery: []
 accent: "236 242 255"
 needsAssets: true
 todos:
   - "Provide hero + 3 gallery screenshots (Japanese UI is fine — it's part of the story)."
-  - "Confirm dates and any specific feature you want highlighted."
+  - "Confirm whether Remody (the rebranded product) currently has store listings under the new brand name — would change status back to `verified`."
 ---
 
 ## Overview
 
-Studymap is a Tokyo ed-tech app — built for **Remody Inc.** — that pairs AI-generated study content with synchronised group study sessions, turning solitary cramming into a shared, real-time experience. I shipped it as a Flutter developer at Sadguru Soft, working with the Tokyo product team.
+Studymap is a Tokyo ed-tech app — built for **Remody Inc.** — that pairs AI-generated study content with synchronised group study sessions, turning solitary cramming into a shared, real-time experience. I shipped it as a Flutter developer at Sadguru Soft, working with the Tokyo product team. The product has since been rebranded by the client — the brand and platform now live at [remody.co.jp](https://www.remody.co.jp/) as **Remody**.
 
 ## Problem &amp; context
 
@@ -57,22 +56,21 @@ It also had to feel right for a Japanese-language audience. Localisation in Japa
 - **Data:** REST APIs to the AI content service and the session service.
 - **State:** Reactive streams driving session UI; explicit state machine for session lifecycle.
 - **Storage:** Local persistence for offline-friendly behaviours within a session.
-- **Distribution:** Live on Apple's Japan App Store (`id1613502226`) and Google Play (`jp.co.remody.remody`), both under Remody Inc.
+- **Distribution:** Originally shipped on Apple's Japan App Store and Google Play under Remody Inc. The product was later rebranded to **Remody**; the previous Studymap store listings are no longer live. Brand and platform now at [remody.co.jp](https://www.remody.co.jp/).
 
 ## Challenges
 
 - **Latency on the shared session path.** A study session feels broken if the people in it aren't on the same page — the round-trip from user action to all-participants-updated had to feel instant.
 - **Japanese typography.** Line-breaking, mixing scripts (kanji + kana + Latin), and rendering quality at small sizes.
-- **Region-gated discoverability.** App Store / Play Store URLs for the build are region-gated to Japan; outside-JP browsers may see redirects or unavailability messages.
+- **Rebrand mid-life.** The product I built as **Studymap** was later renamed to **Remody** by the client. The case study documents the Studymap-era build; the platform continues under the new brand at [remody.co.jp](https://www.remody.co.jp/).
 
 ## Results &amp; impact
 
-- Live on **both iOS (JP)** and **Android (Play Store)** under Remody Inc., serving a Japanese ed-tech audience.
-- Distribution confirmed via direct store evidence and cross-referenced via aggregator listings during research.
+- Originally on **iOS (JP App Store)** and **Android (Google Play)** under Remody Inc., serving a Japanese ed-tech audience. The Studymap-era listings are no longer live following the rebrand.
+- The product continues as **Remody** — described on the brand site as AI-powered personalised learning plans for certification-exam and university-entrance-exam preparation. Brand and platform: [remody.co.jp](https://www.remody.co.jp/), publishing from Tokyo (Shinagawa-ku, Kamiosaki).
 
 ## Sources
 
-- Resume — *MITUL R. VAGHASIYA, April 2026*, Studymap (Educational) project line.
-- App Store listing (JP) — [apps.apple.com/jp/app/studymap](https://apps.apple.com/jp/app/studymap/id1613502226).
-- Play Store listing — [play.google.com/store/apps/details?id=jp.co.remody.remody](https://play.google.com/store/apps/details?id=jp.co.remody.remody).
-- Round 2 verification (`RESEARCH.md`) including identification of Remody Inc. as the publisher and the Japan-targeted distribution.
+- Resume — _MITUL R. VAGHASIYA, April 2026_, Studymap (Educational) project line.
+- Remody brand site — [remody.co.jp](https://www.remody.co.jp/) — confirms the current product line: AI-powered personalised learning plans for certification and university-entrance-exam preparation, publishing from Tokyo (Shinagawa-ku).
+- Round 2 verification (`RESEARCH.md`) — identification of Remody Inc. as the publisher during the Studymap era and the Japan-targeted distribution. Store listings under the Studymap brand are no longer live following the rename.

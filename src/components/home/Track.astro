@@ -1,9 +1,12 @@
 ---
 import { experience } from "~/data/profile";
+import SectionFX from "~/components/SectionFX.astro";
 ---
 
-<section class="container-page py-20 md:py-28">
-  <div class="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-16">
+<section class="relative" data-track>
+  <SectionFX variant="dots" />
+  <div class="container-page py-20 md:py-28 relative z-10">
+    <div class="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-16">
     <div class="lg:sticky lg:top-24 lg:self-start space-y-3">
       <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">The track record</div>
       <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-[1.05]" data-scramble>
@@ -38,5 +41,6 @@ import { experience } from "~/data/profile";
         ))
       }
     </ol>
+    </div>
   </div>
 </section>
