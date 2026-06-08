@@ -4,7 +4,7 @@
 // that section, animates only while the section is in view (engine off otherwise),
 // reacts to scroll velocity, and is reduced-motion safe. Theme palette only.
 interface Props {
-  variant: "hex" | "warp" | "glitch" | "circuit" | "dots";
+  variant: "hex" | "warp" | "glitch" | "circuit" | "current" | "dotcircuit" | "ripple" | "transmit" | "dots" | "contour" | "constellation" | "aurora" | "grid";
   bleed?: boolean; // span the full viewport width (break out of a padded/centered container)
 }
 const { variant, bleed = false } = Astro.props;
@@ -132,6 +132,396 @@ const { variant, bleed = false } = Astro.props;
             ctx.strokeStyle = "rgba(" + (o > 0.62 ? C.white : C.teal) + "," + al.toFixed(3) + ")";
             ctx.lineWidth = 0.5 + o * 1.7;
             ctx.beginPath(); ctx.moveTo(cx + ca * r0, cy + sa * r0); ctx.lineTo(cx + ca * r1, cy + sa * r1); ctx.stroke();
+          }
+        },
+      },
+      // 14 — Transmission: a signature "broadcasting signal" effect for the footer.
+      // Slow concentric rings emanate from the centre of the canvas (where the name
+      // sits) and expand outward. A faint static reticle marks the centre with
+      // crosshairs + a pulsing core dot. Sparse scatter of faint distant stars
+      // gives the canvas depth. Plays as "this site is open / signals out" —
+      // intentionally distinct from any other section's FX.
+      transmit: {
+        init(w, h) {
+          // Sparse scatter of faint stars (precomputed, static positions)
+          const stars = [];
+          for (let i = 0; i < 28; i++) {
+            stars.push({
+              x: rnd(w),
+              y: rnd(h),
+              r: rnd(1.2, 0.4),
+              ph: Math.random() * Math.PI * 2,    // twinkle phase
+              sp: 0.012 + Math.random() * 0.018,  // twinkle speed
+            });
+          }
+          return { rings: [], stars, next: 40 };
+        },
+        step(ctx, w, h, t, st) {
+          ctx.clearRect(0, 0, w, h);
+          const cx = w / 2, cy = h / 2;
+
+          // ── Distant stars (subtle twinkle) ──
+          for (const s of st.stars) {
+            const tw = 0.35 + 0.35 * Math.sin(t * s.sp + s.ph);
+            ctx.fillStyle = "rgba(" + C.dim + "," + tw.toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, 6.283);
+            ctx.fill();
+          }
+
+          // ── Spawn rings from centre — calm cadence ──
+          if (t > st.next) {
+            st.rings.push({ r: 0, max: Math.hypot(w, h) * 0.62, speed: 1.3 + Math.random() * 0.6 });
+            st.next = t + rnd(160, 100);
+          }
+          if (Math.abs(SC.v) > 7 && st.rings.length < 5) {
+            st.rings.push({ r: 0, max: Math.hypot(w, h) * 0.5, speed: 1.8 + Math.random() * 0.6 });
+          }
+
+          // ── Animate + draw rings ──
+          for (let i = st.rings.length - 1; i >= 0; i--) {
+            const ring = st.rings[i];
+            ring.r += ring.speed;
+            if (ring.r > ring.max) { st.rings.splice(i, 1); continue; }
+            const progress = ring.r / ring.max;
+            // Fade in slightly at the start, fade out at the end
+            const fadeIn = Math.min(1, progress / 0.06);
+            const fadeOut = 1 - progress;
+            const alpha = fadeIn * fadeOut * 0.55;
+            ctx.strokeStyle = "rgba(" + C.teal + "," + alpha.toFixed(3) + ")";
+            ctx.lineWidth = 1 + (1 - progress) * 0.6;
+            ctx.beginPath();
+            ctx.arc(cx, cy, ring.r, 0, 6.283);
+            ctx.stroke();
+          }
+
+          // ── Centre reticle: subtle crosshairs ──
+          const reticleLen = 16;
+          ctx.strokeStyle = "rgba(" + C.teal + ",0.35)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(cx - reticleLen, cy); ctx.lineTo(cx - 4, cy);
+          ctx.moveTo(cx + 4, cy);          ctx.lineTo(cx + reticleLen, cy);
+          ctx.moveTo(cx, cy - reticleLen); ctx.lineTo(cx, cy - 4);
+          ctx.moveTo(cx, cy + 4);          ctx.lineTo(cx, cy + reticleLen);
+          ctx.stroke();
+
+          // Centre core dot — gentle breath
+          const breath = 0.65 + 0.25 * Math.sin(t * 0.05);
+          ctx.fillStyle = "rgba(" + C.teal + "," + breath.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 2.6, 0, 6.283);
+          ctx.fill();
+          ctx.fillStyle = "rgba(" + C.white + ",0.85)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, 1.1, 0, 6.283);
+          ctx.fill();
+        },
+      },
+      // 13 — Dot-grid Circuit: a regular dot grid covers the section; current
+      // pulses travel orthogonally from dot to dot (continue / turn at each
+      // intersection). The dot grid is the wire — current flows through it,
+      // not on freeform paths. Built specifically for the Experience section.
+      dotcircuit: {
+        init(w, h) {
+          const SP = 44; // grid spacing
+          const cols = Math.ceil(w / SP) + 1;
+          const rows = Math.ceil(h / SP) + 1;
+          return { cols, rows, SP, pulses: [], next: 25 };
+        },
+        step(ctx, w, h, t, st) {
+          ctx.clearRect(0, 0, w, h);
+          const { cols, rows, SP, pulses } = st;
+
+          // ── Spawn pulses ──
+          const spawn = () => {
+            // Start at random grid intersection (with margin)
+            const col = 1 + Math.floor(Math.random() * (cols - 2));
+            const row = 1 + Math.floor(Math.random() * (rows - 2));
+            // Pick initial direction
+            const horiz = Math.random() < 0.5;
+            const dir = Math.random() < 0.5 ? -1 : 1;
+            // Speed: bimodal — about half are slow, half are medium. No fast pulses.
+            const slow = Math.random() < 0.55;
+            const speed = slow
+              ? 0.014 + Math.random() * 0.014   // slow:   0.014 – 0.028
+              : 0.032 + Math.random() * 0.020;  // medium: 0.032 – 0.052
+            pulses.push({
+              col, row,
+              dx: horiz ? dir : 0,
+              dy: horiz ? 0 : dir,
+              progress: 0,
+              speed,
+              trail: [{ col, row }],
+              brightened: new Map(),
+            });
+          };
+          // Calmer cadence: spawn every 110-260 frames; cap concurrent at 5
+          if (t > st.next) { spawn(); st.next = t + rnd(260, 110); }
+          if (Math.abs(SC.v) > 8 && pulses.length < 5) spawn();
+
+          // ── Draw static dim grid first ──
+          ctx.fillStyle = "rgba(" + C.dim + ",0.22)";
+          for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows; r++) {
+              ctx.beginPath();
+              ctx.arc(c * SP, r * SP, 1.1, 0, 6.283);
+              ctx.fill();
+            }
+          }
+
+          // ── Track which dots got brightened this frame (across all pulses) ──
+          const bright = new Map(); // "col,row" → intensity 0..1
+
+          // ── Advance + draw each pulse ──
+          for (let i = pulses.length - 1; i >= 0; i--) {
+            const p = pulses[i];
+            p.progress += p.speed;
+
+            // Step onto next dot (possibly several times per frame if speed is high)
+            let removed = false;
+            while (p.progress >= 1 && !removed) {
+              p.col += p.dx;
+              p.row += p.dy;
+              p.progress -= 1;
+              // Out of bounds → remove pulse
+              if (p.col < 0 || p.col > cols - 1 || p.row < 0 || p.row > rows - 1) {
+                pulses.splice(i, 1);
+                removed = true;
+                break;
+              }
+              p.trail.push({ col: p.col, row: p.row });
+              if (p.trail.length > 10) p.trail.shift();
+              // Pick next direction — 60% continue, 40% turn perpendicular
+              if (Math.random() > 0.6) {
+                if (p.dx !== 0) { p.dy = Math.random() < 0.5 ? -1 : 1; p.dx = 0; }
+                else            { p.dx = Math.random() < 0.5 ? -1 : 1; p.dy = 0; }
+              }
+            }
+            if (removed) continue;
+
+            // Head position interpolated between current dot and the next
+            const headX = (p.col + p.dx * p.progress) * SP;
+            const headY = (p.row + p.dy * p.progress) * SP;
+
+            // Draw trail segments connecting trail dots
+            const tl = p.trail.length;
+            for (let j = 1; j < tl; j++) {
+              const a = p.trail[j - 1], b = p.trail[j];
+              const f = j / tl;
+              ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.55).toFixed(3) + ")";
+              ctx.lineWidth = 0.8 + f * 1.5;
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(a.col * SP, a.row * SP);
+              ctx.lineTo(b.col * SP, b.row * SP);
+              ctx.stroke();
+              // Mark trail dot for brightening
+              const k = b.col + "," + b.row;
+              bright.set(k, Math.max(bright.get(k) || 0, f));
+            }
+            // Active leg — from last trail dot to head
+            if (tl > 0) {
+              const last = p.trail[tl - 1];
+              ctx.strokeStyle = "rgba(" + C.teal + ",0.75)";
+              ctx.lineWidth = 2.3;
+              ctx.beginPath();
+              ctx.moveTo(last.col * SP, last.row * SP);
+              ctx.lineTo(headX, headY);
+              ctx.stroke();
+            }
+            // Bright head spark
+            ctx.fillStyle = "rgba(" + C.white + ",0.95)";
+            ctx.beginPath();
+            ctx.arc(headX, headY, 2, 0, 6.283);
+            ctx.fill();
+          }
+
+          // ── Repaint brightened dots over the dim grid ──
+          for (const [key, intensity] of bright) {
+            const [c, r] = key.split(",").map(Number);
+            ctx.fillStyle = "rgba(" + C.teal + "," + (0.25 + intensity * 0.55).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(c * SP, r * SP, 1.6 + intensity * 1.2, 0, 6.283);
+            ctx.fill();
+          }
+        },
+      },
+      // 12 — Ripple Field: a calm grid of tiny dots; expanding rings periodically
+      // sweep outward from random points, briefly enlarging + brightening any dots
+      // they pass through. Same architecture as `hex` but with round geometry —
+      // softer, more ambient. Good for quiet footers and end-of-page sections.
+      ripple: {
+        init(w, h) {
+          const spacing = 38;
+          const cells = [];
+          // Offset alternating columns to break the rigid grid (looks more organic)
+          let col = 0;
+          for (let x = spacing / 2; x < w + spacing; x += spacing) {
+            const offY = (col % 2) * (spacing / 2);
+            for (let y = spacing / 2 - offY; y < h + spacing; y += spacing) cells.push({ x, y });
+            col++;
+          }
+          return { cells, pulses: [], next: 40 };
+        },
+        step(ctx, w, h, t, st) {
+          ctx.clearRect(0, 0, w, h);
+          // Spawn ring pulses on a calm cadence + scroll boost
+          if (t > st.next) {
+            st.pulses.push({ x: rnd(w), y: rnd(h), r: 0, max: Math.hypot(w, h) * 0.7 });
+            st.next = t + rnd(150, 70);
+          }
+          if (Math.abs(SC.v) > 8 && st.pulses.length < 6) {
+            st.pulses.push({ x: rnd(w), y: rnd(h), r: 0, max: Math.hypot(w, h) * 0.55 });
+          }
+          // Advance ring radii; remove finished
+          for (let i = st.pulses.length - 1; i >= 0; i--) {
+            const p = st.pulses[i];
+            p.r += 3.2;
+            if (p.r > p.max) st.pulses.splice(i, 1);
+          }
+          // Draw cells — base dim dot; brighten + grow when a ring's edge crosses
+          const BAND = 48; // px — how close to a ring's edge a dot must be to glow
+          for (const c of st.cells) {
+            let glow = 0;
+            for (const p of st.pulses) {
+              const d = Math.hypot(c.x - p.x, c.y - p.y);
+              const f = 1 - Math.abs(d - p.r) / BAND;
+              if (f > glow) glow = f;
+            }
+            glow = Math.max(0, glow);
+            const baseAlpha = 0.18;
+            const baseR = 1.1;
+            if (glow > 0.05) {
+              ctx.fillStyle = "rgba(" + C.teal + "," + (baseAlpha + glow * 0.55).toFixed(3) + ")";
+              ctx.beginPath();
+              ctx.arc(c.x, c.y, baseR + glow * 1.8, 0, 6.283);
+              ctx.fill();
+            } else {
+              ctx.fillStyle = "rgba(" + C.dim + "," + baseAlpha.toFixed(3) + ")";
+              ctx.beginPath();
+              ctx.arc(c.x, c.y, baseR, 0, 6.283);
+              ctx.fill();
+            }
+          }
+        },
+      },
+      // 11 — Current Flow: paths span the full canvas (3x3 distribution) but all
+      // bias from top-right → bottom-left. Each pulse renders as a glowing LINE
+      // TRAIL that "flows" along the wire — looks like electrical current moving
+      // through the circuit, not a discrete dot.
+      current: {
+        init(w, h) {
+          const paths = [];
+          const cellsX = 3, cellsY = 3;
+          for (let cy = 0; cy < cellsY; cy++) {
+            for (let cx = 0; cx < cellsX; cx++) {
+              // Start at UPPER-RIGHT of each grid cell so the overall flow direction
+              // reads as top-right → bottom-left across the whole section
+              const startX = (w * (cx + 0.6 + Math.random() * 0.35)) / cellsX;
+              const startY = (h * (cy + 0.05 + Math.random() * 0.35)) / cellsY;
+              const pts = [[startX, startY]];
+              let x = startX, y = startY;
+              const segs = 5 + Math.floor(Math.random() * 4);
+              for (let k = 0; k < segs; k++) {
+                if (k % 2 === 0) {
+                  // Horizontal segments biased LEFT (-350 to +60) — mostly leftward with light variance
+                  x = Math.max(12, Math.min(w - 12, x + rnd(60, -350)));
+                } else {
+                  // Vertical segments biased DOWN (-60 to +280) — mostly downward
+                  y = Math.max(12, Math.min(h - 12, y + rnd(280, -60)));
+                }
+                pts.push([x, y]);
+              }
+              // Precompute segment lengths + total length for trail-walking
+              const segLens = [];
+              let total = 0;
+              for (let k = 1; k < pts.length; k++) {
+                const dx = pts[k][0] - pts[k - 1][0], dy = pts[k][1] - pts[k - 1][1];
+                const len = Math.hypot(dx, dy);
+                segLens.push(len);
+                total += len;
+              }
+              paths.push({ pts, segLens, total });
+            }
+          }
+          return { paths, pulses: [], next: 20 };
+        },
+        step(ctx, w, h, t, st) {
+          ctx.clearRect(0, 0, w, h);
+          // Always-visible base etched traces — thin dim lines + tiny corner dots
+          ctx.strokeStyle = "rgba(" + C.dim + ",0.32)";
+          ctx.lineWidth = 1;
+          for (const p of st.paths) {
+            ctx.beginPath();
+            p.pts.forEach((pt, i) => (i ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1])));
+            ctx.stroke();
+            ctx.fillStyle = "rgba(" + C.dim + ",0.6)";
+            for (const pt of p.pts) {
+              ctx.beginPath();
+              ctx.arc(pt[0], pt[1], 1.4, 0, 6.283);
+              ctx.fill();
+            }
+          }
+          // Spawn pulses periodically; scroll bursts add extras
+          if (t > st.next) {
+            st.pulses.push({ pi: Math.floor(rnd(st.paths.length)), d: 0, speed: rnd(3.6, 2) });
+            st.next = t + rnd(55, 18);
+          }
+          if (Math.abs(SC.v) > 7 && st.pulses.length < 18) {
+            st.pulses.push({ pi: Math.floor(rnd(st.paths.length)), d: 0, speed: rnd(5, 3) });
+          }
+          // Walk a path to find (x, y) at a given cumulative distance from start
+          const posAt = (path, d) => {
+            let acc = 0;
+            for (let k = 0; k < path.segLens.length; k++) {
+              if (acc + path.segLens[k] >= d) {
+                const t2 = (d - acc) / path.segLens[k];
+                const a = path.pts[k], b = path.pts[k + 1];
+                return [a[0] + (b[0] - a[0]) * t2, a[1] + (b[1] - a[1]) * t2];
+              }
+              acc += path.segLens[k];
+            }
+            return [path.pts[path.pts.length - 1][0], path.pts[path.pts.length - 1][1]];
+          };
+          // Draw current trails — each pulse is a glowing line segment that follows
+          // the path geometry, fading from bright head to transparent tail.
+          const TAIL = 60;      // px — length of the bright current zone
+          const STEPS = 14;     // sub-segments composing the trail
+          ctx.lineCap = "round";
+          for (let i = st.pulses.length - 1; i >= 0; i--) {
+            const pu = st.pulses[i];
+            const path = st.paths[pu.pi];
+            pu.d += pu.speed;
+            // Remove when fully past the end (tail also exited)
+            if (pu.d - TAIL > path.total) {
+              st.pulses.splice(i, 1);
+              continue;
+            }
+            // Draw trail sub-segments — alpha + thickness fade from head back
+            for (let s = 0; s < STEPS; s++) {
+              const dA = Math.max(0, Math.min(path.total, pu.d - (s * TAIL / STEPS)));
+              const dB = Math.max(0, Math.min(path.total, pu.d - ((s + 1) * TAIL / STEPS)));
+              if (dA <= dB) break;
+              const pA = posAt(path, dA);
+              const pB = posAt(path, dB);
+              const f = 1 - s / STEPS; // 1 at head → 0 at tail
+              const alpha = f * 0.85;
+              ctx.strokeStyle = "rgba(" + C.teal + "," + alpha.toFixed(3) + ")";
+              ctx.lineWidth = 1.5 + f * 2.5;
+              ctx.beginPath();
+              ctx.moveTo(pA[0], pA[1]);
+              ctx.lineTo(pB[0], pB[1]);
+              ctx.stroke();
+            }
+            // Bright white head cap so the leading edge of the current reads sharp
+            if (pu.d <= path.total) {
+              const head = posAt(path, pu.d);
+              ctx.fillStyle = "rgba(" + C.white + ",0.95)";
+              ctx.beginPath();
+              ctx.arc(head[0], head[1], 1.6, 0, 6.283);
+              ctx.fill();
+            }
           }
         },
       },

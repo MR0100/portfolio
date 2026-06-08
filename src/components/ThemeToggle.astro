@@ -1,5 +1,7 @@
 ---
-// Theme toggle — accessible button, no client framework needed.
+// Theme toggle — on click, the entire page goes through a cinematic glitch
+// (RGB chromatic split, position jitter, scanline-band sweep) and the theme
+// flips mid-glitch. ~620ms total. Respects prefers-reduced-motion.
 ---
 
 <button
@@ -17,16 +19,145 @@
   </svg>
 </button>
 
+<style is:global>
+  /* ──────────────── Cinematic theme-glitch transition ──────────────── */
+
+  /* While the .glitching class is on <html>, the whole page goes through
+     coordinated layers: position jitter + RGB chromatic aberration on the body,
+     animated scanline overlay, and an RGB band sweep across the screen. */
+
+  html.glitching body {
+    animation: glitch-jitter 620ms steps(14, end) forwards;
+    will-change: transform, filter;
+  }
+
+  /* Scanline overlay — repeating horizontal lines that shift in steps for a
+     CRT-tear feel. Mounted on <html>::before so it covers the whole viewport. */
+  html.glitching::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.18) 2px,
+      rgba(0, 0, 0, 0.18) 3px
+    );
+    animation: glitch-scanline 620ms steps(8, end) forwards;
+    mix-blend-mode: multiply;
+  }
+
+  /* Coloured RGB band sweep across the screen — magenta + cyan stripes
+     traveling horizontally to evoke chromatic mis-registration. */
+  html.glitching::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg,
+        transparent 0%,
+        rgba(244, 63, 94, 0.18) 18%,
+        transparent 24%,
+        rgba(94, 234, 212, 0.22) 32%,
+        transparent 40%,
+        rgba(244, 63, 94, 0.14) 60%,
+        transparent 70%,
+        rgba(94, 234, 212, 0.18) 82%,
+        transparent 92%);
+    mix-blend-mode: screen;
+    animation: glitch-band-sweep 620ms steps(10, end) forwards;
+    transform: translateX(-100%);
+  }
+
+  /* Body jitter + chromatic ghosting via drop-shadow filter */
+  @keyframes glitch-jitter {
+    0%   { transform: translate(0, 0);     filter: none; }
+    8%   { transform: translate(-4px, 2px); filter: drop-shadow(-4px 0 rgba(244,63,94,0.55)) drop-shadow(4px 0 rgba(94,234,212,0.55)); }
+    16%  { transform: translate(5px, -2px); filter: drop-shadow(5px 0 rgba(244,63,94,0.7))  drop-shadow(-5px 0 rgba(94,234,212,0.7))  hue-rotate(20deg); }
+    24%  { transform: translate(-2px, 3px); filter: drop-shadow(-3px 1px rgba(244,63,94,0.5)) drop-shadow(3px -1px rgba(94,234,212,0.5)); }
+    32%  { transform: translate(4px, 1px);  filter: drop-shadow(6px 0 rgba(244,63,94,0.6))  drop-shadow(-6px 0 rgba(94,234,212,0.6))  hue-rotate(-15deg) contrast(1.15); }
+    40%  { transform: translate(-3px, -2px); filter: drop-shadow(-5px 0 rgba(244,63,94,0.65)) drop-shadow(5px 0 rgba(94,234,212,0.65)); }
+    48%  { transform: translate(2px, 2px);  filter: drop-shadow(3px 0 rgba(244,63,94,0.45)) drop-shadow(-3px 0 rgba(94,234,212,0.45)) saturate(1.35); }
+    56%  { transform: translate(-5px, 1px); filter: drop-shadow(-4px 1px rgba(244,63,94,0.55)) drop-shadow(4px -1px rgba(94,234,212,0.55)); }
+    64%  { transform: translate(3px, -1px); filter: drop-shadow(4px 0 rgba(244,63,94,0.4))  drop-shadow(-4px 0 rgba(94,234,212,0.4)); }
+    72%  { transform: translate(-2px, 0);   filter: drop-shadow(-3px 0 rgba(244,63,94,0.35)) drop-shadow(3px 0 rgba(94,234,212,0.35)); }
+    80%  { transform: translate(1px, 1px);  filter: drop-shadow(2px 0 rgba(244,63,94,0.25)) drop-shadow(-2px 0 rgba(94,234,212,0.25)); }
+    88%  { transform: translate(-1px, 0);   filter: drop-shadow(-1px 0 rgba(244,63,94,0.15)) drop-shadow(1px 0 rgba(94,234,212,0.15)); }
+    100% { transform: translate(0, 0);      filter: none; }
+  }
+
+  @keyframes glitch-scanline {
+    0%   { opacity: 0; transform: translateY(0); }
+    10%  { opacity: 1; transform: translateY(2px); }
+    20%  { transform: translateY(-1px); }
+    30%  { transform: translateY(3px); }
+    40%  { transform: translateY(-2px); }
+    50%  { opacity: 0.9; transform: translateY(1px); }
+    60%  { transform: translateY(-3px); }
+    70%  { opacity: 0.75; transform: translateY(2px); }
+    80%  { opacity: 0.5; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(0); }
+  }
+
+  @keyframes glitch-band-sweep {
+    0%   { transform: translateX(-100%); opacity: 0; }
+    8%   { opacity: 1; }
+    50%  { transform: translateX(0); opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateX(100%); opacity: 0; }
+  }
+
+  /* Reduced-motion users skip the glitch entirely. */
+  @media (prefers-reduced-motion: reduce) {
+    html.glitching body,
+    html.glitching::before,
+    html.glitching::after {
+      animation: none !important;
+      transform: none !important;
+      filter: none !important;
+      opacity: 0 !important;
+    }
+  }
+</style>
+
 <script is:inline>
   (function () {
     const btn = document.getElementById("theme-toggle");
     if (!btn) return;
+
+    let glitching = false;
+
     btn.addEventListener("click", () => {
+      if (glitching) return; // ignore rapid double-clicks
       const root = document.documentElement;
-      const isDark = root.classList.toggle("dark");
-      try {
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-      } catch (e) {}
+
+      const applyToggle = () => {
+        const isDark = root.classList.toggle("dark");
+        try { localStorage.setItem("theme", isDark ? "dark" : "light"); } catch (e) {}
+      };
+
+      // Reduced-motion users get the instant switch.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        applyToggle();
+        return;
+      }
+
+      glitching = true;
+      root.classList.add("glitching");
+
+      // Theme flips at the visual midpoint of the glitch — peak chaos.
+      window.setTimeout(applyToggle, 250);
+
+      // Clean up after the animation finishes.
+      window.setTimeout(() => {
+        root.classList.remove("glitching");
+        glitching = false;
+      }, 640);
     });
   })();
 </script>

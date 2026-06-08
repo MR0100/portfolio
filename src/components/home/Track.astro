@@ -3,8 +3,18 @@ import { experience } from "~/data/profile";
 import SectionFX from "~/components/SectionFX.astro";
 ---
 
-<section class="relative" data-track>
-  <SectionFX variant="dots" />
+<section data-track class="relative overflow-hidden" style="--sfx-opacity: 0.4;">
+  <!-- Shared dot-grid texture + parallax (matches the rest of the home) -->
+  <div class="bg-dot-grid" data-parallax-grid aria-hidden="true"></div>
+
+  <!-- Dot-grid circuit (Experience-section only): current pulses hop from dot
+       to dot orthogonally on top of the visible grid above.
+       Wrapped in a parallax container so the canvas drifts at the same 0.55×
+       rate as the bg-dot-grid above — the two layers stay locked together. -->
+  <div class="absolute inset-0" data-parallax-grid aria-hidden="true">
+    <SectionFX variant="dotcircuit" />
+  </div>
+
   <div class="container-page py-20 md:py-28 relative z-10">
     <div class="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-16">
     <div class="lg:sticky lg:top-24 lg:self-start space-y-3">
@@ -17,11 +27,14 @@ import SectionFX from "~/components/SectionFX.astro";
       </a>
     </div>
 
-    <ol class="space-y-12">
+    <ol class="track-timeline relative space-y-12">
       {
         experience.map((role, i) => (
           <li class="relative border-l border-border pl-7">
-            <span class="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-bg" />
+            <span
+              class="track-node absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-bg"
+              style={`--node-delay: ${(i * 2.7).toFixed(2)}s;`}
+            />
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 class="font-display text-xl md:text-2xl font-semibold tracking-tight">{role.title}</h3>
               <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">{role.period}</span>
@@ -44,3 +57,25 @@ import SectionFX from "~/components/SectionFX.astro";
     </div>
   </div>
 </section>
+
+<style>
+  /* ── Minimal electricity pulse on the experience timeline ──
+     A small bright streak travels top→bottom along the timeline wire roughly every 11s.
+     Subtle enough that the content remains primary; the wire just feels "alive." */
+  /* Role-marker flicker — each node pulses subtly on its own offset cycle.
+     Pairs with the section-wide SectionFX circuit pulses passing through. */
+  .track-node {
+    animation: track-node-flicker 7.3s ease-in-out infinite;
+    animation-delay: var(--node-delay, 0s);
+  }
+  @keyframes track-node-flicker {
+    0%, 89%, 100%  { box-shadow: 0 0 0 0 rgb(var(--accent) / 0); }
+    91%            { box-shadow: 0 0 10px 2px rgb(var(--accent) / 0.55); }
+    93%            { box-shadow: 0 0 4px 1px rgb(var(--accent) / 0.3); }
+    95%            { box-shadow: 0 0 9px 2px rgb(var(--accent) / 0.5); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track-node { animation: none; box-shadow: none; }
+  }
+</style>

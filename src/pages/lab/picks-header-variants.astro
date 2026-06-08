@@ -1,0 +1,1237 @@
+---
+import "~/styles/globals.css";
+import { getCollection } from "astro:content";
+
+const all = await getCollection("work");
+const featured = all
+  .filter((e) => e.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 6);
+
+const N = featured.length;
+const verified = all.filter((e) => e.data.status === "verified").length;
+const regionsCount = new Set(all.map((e) => e.data.region)).size;
+
+const variants = [
+  { id: "va", letter: "A", name: "Cinematic Billboard", note: "Centered headline, stats strip anchor below.", group: "original" },
+  { id: "vb", letter: "B", name: "Giant 06 Asymmetric",  note: "Massive accent number left, headline stacked right.", group: "original" },
+  { id: "vc", letter: "C", name: "Datasheet / Spec",     note: "Technical key-value rows — matches the resume spec block.", group: "original" },
+  { id: "vd", letter: "D", name: "Console / Terminal",   note: "Plays into the cyberpunk + monospace HUD aesthetic.", group: "original" },
+  { id: "ve", letter: "E", name: "Filmstrip Thumbnails", note: "Tiny hero previews instead of a text TOC.", group: "original" },
+  { id: "vf", letter: "F", name: "Manifesto Quote",      note: "Italic pull-quote as the headline. Magazine cover style.", group: "original" },
+  { id: "vg", letter: "G", name: "Vertical Stacked Banner", note: "All-caps display type, three short lines, framed by rules.", group: "original" },
+
+  // Photography portfolio inspired
+  { id: "vh", letter: "H", name: "Contact Sheet",        note: "3×2 thumbnail grid with passe-partout borders and print labels. Darkroom contact-sheet vibe.", group: "photo" },
+  { id: "vi", letter: "I", name: "Editorial Spread",     note: "Magazine-style: oversized hero photo on left, refined serif title block on right.", group: "photo" },
+  { id: "vj", letter: "J", name: "Museum Plate",         note: "Centered exhibition wall text — Plates 01–06, framed by double hairline rules.", group: "photo" },
+  { id: "vk", letter: "K", name: "Catalogue Card",       note: "Library-catalogue card. Typewriter mono, dense ordered rows, archival feel.", group: "photo" },
+  { id: "vl", letter: "L", name: "Italic Centered",      note: "Single line of italic display serif, generous whitespace, hairline divider.", group: "photo" },
+  { id: "vm", letter: "M", name: "Film Negative Strip",  note: "Horizontal narrow image strip with sprocket-hole ticks. 35mm film aesthetic.", group: "photo" },
+  { id: "vn", letter: "N", name: "Magazine Masthead",    note: "Vol/Issue masthead, refined ALL-CAPS micro-labels framing the headline.", group: "photo" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Lab — Picks header · 7 variants</title>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <header class="container-page py-12 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · Selected Work header</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">14 header variants</h1>
+      <p class="mt-4 max-w-2xl font-serif text-lg text-muted">
+        Same section, fourteen different top-half compositions. <strong class="text-text">A–G</strong> are the
+        original directions. <strong class="text-text">H–N</strong> are photography-portfolio inspired —
+        contact sheets, editorial spreads, museum plates, catalogue cards, film strips, magazine mastheads.
+        Each renders in real visual context. Pick a letter; I'll wire it in.
+      </p>
+      <div class="mt-6 space-y-3">
+        <div>
+          <div class="font-mono text-[9px] uppercase tracking-[0.24em] text-sepia mb-2">Originals</div>
+          <nav class="flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+            {variants.filter(v => v.group === "original").map((v) => (
+              <a href={`#${v.id}`} class="text-muted hover:text-accent transition-colors border-b border-border/40 py-1">
+                <span class="text-accent">{v.letter}</span> · {v.name}
+              </a>
+            ))}
+          </nav>
+        </div>
+        <div>
+          <div class="font-mono text-[9px] uppercase tracking-[0.24em] text-sepia mb-2">Photography portfolio</div>
+          <nav class="flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+            {variants.filter(v => v.group === "photo").map((v) => (
+              <a href={`#${v.id}`} class="text-muted hover:text-accent transition-colors border-b border-border/40 py-1">
+                <span class="text-accent">{v.letter}</span> · {v.name}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    {variants.map((v) => (
+      <section id={v.id} class="variant-wrap">
+        <div class="variant-tag">
+          <span class="variant-tag-letter">Variant {v.letter}</span>
+          <span class="variant-tag-name">{v.name}</span>
+          <span class="variant-tag-note">{v.note}</span>
+        </div>
+        <div class="variant-stage">
+          <!-- Each variant body renders here -->
+          {v.id === "va" && (
+            <div class="container-page va">
+              <div class="va-ribbon">
+                <span>Selected work · {String(N).padStart(2, "0")} picks</span>
+                <span>All {all.length} projects →</span>
+              </div>
+              <div class="va-rule"></div>
+              <div class="va-center">
+                <div class="va-kicker"><span class="dot"></span>Featured · {String(N).padStart(2, "0")} of {all.length}</div>
+                <h2 class="va-h2">A few I'm proud of<span class="accent">.</span></h2>
+                <p class="va-sub">Each links to a full case study — architecture, decisions, performance work, shipped state.</p>
+              </div>
+              <div class="va-stats">
+                <div><dt>{String(N).padStart(2, "0")}</dt><dd>Shipped</dd></div>
+                <div><dt>{verified}</dt><dd>Store-live</dd></div>
+                <div><dt>04</dt><dd>Continents</dd></div>
+                <div><dt>6+</dt><dd>Years</dd></div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vb" && (
+            <div class="container-page vb">
+              <div class="vb-ribbon">
+                <span>Selected work · {String(N).padStart(2, "0")} picks</span>
+                <span>All {all.length} projects →</span>
+              </div>
+              <div class="vb-rule"></div>
+              <div class="vb-grid">
+                <div class="vb-num" aria-hidden="true">{String(N).padStart(2, "0")}</div>
+                <div class="vb-text">
+                  <h2 class="vb-h2">A few worth<br/>slowing down for<span class="accent">.</span></h2>
+                  <div class="vb-meta">◀ Featured picks · {String(N).padStart(2, "0")} of {all.length} · case-study depth</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vc" && (
+            <div class="container-page vc">
+              <div class="vc-ribbon-row">
+                <span>Selected work</span>
+                <span class="vc-rule"></span>
+                <span class="vc-count"><span class="dot"></span>{String(N).padStart(2, "0")} of {all.length}</span>
+              </div>
+              <h2 class="vc-h2">A few I'm proud of<span class="accent">.</span></h2>
+              <dl class="vc-specs">
+                <div><dt>Count.</dt><dd>{String(N).padStart(2, "0")} picks · selected from {all.length} shipped</dd></div>
+                <div><dt>Criteria.</dt><dd>Featured · public-store live</dd></div>
+                <div><dt>Read time.</dt><dd>~ 3 min per case study</dd></div>
+                <div><dt>Order.</dt><dd>By portfolio weight (curated)</dd></div>
+                <div><dt>Browse all.</dt><dd><a href="/work" class="vc-link">{all.length} projects →</a></dd></div>
+              </dl>
+            </div>
+          )}
+
+          {v.id === "vd" && (
+            <div class="container-page vd">
+              <div class="vd-prompt">$ open --section selected-work --depth full</div>
+              <div class="vd-meta">▸ {String(N).padStart(2, "0")} of {all.length} · curated for the deep-read</div>
+              <h2 class="vd-h2">
+                <span class="vd-cursor">▸</span>
+                A few I'm proud of<span class="accent">.</span>
+              </h2>
+              <p class="vd-sub">Architecture · decisions · performance work · shipped state.</p>
+              <div class="vd-foot">$ <span class="vd-link"><a href="/work">ls /work — {all.length} total →</a></span></div>
+            </div>
+          )}
+
+          {v.id === "ve" && (
+            <div class="container-page ve">
+              <div class="ve-top">
+                <div class="ve-kicker"><span class="dot"></span>Featured · {String(N).padStart(2, "0")} of {all.length}</div>
+                <a href="/work" class="ve-all">All {all.length} →</a>
+              </div>
+              <h2 class="ve-h2">A few I'm proud of<span class="accent">.</span></h2>
+              <p class="ve-sub">Each links to a full case study with architecture and decisions.</p>
+              <ol class="ve-thumbs">
+                {featured.map((entry, i) => {
+                  const img = entry.data.hero || entry.data.gallery[0];
+                  return (
+                    <li>
+                      <a href={`#pick-${i}`} class="ve-thumb" aria-label={`Jump to ${entry.data.title}`}>
+                        {img && <img src={img} alt="" loading="lazy" />}
+                        <span class="ve-thumb-num">{String(i + 1).padStart(2, "0")}</span>
+                      </a>
+                      <div class="ve-thumb-title">{entry.data.title}</div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
+
+          {v.id === "vf" && (
+            <div class="container-page vf">
+              <div class="vf-top">
+                <span>Featured picks</span>
+                <span>{String(N).padStart(2, "0")} of {all.length}</span>
+              </div>
+              <blockquote class="vf-quote">
+                <span class="vf-mark">"</span>Six of nineteen<br/>worth the deep read.<span class="vf-mark vf-mark-end">"</span>
+              </blockquote>
+              <div class="vf-bottom">
+                <span class="dot"></span>
+                A few I'm proud of — each opens a full case study.
+              </div>
+            </div>
+          )}
+
+          {v.id === "vg" && (
+            <div class="container-page vg">
+              <div class="vg-top">
+                <span class="vg-num">— 02 —</span>
+                <span class="vg-tag">Selected work · {String(N).padStart(2, "0")} of {all.length}</span>
+              </div>
+              <div class="vg-rule"></div>
+              <h2 class="vg-h2">
+                <span>A FEW</span>
+                <span>I'M PROUD</span>
+                <span>OF<span class="accent">.</span></span>
+              </h2>
+              <div class="vg-rule vg-rule-bot"></div>
+              <div class="vg-foot">Each links to a full case study →</div>
+            </div>
+          )}
+
+          {/* ─────────── Photography-portfolio variants ─────────── */}
+
+          {v.id === "vh" && (
+            <div class="container-page vh">
+              <div class="vh-top">
+                <span class="vh-mark">Contact sheet — Mitul Vaghasiya</span>
+                <span class="vh-date">2019 – 2026</span>
+              </div>
+              <h2 class="vh-h2">A few I'm proud of<span class="accent">.</span></h2>
+              <ol class="vh-grid">
+                {featured.map((entry, i) => {
+                  const img = entry.data.hero || entry.data.gallery[0];
+                  return (
+                    <li class="vh-cell">
+                      <a href={`#pick-${i}`} class="vh-frame">
+                        {img && <img src={img} alt="" loading="lazy" />}
+                      </a>
+                      <div class="vh-label">
+                        <span>{String(i + 1).padStart(2, "0")}</span>
+                        <span>{entry.data.title}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
+
+          {v.id === "vi" && (
+            <div class="container-page vi">
+              <div class="vi-grid">
+                <div class="vi-photo">
+                  {(() => {
+                    const first = featured[0];
+                    const img = first?.data.hero || first?.data.gallery[0];
+                    return img && <img src={img} alt="" loading="lazy" />;
+                  })()}
+                  <div class="vi-photo-caption">Plate 01 — {featured[0]?.data.title}</div>
+                </div>
+                <div class="vi-text">
+                  <div class="vi-issue">Issue {String(N).padStart(2, "0")} · Selected work</div>
+                  <h2 class="vi-h2">A few<br/>I'm proud<br/>of<span class="accent">.</span></h2>
+                  <div class="vi-divider"></div>
+                  <p class="vi-body">Each links to a full case study — architecture, decisions, performance work, shipped state.</p>
+                  <div class="vi-meta">
+                    <span>{String(N).padStart(2, "0")} plates</span>
+                    <span>·</span>
+                    <span>2019 – 2026</span>
+                    <span>·</span>
+                    <a href="/work" class="vi-link">All {all.length} →</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vj" && (
+            <div class="container-page vj">
+              <div class="vj-frame">
+                <div class="vj-rule-double"></div>
+                <div class="vj-overline">Plates {String(1).padStart(2, "0")} — {String(N).padStart(2, "0")}</div>
+                <h2 class="vj-h2">A few I'm proud of<span class="accent">.</span></h2>
+                <div class="vj-meta">Featured projects · 2019 – 2026 · case-study format</div>
+                <div class="vj-ornament">✦</div>
+                <div class="vj-rule-double"></div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vk" && (
+            <div class="container-page vk">
+              <div class="vk-card">
+                <div class="vk-cardhead">
+                  <span>Catalogue Card</span>
+                  <span class="vk-cardno">No. {String(N).padStart(3, "0")}</span>
+                </div>
+                <h2 class="vk-h2">A few I'm proud of.</h2>
+                <dl class="vk-rows">
+                  <div><dt>SUBJECT</dt><dd>Selected work</dd></div>
+                  <div><dt>COLLECTION</dt><dd>{String(N).padStart(2, "0")} plates, curated from {all.length}</dd></div>
+                  <div><dt>RANGE</dt><dd>2019 — 2026</dd></div>
+                  <div><dt>FORMAT</dt><dd>Case study · architecture · decisions · shipped state</dd></div>
+                  <div><dt>FILED</dt><dd>Mobile · Cross-platform · Native</dd></div>
+                  <div><dt>SEE ALSO</dt><dd><a href="/work" class="vk-link">/work · {all.length} entries →</a></dd></div>
+                </dl>
+                <div class="vk-stamp">FEATURED</div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vl" && (
+            <div class="container-page vl">
+              <div class="vl-over">Selected work · {String(N).padStart(2, "0")} of {all.length}</div>
+              <h2 class="vl-h2"><em>A few I'm proud of<span class="accent">.</span></em></h2>
+              <div class="vl-divider"></div>
+              <p class="vl-cap">Architecture, decisions, performance work, shipped state — opened in full.</p>
+            </div>
+          )}
+
+          {v.id === "vm" && (
+            <div class="container-page vm">
+              <div class="vm-top">
+                <h2 class="vm-h2">A few I'm proud of<span class="accent">.</span></h2>
+                <div class="vm-meta">
+                  <div class="vm-mr">Roll {String(N).padStart(2, "0")} / Frames 01–{String(N).padStart(2, "0")}</div>
+                  <a href="/work" class="vm-all">All {all.length} →</a>
+                </div>
+              </div>
+              <div class="vm-strip">
+                <div class="vm-sprocket vm-sprocket-top">
+                  {Array.from({ length: 18 }).map(() => <span></span>)}
+                </div>
+                <ol class="vm-frames">
+                  {featured.map((entry, i) => {
+                    const img = entry.data.hero || entry.data.gallery[0];
+                    return (
+                      <li>
+                        <a href={`#pick-${i}`} class="vm-frame">
+                          {img && <img src={img} alt="" loading="lazy" />}
+                          <span class="vm-num">{String(i + 1).padStart(2, "0")}</span>
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <div class="vm-sprocket vm-sprocket-bot">
+                  {Array.from({ length: 18 }).map(() => <span></span>)}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {v.id === "vn" && (
+            <div class="container-page vn">
+              <div class="vn-masthead">
+                <div class="vn-volume">
+                  <span class="vn-volume-num">Vol. 01</span>
+                  <span class="vn-volume-sep">·</span>
+                  <span class="vn-volume-issue">Issue {String(N).padStart(2, "0")}</span>
+                </div>
+                <div class="vn-edition">Curator's edition</div>
+                <div class="vn-no">No. {String(N).padStart(2, "0")} / {String(all.length).padStart(2, "0")}</div>
+              </div>
+              <div class="vn-rule"></div>
+              <div class="vn-headblock">
+                <div class="vn-section">Selected work</div>
+                <h2 class="vn-h2">A few I'm proud of<span class="accent">.</span></h2>
+                <p class="vn-tag">Case-study format · architecture, decisions, shipped state.</p>
+              </div>
+              <div class="vn-rule"></div>
+              <div class="vn-foot">
+                <span>Pages 01 — {String(N).padStart(2, "0")}</span>
+                <span>Mitul Vaghasiya · {new Date().getFullYear()}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    ))}
+
+    <footer class="container-page py-16 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+        End of lab · noindex · pick a letter to wire into the home page Picks section.
+      </p>
+    </footer>
+
+    <style is:global>
+      /* ─────────── Lab page chrome ─────────── */
+      body { margin: 0; }
+      .variant-wrap {
+        position: relative;
+        padding: 4rem 0 6rem;
+        border-top: 1px dashed rgb(var(--border));
+      }
+      .variant-wrap + .variant-wrap { margin-top: 0; }
+      .variant-tag {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgb(var(--bg) / 0.92);
+        backdrop-filter: blur(8px);
+        padding: 1rem clamp(1rem, 4vw, 4rem);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 1.5rem;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        border-bottom: 1px solid rgb(var(--border) / 0.6);
+      }
+      .variant-tag-letter { color: rgb(var(--accent)); font-weight: 700; }
+      .variant-tag-name { color: rgb(var(--text)); }
+      .variant-tag-note { color: rgb(var(--muted)); font-size: 10px; text-transform: none; letter-spacing: 0.04em; }
+      .variant-stage {
+        position: relative;
+        margin-top: 3rem;
+        padding: 5rem 0;
+        isolation: isolate;
+      }
+      /* Dot grid behind every variant — same as live Picks section */
+      .variant-stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image: radial-gradient(rgb(var(--grid) / 0.32) 1.2px, transparent 1.2px);
+        background-size: 26px 26px;
+        -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+        mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+      }
+
+      /* Shared bits */
+      .accent { color: rgb(var(--accent)); }
+      .dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        border-radius: 999px;
+        background: rgb(var(--accent));
+        box-shadow: 0 0 8px 1px rgb(var(--accent) / 0.5);
+        margin-right: 0.55rem;
+        vertical-align: middle;
+      }
+
+      /* ─────────── Variant A — Cinematic Billboard ─────────── */
+      .va-ribbon {
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .va-ribbon span:last-child { color: rgb(var(--accent)); }
+      .va-rule { margin-top: 1rem; height: 1px; background: rgb(var(--border)); }
+      .va-center { margin-top: 5rem; text-align: center; max-width: 48rem; margin-left: auto; margin-right: auto; }
+      .va-kicker {
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--sepia));
+        display: inline-flex; align-items: center;
+      }
+      .va-h2 {
+        margin-top: 1.2rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        line-height: 0.98; letter-spacing: -0.015em;
+        color: rgb(var(--text));
+      }
+      .va-sub {
+        margin: 1.25rem auto 0;
+        max-width: 32rem;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 1.05rem; line-height: 1.55;
+        color: rgb(var(--muted));
+      }
+      .va-stats {
+        margin: 4rem auto 0;
+        max-width: 60rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgb(var(--border) / 0.6);
+      }
+      .va-stats > div { text-align: center; }
+      .va-stats dt {
+        font-family: var(--font-display, ui-serif, serif);
+        font-size: 2.2rem; font-weight: 600;
+        color: rgb(var(--text));
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+      .va-stats dd {
+        margin-top: 0.4rem;
+        font-family: ui-monospace, monospace;
+        font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      @media (max-width: 640px) { .va-stats { grid-template-columns: repeat(2, 1fr); } }
+
+      /* ─────────── Variant B — Giant 06 ─────────── */
+      .vb-ribbon {
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vb-ribbon span:last-child { color: rgb(var(--accent)); }
+      .vb-rule { margin-top: 1rem; height: 1px; background: rgb(var(--border)); }
+      .vb-grid {
+        margin-top: 5rem;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 3rem;
+        align-items: center;
+      }
+      @media (max-width: 700px) { .vb-grid { grid-template-columns: 1fr; gap: 1.5rem; } }
+      .vb-num {
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        font-size: clamp(8rem, 18vw, 16rem);
+        line-height: 0.78;
+        color: rgb(var(--accent));
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 60px rgb(var(--accent) / 0.18);
+      }
+      .vb-h2 {
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 0.98; letter-spacing: -0.015em;
+        color: rgb(var(--text));
+        margin: 0;
+      }
+      .vb-meta {
+        margin-top: 1.5rem;
+        font-family: ui-monospace, monospace;
+        font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+
+      /* ─────────── Variant C — Datasheet ─────────── */
+      .vc-ribbon-row {
+        display: flex; align-items: center; gap: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vc-rule { flex: 1; height: 1px; background: rgb(var(--border)); }
+      .vc-count { color: rgb(var(--accent)); display: inline-flex; align-items: center; }
+      .vc-h2 {
+        margin-top: 2.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 0.98; letter-spacing: -0.015em;
+        color: rgb(var(--text));
+      }
+      .vc-specs {
+        margin: 3rem 0 0;
+        padding: 1.5rem 0 0;
+        border-top: 1px solid rgb(var(--border) / 0.6);
+        display: flex; flex-direction: column; gap: 0.65rem;
+        max-width: 44rem;
+      }
+      .vc-specs > div {
+        display: grid;
+        grid-template-columns: 8rem 1fr;
+        gap: 1rem;
+        align-items: baseline;
+      }
+      .vc-specs dt {
+        font-family: ui-monospace, monospace;
+        font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--sepia));
+        margin: 0;
+      }
+      .vc-specs dd {
+        margin: 0;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 1rem;
+        color: rgb(var(--text));
+      }
+      .vc-link {
+        color: rgb(var(--accent));
+        transition: color 220ms;
+      }
+      .vc-link:hover { color: rgb(var(--text)); }
+
+      /* ─────────── Variant D — Console ─────────── */
+      .vd {
+        font-family: ui-monospace, monospace;
+        color: rgb(var(--text));
+      }
+      .vd-prompt {
+        color: rgb(var(--muted));
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+      }
+      .vd-meta {
+        margin-top: 1.5rem;
+        color: rgb(var(--accent));
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+      }
+      .vd-h2 {
+        margin-top: 1.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 0.98; letter-spacing: -0.015em;
+        color: rgb(var(--text));
+        display: flex; align-items: flex-start; gap: 1rem;
+      }
+      .vd-cursor {
+        color: rgb(var(--accent));
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 0.65em;
+        line-height: 1.5;
+        animation: vd-blink 1.1s steps(2, end) infinite;
+      }
+      @keyframes vd-blink {
+        0%, 50% { opacity: 1; }
+        50.01%, 100% { opacity: 0.25; }
+      }
+      .vd-sub {
+        margin: 1.25rem 0 0;
+        font-family: ui-monospace, monospace;
+        font-size: 0.95rem;
+        color: rgb(var(--muted));
+        letter-spacing: 0.02em;
+      }
+      .vd-foot {
+        margin-top: 3rem;
+        font-size: 0.85rem;
+        color: rgb(var(--muted));
+        letter-spacing: 0.04em;
+      }
+      .vd-link a {
+        color: rgb(var(--accent));
+        text-decoration: underline;
+        text-decoration-color: rgb(var(--accent) / 0.4);
+        text-underline-offset: 3px;
+      }
+
+      /* ─────────── Variant E — Filmstrip Thumbnails ─────────── */
+      .ve-top {
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+      }
+      .ve-kicker { color: rgb(var(--sepia)); display: inline-flex; align-items: center; }
+      .ve-all { color: rgb(var(--accent)); }
+      .ve-h2 {
+        margin-top: 1.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 0.98; letter-spacing: -0.015em;
+        color: rgb(var(--text));
+      }
+      .ve-sub {
+        margin: 1rem 0 0;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 1.05rem;
+        color: rgb(var(--muted));
+        max-width: 32rem;
+      }
+      .ve-thumbs {
+        margin: 3rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+      }
+      @media (max-width: 760px) { .ve-thumbs { grid-template-columns: repeat(3, 1fr); } }
+      .ve-thumbs > li { display: flex; flex-direction: column; gap: 0.5rem; }
+      .ve-thumb {
+        position: relative;
+        aspect-ratio: 4/3;
+        border: 1px solid rgb(var(--border));
+        border-radius: 0.4rem;
+        overflow: hidden;
+        background: rgb(var(--paper) / 0.5);
+        transition: border-color 220ms, transform 280ms cubic-bezier(0.22,1,0.36,1);
+        display: block;
+      }
+      .ve-thumb:hover {
+        border-color: rgb(var(--accent) / 0.5);
+        transform: translateY(-2px);
+      }
+      .ve-thumb img {
+        width: 100%; height: 100%; object-fit: contain; padding: 0.5rem;
+      }
+      .ve-thumb-num {
+        position: absolute;
+        top: 0.45rem; left: 0.5rem;
+        font-family: ui-monospace, monospace; font-size: 9px;
+        letter-spacing: 0.2em;
+        color: rgb(var(--accent));
+        background: rgb(var(--bg) / 0.7);
+        padding: 0.15rem 0.4rem;
+        border-radius: 3px;
+      }
+      .ve-thumb-title {
+        font-family: ui-monospace, monospace; font-size: 9px;
+        letter-spacing: 0.18em; text-transform: uppercase;
+        color: rgb(var(--muted));
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ─────────── Variant F — Manifesto Quote ─────────── */
+      .vf-top {
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vf-top span:last-child { color: rgb(var(--accent)); }
+      .vf-quote {
+        margin: 4rem 0 0;
+        padding: 0;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-style: italic;
+        font-weight: 500;
+        font-size: clamp(2.4rem, 6vw, 4.8rem);
+        line-height: 1.06;
+        letter-spacing: -0.01em;
+        color: rgb(var(--text));
+        max-width: 28rem;
+        position: relative;
+      }
+      .vf-mark {
+        color: rgb(var(--accent));
+        font-weight: 400;
+        font-style: normal;
+        font-size: 1.3em;
+        line-height: 0;
+        vertical-align: -0.05em;
+      }
+      .vf-mark-end { vertical-align: -0.2em; }
+      .vf-bottom {
+        margin-top: 3rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--sepia));
+        display: inline-flex; align-items: center;
+      }
+
+      /* ─────────── Variant G — Vertical Stacked ─────────── */
+      .vg-top {
+        display: flex; justify-content: space-between; align-items: center;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.28em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vg-num { color: rgb(var(--accent)); }
+      .vg-tag { color: rgb(var(--muted)); }
+      .vg-rule {
+        margin: 1rem 0;
+        height: 1px;
+        background: rgb(var(--border));
+      }
+      .vg-h2 {
+        margin: 2.5rem 0;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 700;
+        font-size: clamp(3rem, 9vw, 8rem);
+        line-height: 0.88;
+        letter-spacing: -0.025em;
+        text-transform: uppercase;
+        color: rgb(var(--text));
+        display: flex; flex-direction: column; gap: 0.1em;
+      }
+      .vg-h2 > span:nth-child(2) { padding-left: 1.6em; }
+      .vg-h2 > span:nth-child(3) { padding-left: 3.2em; }
+      @media (max-width: 700px) {
+        .vg-h2 > span:nth-child(2) { padding-left: 0.5em; }
+        .vg-h2 > span:nth-child(3) { padding-left: 1em; }
+      }
+      .vg-rule-bot { margin-top: 0; }
+      .vg-foot {
+        margin-top: 1rem;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--accent));
+        text-align: right;
+      }
+
+      /* ════════════════════ Photography-portfolio variants ════════════════════ */
+
+      /* ─────────── Variant H — Contact Sheet ─────────── */
+      .vh-top {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.26em; text-transform: uppercase;
+        color: rgb(var(--muted));
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgb(var(--border));
+      }
+      .vh-mark { color: rgb(var(--text)); font-weight: 500; }
+      .vh-date { color: rgb(var(--sepia)); }
+      .vh-h2 {
+        margin: 3rem 0 2.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-style: italic;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 1.0;
+        letter-spacing: -0.015em;
+        color: rgb(var(--text));
+        text-align: center;
+      }
+      .vh-grid {
+        list-style: none; padding: 0; margin: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2.5rem 2rem;
+      }
+      @media (max-width: 760px) { .vh-grid { grid-template-columns: repeat(2, 1fr); } }
+      .vh-cell { display: flex; flex-direction: column; gap: 0.6rem; }
+      .vh-frame {
+        position: relative;
+        display: block;
+        aspect-ratio: 4/3;
+        padding: 0.8rem;
+        background: rgb(var(--paper) / 0.85);
+        border: 1px solid rgb(var(--border));
+        transition: transform 280ms cubic-bezier(0.22,1,0.36,1), border-color 220ms;
+      }
+      .vh-frame::before, .vh-frame::after {
+        content: "";
+        position: absolute;
+        width: 10px; height: 10px;
+        border: 1px solid rgb(var(--border));
+      }
+      .vh-frame::before { top: -3px; left: -3px; border-right: 0; border-bottom: 0; }
+      .vh-frame::after { bottom: -3px; right: -3px; border-left: 0; border-top: 0; }
+      .vh-frame:hover { border-color: rgb(var(--accent) / 0.6); transform: translateY(-3px); }
+      .vh-frame img {
+        width: 100%; height: 100%;
+        object-fit: contain;
+      }
+      .vh-label {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vh-label span:first-child { color: rgb(var(--accent)); }
+
+      /* ─────────── Variant I — Editorial Spread ─────────── */
+      .vi-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        align-items: center;
+      }
+      @media (min-width: 900px) {
+        .vi-grid { grid-template-columns: 1.05fr 1fr; gap: 5rem; }
+      }
+      .vi-photo {
+        position: relative;
+        padding: 1.4rem;
+        background: rgb(var(--paper) / 0.8);
+        border: 1px solid rgb(var(--border));
+        box-shadow: 0 24px 70px rgb(0 0 0 / 0.5);
+      }
+      .vi-photo img {
+        width: 100%;
+        aspect-ratio: 4/5;
+        object-fit: contain;
+        display: block;
+      }
+      .vi-photo-caption {
+        margin-top: 1rem;
+        text-align: center;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .vi-text { display: flex; flex-direction: column; gap: 1.2rem; }
+      .vi-issue {
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vi-h2 {
+        margin: 0;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-style: italic;
+        font-size: clamp(3.4rem, 7vw, 6rem);
+        line-height: 0.94;
+        letter-spacing: -0.025em;
+        color: rgb(var(--text));
+      }
+      .vi-divider {
+        width: 80px;
+        height: 1px;
+        background: rgb(var(--accent));
+        margin: 0.4rem 0;
+      }
+      .vi-body {
+        margin: 0;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: rgb(var(--muted));
+        max-width: 26rem;
+      }
+      .vi-meta {
+        margin-top: 1.5rem;
+        display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vi-link { color: rgb(var(--accent)); transition: color 220ms; }
+      .vi-link:hover { color: rgb(var(--text)); }
+
+      /* ─────────── Variant J — Museum Plate ─────────── */
+      .vj {
+        text-align: center;
+      }
+      .vj-frame {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+        position: relative;
+      }
+      .vj-rule-double {
+        height: 5px;
+        background: linear-gradient(180deg,
+          rgb(var(--border)) 0%, rgb(var(--border)) 1px,
+          transparent 1px, transparent 4px,
+          rgb(var(--border)) 4px, rgb(var(--border)) 5px);
+        margin: 0 auto;
+      }
+      .vj-overline {
+        margin-top: 2.5rem;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.45em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .vj-h2 {
+        margin: 2rem 0 1.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-size: clamp(2.6rem, 5.5vw, 4.4rem);
+        line-height: 1;
+        letter-spacing: -0.015em;
+        color: rgb(var(--text));
+      }
+      .vj-meta {
+        font-family: var(--font-serif, ui-serif, serif);
+        font-style: italic;
+        font-size: 1rem;
+        color: rgb(var(--muted));
+      }
+      .vj-ornament {
+        margin: 2rem 0;
+        font-size: 1.2rem;
+        color: rgb(var(--accent));
+        letter-spacing: 0.6em;
+      }
+
+      /* ─────────── Variant K — Catalogue Card ─────────── */
+      .vk-card {
+        max-width: 48rem;
+        margin: 0 auto;
+        padding: 2.5rem 2.5rem 2.5rem;
+        background: rgb(var(--paper) / 0.7);
+        border: 1px solid rgb(var(--border));
+        border-left: 4px solid rgb(var(--accent));
+        position: relative;
+        box-shadow: 0 18px 50px rgb(0 0 0 / 0.4);
+        font-family: ui-monospace, monospace;
+      }
+      .vk-cardhead {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-size: 10px; letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed rgb(var(--border));
+      }
+      .vk-cardno { color: rgb(var(--accent)); }
+      .vk-h2 {
+        margin: 1.5rem 0 2rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 600;
+        font-style: italic;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1;
+        color: rgb(var(--text));
+      }
+      .vk-rows {
+        margin: 0;
+        display: flex; flex-direction: column; gap: 0.7rem;
+      }
+      .vk-rows > div {
+        display: grid;
+        grid-template-columns: 7.5rem 1fr;
+        gap: 1rem;
+        align-items: baseline;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dotted rgb(var(--border) / 0.5);
+      }
+      .vk-rows > div:last-child { border-bottom: 0; }
+      .vk-rows dt {
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: rgb(var(--sepia));
+        margin: 0;
+      }
+      .vk-rows dd {
+        margin: 0;
+        font-size: 0.9rem;
+        color: rgb(var(--text));
+        letter-spacing: 0.02em;
+      }
+      .vk-link { color: rgb(var(--accent)); }
+      .vk-link:hover { color: rgb(var(--text)); }
+      .vk-stamp {
+        position: absolute;
+        top: 1.5rem; right: 1.5rem;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        color: rgb(var(--accent));
+        border: 1.5px solid rgb(var(--accent));
+        padding: 0.3rem 0.7rem;
+        transform: rotate(-8deg);
+        opacity: 0.6;
+      }
+
+      /* ─────────── Variant L — Italic Centered ─────────── */
+      .vl {
+        text-align: center;
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 4rem 1rem;
+      }
+      .vl-over {
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.45em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .vl-h2 {
+        margin: 3rem 0 2.5rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-size: clamp(3rem, 7vw, 6rem);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: rgb(var(--text));
+      }
+      .vl-h2 em {
+        font-style: italic;
+      }
+      .vl-divider {
+        width: 60px;
+        height: 1px;
+        margin: 0 auto;
+        background: rgb(var(--accent));
+      }
+      .vl-cap {
+        margin: 2rem auto 0;
+        max-width: 30rem;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-style: italic;
+        font-size: 1rem;
+        line-height: 1.55;
+        color: rgb(var(--muted));
+      }
+
+      /* ─────────── Variant M — Film Negative Strip ─────────── */
+      .vm-top {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        flex-wrap: wrap; gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .vm-h2 {
+        margin: 0;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-style: italic;
+        font-size: clamp(2.4rem, 5vw, 3.8rem);
+        line-height: 1;
+        color: rgb(var(--text));
+      }
+      .vm-meta {
+        text-align: right;
+        display: flex; flex-direction: column; gap: 0.3rem;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+      .vm-mr { color: rgb(var(--sepia)); }
+      .vm-all { color: rgb(var(--accent)); }
+      .vm-strip {
+        position: relative;
+        background: #000;
+        border: 1px solid rgb(var(--border));
+        padding: 1.6rem 1rem;
+      }
+      .vm-sprocket {
+        display: flex; justify-content: space-around;
+        gap: 0;
+        padding: 0 0.5rem;
+      }
+      .vm-sprocket-top { margin-bottom: 0.8rem; }
+      .vm-sprocket-bot { margin-top: 0.8rem; }
+      .vm-sprocket span {
+        display: block;
+        width: 18px; height: 8px;
+        background: rgb(var(--bg));
+        border-radius: 2px;
+      }
+      .vm-frames {
+        list-style: none; padding: 0; margin: 0;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.4rem;
+      }
+      @media (max-width: 760px) { .vm-frames { grid-template-columns: repeat(3, 1fr); } }
+      .vm-frame {
+        position: relative;
+        display: block;
+        aspect-ratio: 3/2;
+        background: rgb(var(--paper));
+        overflow: hidden;
+        transition: outline 180ms;
+        outline: 0 solid rgb(var(--accent) / 0);
+      }
+      .vm-frame:hover { outline: 3px solid rgb(var(--accent) / 0.8); }
+      .vm-frame img { width: 100%; height: 100%; object-fit: contain; padding: 0.4rem; }
+      .vm-num {
+        position: absolute;
+        bottom: 4px; right: 6px;
+        font-family: ui-monospace, monospace;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        color: rgb(var(--accent));
+        background: rgb(0 0 0 / 0.7);
+        padding: 1px 4px;
+        border-radius: 2px;
+      }
+
+      /* ─────────── Variant N — Magazine Masthead ─────────── */
+      .vn-masthead {
+        display: flex; justify-content: space-between; align-items: baseline;
+        flex-wrap: wrap; gap: 1rem;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .vn-volume { color: rgb(var(--text)); font-weight: 600; }
+      .vn-volume-num { letter-spacing: 0.3em; }
+      .vn-volume-sep { color: rgb(var(--accent)); margin: 0 0.6rem; }
+      .vn-edition {
+        font-style: italic;
+        text-transform: none;
+        letter-spacing: 0.06em;
+        font-family: var(--font-serif, ui-serif, serif);
+        color: rgb(var(--sepia));
+        font-size: 0.95rem;
+      }
+      .vn-no { color: rgb(var(--accent)); }
+      .vn-rule {
+        height: 1px;
+        background: rgb(var(--border));
+        margin: 1rem 0;
+        position: relative;
+      }
+      .vn-rule::before, .vn-rule::after {
+        content: ""; position: absolute;
+        top: 50%; transform: translateY(-50%);
+        width: 6px; height: 6px;
+        background: rgb(var(--accent));
+        border-radius: 999px;
+      }
+      .vn-rule::before { left: 0; }
+      .vn-rule::after { right: 0; }
+      .vn-headblock {
+        text-align: center;
+        padding: 3rem 1rem;
+      }
+      .vn-section {
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.5em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+        margin-bottom: 1.5rem;
+      }
+      .vn-h2 {
+        margin: 0 0 1.2rem;
+        font-family: var(--font-display, ui-serif, serif);
+        font-weight: 500;
+        font-size: clamp(3rem, 6vw, 5.4rem);
+        line-height: 0.96;
+        letter-spacing: -0.02em;
+        color: rgb(var(--text));
+      }
+      .vn-tag {
+        margin: 0;
+        font-family: var(--font-serif, ui-serif, serif);
+        font-style: italic;
+        font-size: 1.05rem;
+        color: rgb(var(--muted));
+      }
+      .vn-foot {
+        display: flex; justify-content: space-between;
+        font-family: ui-monospace, monospace;
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,701 @@
+---
+import "~/styles/globals.css";
+import { getCollection } from "astro:content";
+
+const all = await getCollection("work");
+
+type Hub = { city: string; country: string; code: string; count: number; note: string; lat: number; lng: number; start: number; categoryLine: string };
+
+// Hardcoded per-city enrichment for the lab variants
+const meta: Record<string, Omit<Hub, "city" | "country" | "count">> = {
+  Surat:   { code: "IN", note: "KGK Group · diamond B2B + enterprise HR",      lat: 21.17,  lng: 72.83,   start: 2019, categoryLine: "enterprise" },
+  Toronto: { code: "CA", note: "Ukko Agro · offline-first AgTech",              lat: 43.65,  lng: -79.38,  start: 2022, categoryLine: "agtech"     },
+  Tokyo:   { code: "JP", note: "Remody Inc · AI group-study sessions",          lat: 35.68,  lng: 139.65,  start: 2022, categoryLine: "edtech"     },
+  Seoul:   { code: "KR", note: "1zLabs · habits, fortunes, daily content",      lat: 37.57,  lng: 126.98,  start: 2022, categoryLine: "consumer"   },
+  Berlin:  { code: "DE", note: "Telehealth rehab · video-led",                  lat: 52.52,  lng: 13.41,   start: 2023, categoryLine: "telehealth" },
+};
+
+const hubMap = new Map<string, Hub>();
+for (const e of all) {
+  if (!e.data.city) continue;
+  const key = e.data.city;
+  if (!hubMap.has(key)) {
+    const m = meta[key] ?? { code: "", note: "", lat: 0, lng: 0, start: 0, categoryLine: "" };
+    hubMap.set(key, { city: e.data.city, country: e.data.country ?? "", count: 0, ...m });
+  }
+  hubMap.get(key)!.count++;
+}
+// Sort: home base (Surat) always first, then by count desc, then alphabetical
+const hubs = Array.from(hubMap.values()).sort((a, b) => {
+  if (a.city === "Surat") return -1;
+  if (b.city === "Surat") return 1;
+  return b.count - a.count || a.city.localeCompare(b.city);
+});
+
+// Pre-compute longitude-sorted hubs for the constellation (cleaner west→east trail)
+const byLng = [...hubs].sort((a, b) => a.lng - b.lng);
+
+// Pre-compute start-year groups for the timeline (so we can stack same-year cities)
+const byStart = [...hubs].sort((a, b) => a.start - b.start);
+const yearGroups = new Map<number, typeof hubs>();
+for (const h of byStart) {
+  if (!yearGroups.has(h.start)) yearGroups.set(h.start, []);
+  yearGroups.get(h.start)!.push(h);
+}
+
+const totalApps = hubs.reduce((s, h) => s + h.count, 0);
+const countries = new Set(hubs.map(h => h.country)).size;
+
+// Project SVG (equirectangular)
+const project = (lat: number, lng: number, w: number, h: number) => ({
+  x: ((lng + 180) / 360) * w,
+  y: ((90 - lat) / 180) * h,
+});
+
+const variants = [
+  { id: "av", letter: "A", name: "Tactical Console (refined)", note: "Current style polished — country labels, fixed overlap, home-base mark, stat strip." },
+  { id: "bv", letter: "B", name: "Globe Wireframe",            note: "SVG latitude+longitude grid with city dots glowing on it." },
+  { id: "cv", letter: "C", name: "Constellation Sky",          note: "Black sky, cities as named stars with light-line connections. No continents." },
+  { id: "dv", letter: "D", name: "Editorial Postcards",        note: "Five tilted postcard cards on a curator's pinboard. Photo-style stamps." },
+  { id: "ev", letter: "E", name: "Timeline Strip",             note: "Horizontal year axis — cities pinned at the year work started there." },
+  { id: "fv", letter: "F", name: "Compact Card Grid",          note: "Uniform 5-up city cards with flag-code, count, tagline." },
+  { id: "gv", letter: "G", name: "Coordinate Datasheet",       note: "No map — pure technical table with lat/lng coordinates. Flight-manifest vibe." },
+  { id: "hv", letter: "H", name: "Subway Transit Map",         note: "Cities as transit stations connected by colored category lines." },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Lab — Atlas section · 8 variants</title>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <header class="container-page py-12 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · Atlas section</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">8 visual variations</h1>
+      <p class="mt-4 max-w-2xl font-serif text-lg text-muted">
+        Same data ({hubs.length} cities · {totalApps} apps · {countries} countries) — eight different
+        ways to present it. Each renders in real visual context. Pick a letter; I'll wire it in.
+      </p>
+      <nav class="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+        {variants.map((v) => (
+          <a href={`#${v.id}`} class="text-muted hover:text-accent transition-colors border-b border-border/40 py-1">
+            <span class="text-accent">{v.letter}</span> · {v.name}
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    {variants.map((v) => (
+      <section id={v.id} class="av-wrap">
+        <div class="av-tag">
+          <span class="av-tag-letter">Variant {v.letter}</span>
+          <span class="av-tag-name">{v.name}</span>
+          <span class="av-tag-note">{v.note}</span>
+        </div>
+        <div class="av-stage container-page">
+
+          {/* ── A — Tactical Console refined ── */}
+          {v.id === "av" && (
+            <div class="va">
+              <div class="va-head">
+                <div class="va-headleft">
+                  <div class="va-kicker">Where the work shipped</div>
+                  <h2 class="va-h2">An atlas of mobile engineering<span class="accent">.</span></h2>
+                  <div class="va-stats">
+                    <span><strong>{hubs.length}</strong> cities</span><span>·</span>
+                    <span><strong>{countries}</strong> countries</span><span>·</span>
+                    <span><strong>04</strong> continents</span><span>·</span>
+                    <span><strong>{totalApps}</strong> apps</span>
+                  </div>
+                </div>
+                <a href="/work" class="va-cta">Full catalog →</a>
+              </div>
+              <div class="va-grid">
+                <div class="va-map">
+                  <svg viewBox="0 0 800 400" class="va-svg" aria-hidden="true">
+                    {/* Lat/lng grid */}
+                    {[100, 200, 300].map((y) => <line x1="0" y1={y} x2="800" y2={y} stroke="rgb(var(--border)/0.35)" stroke-dasharray="2 4" />)}
+                    {[200, 400, 600].map((x) => <line x1={x} y1="0" x2={x} y2="400" stroke="rgb(var(--border)/0.35)" stroke-dasharray="2 4" />)}
+                    {/* Country ghost labels */}
+                    <text x="370" y="240" fill="rgb(var(--muted)/0.4)" font-family="ui-monospace" font-size="9" letter-spacing="2">INDIA</text>
+                    <text x="180" y="160" fill="rgb(var(--muted)/0.4)" font-family="ui-monospace" font-size="9" letter-spacing="2">CANADA</text>
+                    <text x="610" y="170" fill="rgb(var(--muted)/0.4)" font-family="ui-monospace" font-size="9" letter-spacing="2">JAPAN</text>
+                    <text x="430" y="155" fill="rgb(var(--muted)/0.4)" font-family="ui-monospace" font-size="9" letter-spacing="2">GERMANY</text>
+                    {/* City dots — labels offset per-city to avoid Seoul/Tokyo overlap */}
+                    {hubs.map((h) => {
+                      const p = project(h.lat, h.lng, 800, 400);
+                      const isHome = h.city === "Surat";
+                      // Seoul label goes ABOVE the dot (Tokyo stays default below-right)
+                      const labelAbove = h.city === "Seoul";
+                      const lx = p.x + 10;
+                      const ly = labelAbove ? p.y - 18 : p.y - 8;
+                      const ly2 = labelAbove ? p.y - 4 : p.y + 6;
+                      return (
+                        <g>
+                          {isHome && <circle cx={p.x} cy={p.y} r="14" fill="none" stroke="rgb(var(--accent))" stroke-width="1" opacity="0.5" />}
+                          <circle cx={p.x} cy={p.y} r="6" fill="rgb(var(--accent))" opacity="0.85" />
+                          <circle cx={p.x} cy={p.y} r="2" fill="rgb(var(--text))" />
+                          <text x={lx} y={ly} fill="rgb(var(--text))" font-family="ui-monospace" font-size="9" letter-spacing="1.5">{h.city.toUpperCase()}</text>
+                          {isHome && <text x={lx} y={ly2} fill="rgb(var(--accent))" font-family="ui-monospace" font-size="7" letter-spacing="1.5">HOME · {h.count} APPS</text>}
+                          {!isHome && <text x={lx} y={ly2} fill="rgb(var(--muted))" font-family="ui-monospace" font-size="7" letter-spacing="1.5">{h.count} APP{h.count > 1 ? "S" : ""}</text>}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+                <ol class="va-list">
+                  {hubs.map((h, i) => (
+                    <li class={h.city === "Surat" ? "va-row va-row--home" : "va-row"}>
+                      <span class="va-num">{String(i + 1).padStart(2, "0")}</span>
+                      <div class="va-rowtext">
+                        <div class="va-rowtop">
+                          <span class="va-city">{h.city}</span>
+                          {h.city === "Surat" && <span class="va-home">Home</span>}
+                          <span class="va-cc">{h.code}</span>
+                        </div>
+                        <p class="va-note">{h.note}</p>
+                      </div>
+                      <span class="va-count">{String(h.count).padStart(2, "0")} {h.count === 1 ? "app" : "apps"}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {/* ── B — Globe Wireframe ── */}
+          {v.id === "bv" && (
+            <div class="vb">
+              <div class="vb-head">
+                <div>
+                  <div class="vb-kicker">Shipped from</div>
+                  <h2 class="vb-h2">A globe of mobile engineering<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="vb-cta">Full catalog →</a>
+              </div>
+              <div class="vb-grid">
+                <div class="vb-globe">
+                  <svg viewBox="0 0 400 400" class="vb-svg" aria-hidden="true">
+                    {/* Outer ring (the globe outline) */}
+                    <circle cx="200" cy="200" r="180" fill="none" stroke="rgb(var(--accent)/0.4)" stroke-width="1" />
+                    {/* Latitude lines — 5 horizontal ellipses across the globe */}
+                    {[-60, -30, 0, 30, 60].map((latDeg) => {
+                      const phi = (latDeg * Math.PI) / 180;
+                      const yOff = 180 * Math.sin(phi);
+                      const rx = 180 * Math.cos(phi);
+                      return <ellipse cx="200" cy={200 - yOff} rx={rx} ry={Math.abs(rx) * 0.15} fill="none" stroke="rgb(var(--accent)/0.2)" />;
+                    })}
+                    {/* Longitude lines — 7 vertical ellipses (meridians) */}
+                    {[-75, -50, -25, 0, 25, 50, 75].map((lngDeg) => {
+                      const theta = (lngDeg * Math.PI) / 180;
+                      const rx = 180 * Math.abs(Math.sin(theta));
+                      return <ellipse cx="200" cy="200" rx={rx} ry="180" fill="none" stroke="rgb(var(--accent)/0.2)" />;
+                    })}
+                    {/* Equator emphasized */}
+                    <line x1="20" y1="200" x2="380" y2="200" stroke="rgb(var(--accent)/0.3)" stroke-dasharray="3 4" />
+                    {/* City dots — orthographic projection. Centered at 30°E to show Toronto on west edge AND Tokyo on east edge. */}
+                    {hubs.map((h) => {
+                      const cx = 200, cy = 200, r = 175;
+                      // Camera center — 30°N 30°E gives best view of all 5 hubs
+                      const cLat = 30 * Math.PI / 180;
+                      const cLng = 30 * Math.PI / 180;
+                      const lat = h.lat * Math.PI / 180;
+                      const lng = h.lng * Math.PI / 180;
+                      // Orthographic projection
+                      const x = cx + r * Math.cos(lat) * Math.sin(lng - cLng);
+                      const y = cy - r * (Math.cos(cLat) * Math.sin(lat) - Math.sin(cLat) * Math.cos(lat) * Math.cos(lng - cLng));
+                      // Visibility — dot product of view vector and surface normal
+                      const cosC = Math.sin(cLat) * Math.sin(lat) + Math.cos(cLat) * Math.cos(lat) * Math.cos(lng - cLng);
+                      // Lenient threshold so cities at the rim of the globe stay visible (back-side fades)
+                      const visible = cosC > -0.6;
+                      if (!visible) return null;
+                      // Dim back-of-globe cities slightly
+                      const frontness = Math.max(0, Math.min(1, (cosC + 0.6) / 1.6));
+                      // Stagger Tokyo/Seoul labels to avoid collision
+                      const isSeoul = h.city === "Seoul";
+                      const ly = isSeoul ? y - 18 : y - 8;
+                      return (
+                        <g opacity={(0.5 + frontness * 0.5).toFixed(2)}>
+                          <circle cx={x} cy={y} r="10" fill="rgb(var(--accent))" opacity="0.22" />
+                          <circle cx={x} cy={y} r="4" fill="rgb(var(--accent))" />
+                          <circle cx={x} cy={y} r="1.5" fill="#fff" />
+                          <text x={x + 8} y={ly} fill="rgb(var(--text))" font-family="ui-monospace" font-size="9" letter-spacing="1">{h.city}</text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  <div class="vb-meta">ORTHOGRAPHIC · CENTERED 30°N 30°E · {hubs.length} HUBS</div>
+                </div>
+                <ul class="vb-list">
+                  {hubs.map((h, i) => (
+                    <li>
+                      <span class="vb-num">{String(i + 1).padStart(2, "0")}</span>
+                      <span class="vb-city">{h.city}</span>
+                      <span class="vb-country">{h.country}</span>
+                      <span class="vb-count">{h.count} app{h.count > 1 ? "s" : ""}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* ── C — Constellation Sky ── */}
+          {v.id === "cv" && (
+            <div class="vc">
+              <div class="vc-head">
+                <div class="vc-kicker">A constellation of</div>
+                <h2 class="vc-h2"><em>Mobile engineering<span class="accent">.</span></em></h2>
+                <p class="vc-sub">Five cities, four countries — connected by client engagements over six years.</p>
+              </div>
+              <div class="vc-sky">
+                <svg viewBox="0 0 1000 500" class="vc-svg" aria-hidden="true">
+                  {/* Background stars (decorative random) */}
+                  {Array.from({ length: 60 }).map((_, i) => {
+                    const x = (i * 137) % 1000;
+                    const y = (i * 211) % 500;
+                    const r = ((i * 7) % 3) * 0.4 + 0.4;
+                    return <circle cx={x} cy={y} r={r} fill="rgb(var(--text)/0.25)" />;
+                  })}
+                  {/* Constellation lines — connect cities in longitude order (west→east trail) */}
+                  {byLng.map((h, i) => {
+                    if (i === 0) return null;
+                    const a = project(byLng[i - 1].lat, byLng[i - 1].lng, 1000, 500);
+                    const b = project(h.lat, h.lng, 1000, 500);
+                    return <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="rgb(var(--accent)/0.5)" stroke-width="1" stroke-dasharray="3 3" />;
+                  })}
+                  {/* City stars — label offsets stagger Tokyo/Seoul to avoid collision */}
+                  {hubs.map((h) => {
+                    const p = project(h.lat, h.lng, 1000, 500);
+                    const isSeoul = h.city === "Seoul";
+                    const labelOffsetY = isSeoul ? -38 : -12;
+                    const metaOffsetY = isSeoul ? -24 : 2;
+                    return (
+                      <g>
+                        <circle cx={p.x} cy={p.y} r="14" fill="rgb(var(--accent))" opacity="0.18" />
+                        <circle cx={p.x} cy={p.y} r="7" fill="rgb(var(--accent))" opacity="0.5" />
+                        <circle cx={p.x} cy={p.y} r="3" fill="#fff" />
+                        <text x={p.x + 14} y={p.y + labelOffsetY} fill="#fff" font-family="ui-monospace" font-size="11" letter-spacing="1.5">{h.city}</text>
+                        <text x={p.x + 14} y={p.y + metaOffsetY} fill="rgb(var(--muted))" font-family="ui-monospace" font-size="8" letter-spacing="1.5">{h.country.toUpperCase()} · {h.count} APP{h.count > 1 ? "S" : ""}</text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+              <div class="vc-foot">
+                <span>Constellation IV — Mobile Engineering</span>
+                <a href="/work" class="vc-cta">All projects →</a>
+              </div>
+            </div>
+          )}
+
+          {/* ── D — Editorial Postcards ── */}
+          {v.id === "dv" && (
+            <div class="vd">
+              <div class="vd-head">
+                <div>
+                  <div class="vd-kicker">Where the work shipped</div>
+                  <h2 class="vd-h2">Postcards from the work<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="vd-cta">Full catalog →</a>
+              </div>
+              <div class="vd-pinboard">
+                {hubs.map((h, i) => {
+                  const rotations = ["-3.2deg", "2.5deg", "-1.8deg", "3.2deg", "-2deg"];
+                  const tops = ["0", "30px", "10px", "50px", "20px"];
+                  return (
+                    <div class="vd-card" style={`--rot:${rotations[i % 5]}; --top:${tops[i % 5]};`}>
+                      <div class="vd-stamp">
+                        <span>{h.code}</span>
+                        <span>{String(h.count).padStart(2, "0")}</span>
+                      </div>
+                      <div class="vd-postmark">{String(i + 1).padStart(2, "0")} · {h.start}</div>
+                      <div class="vd-city">{h.city}</div>
+                      <div class="vd-country">{h.country}</div>
+                      <div class="vd-note">{h.note}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── E — Timeline Strip ── */}
+          {v.id === "ev" && (
+            <div class="ve">
+              <div class="ve-head">
+                <div>
+                  <div class="ve-kicker">When the work shipped, by city</div>
+                  <h2 class="ve-h2">A timeline of cities<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="ve-cta">Full catalog →</a>
+              </div>
+              <div class="ve-track">
+                {/* Year scale */}
+                <div class="ve-axis">
+                  {[2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026].map((y) => (
+                    <div class="ve-tick" style={`left: ${((y - 2019) / 7) * 100}%;`}>
+                      <span class="ve-tick-line"></span>
+                      <span class="ve-tick-label">{y}</span>
+                    </div>
+                  ))}
+                </div>
+                <div class="ve-rail"></div>
+                {/* City markers — multi-city years stack vertically + offset horizontally */}
+                <div class="ve-pins">
+                  {byStart.map((h) => {
+                    const group = yearGroups.get(h.start) ?? [];
+                    const idxInGroup = group.findIndex(g => g.city === h.city);
+                    const groupSize = group.length;
+                    // Horizontal fan-out for tied years (centered around the year tick)
+                    const xOffset = (idxInGroup - (groupSize - 1) / 2) * 28;
+                    const baseLeft = ((h.start - 2019) / 7) * 100;
+                    const isUp = idxInGroup % 2 === 0;
+                    // Stack vertically when 3+ cities share the year
+                    const stackOffset = Math.floor(idxInGroup / 2) * 110;
+                    return (
+                      <div class="ve-pin" style={`left: calc(${baseLeft}% + ${xOffset}px); --stack: ${stackOffset}px;`}>
+                        <span class="ve-dot"></span>
+                        <span class="ve-line" style={`height: ${24 + stackOffset}px; ${isUp ? "bottom" : "top"}: 7px;`}></span>
+                        <div class={`ve-card ${isUp ? "ve-card--up" : "ve-card--down"}`}>
+                          <div class="ve-pin-city">{h.city} <span class="ve-pin-cc">· {h.code}</span></div>
+                          <div class="ve-pin-tag">{h.note}</div>
+                          <div class="ve-pin-count">{h.count} app{h.count > 1 ? "s" : ""} · started {h.start}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── F — Compact Card Grid ── */}
+          {v.id === "fv" && (
+            <div class="vf">
+              <div class="vf-head">
+                <div>
+                  <div class="vf-kicker">{hubs.length} cities · {countries} countries · {totalApps} apps</div>
+                  <h2 class="vf-h2">Where the apps came from<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="vf-cta">Full catalog →</a>
+              </div>
+              <div class="vf-grid">
+                {hubs.map((h, i) => (
+                  <div class="vf-card">
+                    <div class="vf-cardtop">
+                      <span class="vf-code">{h.code}</span>
+                      <span class="vf-num">{String(i + 1).padStart(2, "0")}</span>
+                    </div>
+                    <div class="vf-count">{h.count}</div>
+                    <div class="vf-countlabel">app{h.count > 1 ? "s" : ""}</div>
+                    <div class="vf-city">{h.city}</div>
+                    <div class="vf-country">{h.country}</div>
+                    <div class="vf-note">{h.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── G — Coordinate Datasheet ── */}
+          {v.id === "gv" && (
+            <div class="vg">
+              <div class="vg-head">
+                <div>
+                  <div class="vg-kicker">Geographic manifest · {totalApps} apps · {hubs.length} hubs</div>
+                  <h2 class="vg-h2">Shipped from coordinates<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="vg-cta">Full catalog →</a>
+              </div>
+              <div class="vg-sheet">
+                <div class="vg-row vg-row--head">
+                  <span>#</span>
+                  <span>City</span>
+                  <span>Country</span>
+                  <span>Lat / Lng</span>
+                  <span>Apps</span>
+                  <span>Engagement</span>
+                </div>
+                {hubs.map((h, i) => (
+                  <div class={h.city === "Surat" ? "vg-row vg-row--home" : "vg-row"}>
+                    <span class="vg-num">{String(i + 1).padStart(2, "0")}</span>
+                    <span class="vg-city">{h.city}{h.city === "Surat" ? " ◆" : ""}</span>
+                    <span class="vg-country">{h.country} · {h.code}</span>
+                    <span class="vg-coord">{h.lat.toFixed(2)}, {h.lng.toFixed(2)}</span>
+                    <span class="vg-count">{String(h.count).padStart(2, "0")}</span>
+                    <span class="vg-engage">{h.note}</span>
+                  </div>
+                ))}
+              </div>
+              <div class="vg-foot">
+                ◆ home base · projection · equirectangular · units · WGS-84
+              </div>
+            </div>
+          )}
+
+          {/* ── H — Subway Transit Map ── */}
+          {v.id === "hv" && (
+            <div class="vh">
+              <div class="vh-head">
+                <div>
+                  <div class="vh-kicker">Lines connect engagements by category</div>
+                  <h2 class="vh-h2">The shipping network<span class="accent">.</span></h2>
+                </div>
+                <a href="/work" class="vh-cta">Full catalog →</a>
+              </div>
+              <div class="vh-network">
+                <svg viewBox="0 0 800 320" class="vh-svg" aria-hidden="true">
+                  {/* Lines connecting categorized hubs */}
+                  {/* Enterprise line: Surat → Tokyo (red) */}
+                  <path d="M 180 200 L 600 90" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" fill="none" />
+                  {/* Consumer line: Seoul → Tokyo → Berlin (teal) */}
+                  <path d="M 540 110 L 600 90 L 360 50" stroke="rgb(var(--accent))" stroke-width="5" stroke-linecap="round" fill="none" />
+                  {/* AgTech line: Surat → Toronto (sepia) */}
+                  <path d="M 180 200 L 80 100" stroke="rgb(var(--sepia))" stroke-width="5" stroke-linecap="round" fill="none" />
+                  {/* Stations */}
+                  {[
+                    { c: "Surat",   x: 180, y: 200 },
+                    { c: "Toronto", x: 80,  y: 100 },
+                    { c: "Tokyo",   x: 600, y: 90  },
+                    { c: "Seoul",   x: 540, y: 110 },
+                    { c: "Berlin",  x: 360, y: 50  },
+                  ].map((s) => {
+                    const h = hubs.find(x => x.city === s.c)!;
+                    const isHome = s.c === "Surat";
+                    return (
+                      <g>
+                        <circle cx={s.x} cy={s.y} r="10" fill="rgb(var(--bg))" stroke="rgb(var(--text))" stroke-width={isHome ? "3" : "2"} />
+                        <text x={s.x} y={s.y - 18} fill="rgb(var(--text))" font-family="ui-monospace" font-size="11" letter-spacing="1" text-anchor="middle">{s.c}</text>
+                        <text x={s.x} y={s.y + 28} fill="rgb(var(--muted))" font-family="ui-monospace" font-size="8" letter-spacing="1" text-anchor="middle">{h.country.toUpperCase()} · {h.count} APP{h.count > 1 ? "S" : ""}</text>
+                      </g>
+                    );
+                  })}
+                </svg>
+                <div class="vh-legend">
+                  <span><span class="vh-swatch" style="background:#f43f5e"></span> Enterprise</span>
+                  <span><span class="vh-swatch" style="background:rgb(var(--accent))"></span> Consumer</span>
+                  <span><span class="vh-swatch" style="background:rgb(var(--sepia))"></span> AgTech</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </section>
+    ))}
+
+    <footer class="container-page py-16 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+        End of lab · noindex · pick a letter to wire into the home page Atlas section.
+      </p>
+    </footer>
+
+    <style is:global>
+      body { margin: 0; }
+      .av-wrap {
+        position: relative;
+        padding: 2rem 0 5rem;
+        border-top: 1px dashed rgb(var(--border));
+      }
+      .av-tag {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgb(var(--bg) / 0.92);
+        backdrop-filter: blur(8px);
+        padding: 1rem clamp(1rem, 4vw, 4rem);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 1.5rem;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        border-bottom: 1px solid rgb(var(--border) / 0.6);
+      }
+      .av-tag-letter { color: rgb(var(--accent)); font-weight: 700; }
+      .av-tag-name { color: rgb(var(--text)); }
+      .av-tag-note { color: rgb(var(--muted)); font-size: 10px; text-transform: none; letter-spacing: 0.04em; }
+      .av-stage {
+        position: relative;
+        margin-top: 3rem;
+        padding: 2rem 0;
+      }
+      .accent { color: rgb(var(--accent)); }
+
+      /* ════ A — Tactical Console refined ════ */
+      .va-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2.5rem; }
+      .va-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .va-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-size: clamp(1.8rem, 3.4vw, 2.6rem); line-height: 1.05; letter-spacing: -0.015em; color: rgb(var(--text)); font-weight: 600; }
+      .va-stats { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.6rem; font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(var(--muted)); }
+      .va-stats strong { color: rgb(var(--accent)); font-weight: 600; }
+      .va-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .va-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: stretch; }
+      @media (min-width: 900px) { .va-grid { grid-template-columns: 1.6fr 1fr; gap: 2.5rem; } }
+      .va-map { border: 1px solid rgb(var(--border)); border-radius: 0.5rem; background: rgb(var(--paper)/0.35); padding: 0.5rem; }
+      .va-svg { width: 100%; height: auto; display: block; }
+      .va-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid rgb(var(--border)/0.6); border-bottom: 1px solid rgb(var(--border)/0.6); }
+      .va-row { display: grid; grid-template-columns: 2rem 1fr auto; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid rgb(var(--border)/0.4); align-items: baseline; }
+      .va-row:last-child { border-bottom: 0; }
+      .va-row--home { background: rgb(var(--accent)/0.04); }
+      .va-num { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.22em; color: rgb(var(--accent)); }
+      .va-rowtop { display: flex; align-items: baseline; gap: 0.6rem; }
+      .va-city { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+      .va-home { font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(var(--accent)); border: 1px solid rgb(var(--accent)/0.4); padding: 1px 5px; border-radius: 3px; }
+      .va-cc { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.22em; color: rgb(var(--muted)); }
+      .va-note { margin: 0.25rem 0 0; font-family: var(--font-serif); font-size: 0.85rem; color: rgb(var(--muted)); }
+      .va-count { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(var(--muted)); }
+
+      /* ════ B — Globe Wireframe ════ */
+      .vb-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+      .vb-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vb-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-size: clamp(1.8rem, 3.4vw, 2.6rem); font-weight: 600; line-height: 1.05; letter-spacing: -0.015em; }
+      .vb-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .vb-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: center; }
+      @media (min-width: 900px) { .vb-grid { grid-template-columns: 1fr 1fr; gap: 3rem; } }
+      .vb-globe { aspect-ratio: 1; max-width: 480px; margin: 0 auto; position: relative; }
+      .vb-svg { width: 100%; height: 100%; }
+      .vb-meta { position: absolute; bottom: -1.5rem; left: 0; right: 0; text-align: center; font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.3em; color: rgb(var(--muted)); }
+      .vb-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+      .vb-list li { display: grid; grid-template-columns: 2rem 1fr auto auto; gap: 0.8rem; align-items: baseline; padding: 0.7rem 0; border-bottom: 1px solid rgb(var(--border)/0.4); }
+      .vb-num { font-family: ui-monospace, monospace; font-size: 10px; color: rgb(var(--accent)); letter-spacing: 0.18em; }
+      .vb-city { font-family: var(--font-display); font-weight: 600; }
+      .vb-country { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(var(--muted)); }
+      .vb-count { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(var(--sepia)); }
+
+      /* ════ C — Constellation Sky ════ */
+      .vc-head { text-align: center; margin-bottom: 2rem; }
+      .vc-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vc-h2 { margin: 1rem 0 0; font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.015em; }
+      .vc-sub { margin: 1rem auto 0; max-width: 36rem; font-family: var(--font-serif); font-style: italic; color: rgb(var(--muted)); }
+      .vc-sky { margin-top: 3rem; background: #000; border: 1px solid rgb(var(--border)); border-radius: 0.5rem; overflow: hidden; padding: 0.5rem; }
+      .vc-svg { width: 100%; height: auto; display: block; }
+      .vc-foot { margin-top: 2rem; display: flex; justify-content: space-between; align-items: baseline; font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; }
+      .vc-foot span { color: rgb(var(--sepia)); }
+      .vc-cta { color: rgb(var(--accent)); }
+
+      /* ════ D — Editorial Postcards ════ */
+      .vd-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; }
+      .vd-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vd-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-style: italic; font-weight: 500; font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .vd-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .vd-pinboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem 1.5rem; align-items: flex-start; padding: 1rem; }
+      .vd-card {
+        position: relative;
+        padding: 1.5rem 1.5rem 2rem;
+        /* Hardcoded cream paper colour — independent of theme so postcards always read */
+        background: #ece4d1;
+        border: 1px solid #c8bd9f;
+        box-shadow: 0 18px 40px rgb(0 0 0 / 0.5), inset 0 0 0 1px rgb(255 255 255 / 0.3);
+        transform: rotate(var(--rot, 0deg)) translateY(var(--top, 0));
+        transition: transform 280ms cubic-bezier(0.22,1,0.36,1), box-shadow 280ms ease;
+        color: #2a2418;
+      }
+      .vd-card:hover { transform: rotate(0) translateY(-6px); z-index: 5; box-shadow: 0 30px 60px rgb(0 0 0 / 0.6); }
+      .vd-stamp {
+        position: absolute; top: 1rem; right: 1rem;
+        width: 50px; height: 50px;
+        border: 2px solid #2a2418;
+        border-radius: 4px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: ui-monospace, monospace; letter-spacing: 0.1em;
+        background: rgb(255 255 255 / 0.3);
+      }
+      .vd-stamp span:first-child { font-size: 16px; font-weight: 700; color: #2a2418; }
+      .vd-stamp span:last-child { font-size: 9px; color: rgb(42 36 24 / 0.7); }
+      .vd-postmark {
+        font-family: ui-monospace, monospace;
+        font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+        color: rgb(42 36 24 / 0.55);
+        margin-bottom: 1rem;
+      }
+      .vd-city { font-family: var(--font-display); font-size: 1.8rem; font-weight: 600; line-height: 1; color: #2a2418; }
+      .vd-country { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(42 36 24 / 0.55); margin-top: 0.3rem; }
+      .vd-note { font-family: var(--font-serif); font-style: italic; font-size: 0.85rem; color: rgb(42 36 24 / 0.78); margin-top: 1rem; line-height: 1.4; }
+
+      /* ════ E — Timeline Strip ════ */
+      .ve-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 3rem; }
+      .ve-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .ve-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .ve-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .ve-track { position: relative; height: 560px; padding: 80px 1rem; }
+      .ve-rail { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(var(--accent)) 5%, rgb(var(--accent)) 95%, transparent 100%); }
+      .ve-axis { position: absolute; left: 0; right: 0; top: 50%; height: 0; }
+      .ve-tick { position: absolute; top: 12px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+      .ve-tick-line { display: block; width: 1px; height: 8px; background: rgb(var(--border)); }
+      .ve-tick-label { margin-top: 0.4rem; font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.2em; color: rgb(var(--muted)); }
+      .ve-pins { position: absolute; left: 1rem; right: 1rem; top: 0; bottom: 0; }
+      .ve-pin { position: absolute; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
+      .ve-dot { width: 14px; height: 14px; border-radius: 50%; background: rgb(var(--accent)); box-shadow: 0 0 0 4px rgb(var(--bg)), 0 0 0 5px rgb(var(--accent)/0.5); }
+      .ve-line { position: absolute; width: 1px; background: rgb(var(--accent)/0.4); }
+      .ve-card {
+        position: absolute;
+        width: 200px;
+        padding: 0.8rem;
+        background: rgb(var(--paper)/0.6);
+        border: 1px solid rgb(var(--border));
+        border-radius: 0.4rem;
+        backdrop-filter: blur(4px);
+      }
+      /* Stack offsets apply when 3+ cities share a year (idxInGroup ≥ 2) */
+      .ve-card--up   { bottom: calc(24px + var(--stack, 0px)); }
+      .ve-card--down { top:    calc(24px + var(--stack, 0px)); }
+      .ve-pin-city { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; }
+      .ve-pin-cc { font-family: ui-monospace, monospace; font-size: 9px; color: rgb(var(--muted)); letter-spacing: 0.2em; }
+      .ve-pin-tag { font-family: var(--font-serif); font-size: 0.78rem; color: rgb(var(--muted)); margin-top: 0.25rem; line-height: 1.3; }
+      .ve-pin-count { font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(var(--accent)); margin-top: 0.4rem; }
+
+      /* ════ F — Compact Card Grid ════ */
+      .vf-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; }
+      .vf-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vf-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .vf-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .vf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+      .vf-card { padding: 1.5rem; border: 1px solid rgb(var(--border)); border-radius: 0.5rem; background: rgb(var(--paper)/0.3); transition: border-color 220ms, transform 280ms cubic-bezier(0.22,1,0.36,1); }
+      .vf-card:hover { border-color: rgb(var(--accent)/0.5); transform: translateY(-4px); }
+      .vf-cardtop { display: flex; justify-content: space-between; align-items: baseline; }
+      .vf-code { font-family: ui-monospace, monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.15em; color: rgb(var(--accent)); padding: 0.2rem 0.4rem; border: 1px solid rgb(var(--accent)/0.4); border-radius: 3px; }
+      .vf-num { font-family: ui-monospace, monospace; font-size: 10px; color: rgb(var(--muted)); letter-spacing: 0.2em; }
+      .vf-count { margin-top: 1.5rem; font-family: var(--font-display); font-size: 3.5rem; line-height: 1; font-weight: 600; color: rgb(var(--text)); }
+      .vf-countlabel { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); margin-top: 0.2rem; }
+      .vf-city { margin-top: 1.5rem; font-family: var(--font-display); font-weight: 600; font-size: 1.4rem; }
+      .vf-country { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.2em; color: rgb(var(--muted)); }
+      .vf-note { margin-top: 0.8rem; font-family: var(--font-serif); font-size: 0.82rem; color: rgb(var(--muted)); line-height: 1.4; }
+
+      /* ════ G — Coordinate Datasheet ════ */
+      .vg-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; }
+      .vg-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vg-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .vg-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .vg-sheet { border: 1px solid rgb(var(--border)); border-radius: 0.4rem; overflow: hidden; font-family: ui-monospace, monospace; }
+      .vg-row { display: grid; grid-template-columns: 3rem 1fr 1.2fr 1.2fr 4rem 1.6fr; gap: 1rem; padding: 0.85rem 1rem; border-bottom: 1px solid rgb(var(--border)/0.4); align-items: center; font-size: 0.85rem; }
+      .vg-row:last-child { border-bottom: 0; }
+      .vg-row--head { background: rgb(var(--paper)/0.4); border-bottom: 1px solid rgb(var(--border)); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vg-row--home { background: rgb(var(--accent)/0.05); }
+      .vg-num { color: rgb(var(--accent)); letter-spacing: 0.15em; }
+      .vg-city { font-family: var(--font-display); font-weight: 600; font-size: 1rem; letter-spacing: -0.005em; }
+      .vg-country { color: rgb(var(--muted)); letter-spacing: 0.15em; text-transform: uppercase; font-size: 0.78rem; }
+      .vg-coord { color: rgb(var(--text)); letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+      .vg-count { color: rgb(var(--accent)); letter-spacing: 0.15em; text-align: right; }
+      .vg-engage { color: rgb(var(--muted)); font-family: var(--font-serif); font-style: italic; font-size: 0.85rem; }
+      .vg-foot { margin-top: 1rem; font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--muted)); }
+
+      /* ════ H — Subway Transit Map ════ */
+      .vh-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; }
+      .vh-kicker { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--sepia)); }
+      .vh-h2 { margin: 0.5rem 0 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+      .vh-cta { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(var(--accent)); }
+      .vh-network { padding: 2rem; background: rgb(var(--paper)/0.3); border: 1px solid rgb(var(--border)); border-radius: 0.5rem; }
+      .vh-svg { width: 100%; height: auto; max-height: 400px; display: block; }
+      .vh-legend { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(var(--muted)); }
+      .vh-legend span { display: inline-flex; align-items: center; gap: 0.5rem; }
+      .vh-swatch { display: inline-block; width: 24px; height: 4px; border-radius: 2px; }
+    </style>
+  </body>
+</html>

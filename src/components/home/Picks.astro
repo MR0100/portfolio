@@ -2,7 +2,6 @@
 import { getCollection } from "astro:content";
 import StatusBadge from "~/components/StatusBadge.astro";
 import StoreLinksRow from "~/components/StoreLinksRow.astro";
-import SectionFX from "~/components/SectionFX.astro";
 
 const all = await getCollection("work");
 const featured = all
@@ -21,269 +20,415 @@ const distribution = (links: typeof featured[number]["data"]["links"]) =>
 const N = featured.length;
 ---
 
-<section class="relative" data-picks>
-  <!-- the whole journey scrolls within this tall track; the stage stays pinned -->
-  <div data-journey>
-    <div class="journey-stage">
-      <!-- Warp starfield (zooms out into a tunnel-exit at the end of the journey) -->
-      <div class="pk-bg" aria-hidden="true"><SectionFX variant="warp" /></div>
+<section class="picks">
+  <!-- Shared dot-grid texture + parallax (consistent across the home page) -->
+  <div class="bg-dot-grid" data-parallax-grid aria-hidden="true"></div>
 
-      <!-- header / HUD -->
-      <div class="pk-head">
-        <div class="pk-head-l">
-          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Selected work</div>
-          <h2 class="pk-h2 font-display text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]" data-scramble>
-            A few I'm proud of.
-          </h2>
-        </div>
-        <div class="pk-head-r font-mono text-xs uppercase tracking-[0.24em]">
-          <span class="pk-counter text-muted tabular-nums" data-counter>01 / {String(N).padStart(2, "0")}</span>
-          <a href="/work" class="text-accent hover:text-accent-hover transition-colors">All {all.length} →</a>
-        </div>
+  <!-- Section header — Museum Plate composition (centered exhibition wall text) -->
+  <header class="container-page picks-plate reveal">
+    <div class="picks-plate-frame">
+      <div class="picks-plate-overline">Plates 01 — {String(N).padStart(2, "0")}</div>
+      <h2 class="picks-plate-h2 font-display" data-scramble>
+        A few I'm proud of<span class="text-accent">.</span>
+      </h2>
+      <div class="picks-plate-meta">
+        <span>Featured projects · 2019 — 2026 · case-study format</span>
+        <span class="picks-plate-meta-sep" aria-hidden="true">·</span>
+        <a href="/work" class="picks-plate-link">All {all.length} projects →</a>
       </div>
-
-      <!-- case-study cards: in flow on the fallback, absolute + flown in/out in the journey -->
-      <div class="cs-list">
-        {featured.map((e, i) => {
-          const d = e.data;
-          const img = d.hero || d.gallery[0];
-          return (
-            <article class="cs-card" data-card={i}>
-              <div class="cs-frame container-page">
-                <div class="cs-shot">
-                  {img && <img src={img} alt={`${d.title} screenshot`} loading="lazy" decoding="async" />}
-                </div>
-                <div class="cs-text">
-                  <span class="cs-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-                  <div class="flex items-center gap-3">
-                    <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">{d.category}</span>
-                    <StatusBadge status={d.status} />
-                  </div>
-                  <h3 class="cs-title font-display font-semibold tracking-tight">{d.title}</h3>
-                  <p class="font-serif text-lg text-muted leading-relaxed max-w-md">{d.oneLiner}</p>
-                  <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{d.role} · {distribution(d.links)}</div>
-                  <div class="flex flex-wrap gap-1.5">{d.stack.slice(0, 6).map((s) => <span class="chip">{s}</span>)}</div>
-                  <div class="flex flex-wrap items-center gap-4 pt-1">
-                    <StoreLinksRow links={d.links} size="md" />
-                    <a href={`/work/${e.slug}`} class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:text-accent-hover transition-colors">
-                      Read case study →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      <div class="picks-plate-ornament" aria-hidden="true">✦</div>
     </div>
+  </header>
+
+  <!-- 6 featured projects, alternating layout -->
+  <div class="container-page picks-grid reveal-stagger">
+    {featured.map((entry, i) => {
+      const d = entry.data;
+      const img = d.hero || d.gallery[0];
+      const num = String(i + 1).padStart(2, "0");
+      return (
+        <article class="pick reveal" id={`pick-${i}`} data-pick={i}>
+          <div class="pick-num" aria-hidden="true">{num}</div>
+
+          <a class="pick-shot" href={`/work/${entry.slug}`} aria-label={`Read case study: ${d.title}`}>
+            {img && <img src={img} alt={`${d.title} screenshot`} loading="lazy" decoding="async" />}
+            <div class="pick-shot-corner pick-shot-corner--tl"></div>
+            <div class="pick-shot-corner pick-shot-corner--tr"></div>
+            <div class="pick-shot-corner pick-shot-corner--bl"></div>
+            <div class="pick-shot-corner pick-shot-corner--br"></div>
+          </a>
+
+          <div class="pick-text">
+            <div class="pick-meta">
+              <span class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{d.category}</span>
+              <span class="pick-meta-sep">·</span>
+              <StatusBadge status={d.status} />
+            </div>
+
+            <h3 class="pick-title font-display font-semibold tracking-tight">
+              <a href={`/work/${entry.slug}`}>{d.title}</a>
+            </h3>
+
+            <p class="pick-line font-serif text-muted">{d.oneLiner}</p>
+
+            <dl class="pick-specs">
+              <div><dt>Role</dt><dd>{d.role}</dd></div>
+              <div><dt>Stack</dt><dd>{d.stack.slice(0, 4).join(" · ")}{d.stack.length > 4 ? ` · +${d.stack.length - 4}` : ""}</dd></div>
+              <div><dt>Distrib.</dt><dd>{distribution(d.links)}</dd></div>
+            </dl>
+
+            <div class="pick-actions">
+              <a class="pick-cta" href={`/work/${entry.slug}`}>
+                Read case study
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M5 12h14M13 5l7 7-7 7" />
+                </svg>
+              </a>
+              <span class="pick-store">
+                <StoreLinksRow links={d.links} size="md" />
+              </span>
+            </div>
+          </div>
+        </article>
+      );
+    })}
   </div>
 </section>
 
 <style>
-  /* ───────── FALLBACK (mobile / reduced-motion / no-JS): a clean editorial list ───────── */
-  .pk-bg {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    margin-bottom: -100vh;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-    --sfx-opacity: 0.5;
-  }
-  .journey-stage { position: relative; z-index: 1; }
-  .pk-head {
+  .picks {
     position: relative;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 5rem 0 0;
-    margin: 0 auto;
-    max-width: 80rem;
-    padding-left: clamp(1rem, 4vw, 4rem);
-    padding-right: clamp(1rem, 4vw, 4rem);
+    padding: 3rem 0 5rem;
+    isolation: isolate;
+    /* Contain the parallax-translating dot grid so it can't bleed into the
+       adjacent Track (Experience) section below. */
+    overflow: hidden;
   }
-  .pk-head-r { display: flex; align-items: center; gap: 1.5rem; }
-  .pk-counter { display: none; } /* journey only */
+  @media (min-width: 900px) { .picks { padding: 4rem 0 7rem; } }
 
-  .cs-list { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6rem; padding: 4rem 0 5rem; }
-  .cs-frame {
-    display: grid;
-    gap: 2rem;
-    align-items: center;
-  }
-  @media (min-width: 900px) { .cs-frame { grid-template-columns: 1fr 1fr; gap: 4rem; } }
-  .cs-shot {
-    position: relative;
-    aspect-ratio: 16 / 10;
-    border: 1px solid rgb(var(--border));
-    border-radius: 0.6rem;
-    overflow: hidden;
-    background: rgb(var(--paper) / 0.45);
-    box-shadow: 0 30px 70px rgb(0 0 0 / 0.45);
-  }
-  .cs-shot img { width: 100%; height: 100%; object-fit: contain; padding: 1rem; display: block; }
-  .cs-text { position: relative; isolation: isolate; display: flex; flex-direction: column; gap: 0.85rem; }
-  .cs-num {
-    position: absolute;
-    top: -3.2rem;
-    left: -0.4rem;
+  /* Mask the shared dot-grid at top + bottom so it doesn't fight adjacent sections.
+     The base pattern (colour, size, spacing) comes from .bg-dot-grid in globals.css
+     — keep all visual values centralised there for consistency across the page. */
+  .picks .bg-dot-grid {
     z-index: -1;
-    font-family: var(--font-mono, ui-monospace, monospace);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+  }
+
+  /* ───── Museum Plate header (centered exhibition wall text) ───── */
+  .picks-plate {
+    text-align: center;
+  }
+  .picks-plate-frame {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 0.5rem 1rem 0;
+    position: relative;
+  }
+  .picks-plate-overline {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .picks-plate-h2 {
+    margin: 2rem 0 1.5rem;
+    font-family: var(--font-display, ui-serif, serif);
+    font-weight: 500;
+    font-size: clamp(2.6rem, 5.5vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: rgb(var(--text));
+  }
+  .picks-plate-meta {
+    font-family: var(--font-serif, ui-serif, serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: rgb(var(--muted));
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .picks-plate-meta-sep {
+    color: rgb(var(--muted) / 0.5);
+    font-style: normal;
+  }
+  .picks-plate-link {
+    font-style: normal;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--accent));
+    transition: color 200ms ease, gap 200ms ease;
+    padding-bottom: 1px;
+    border-bottom: 1px solid rgb(var(--accent) / 0.4);
+  }
+  .picks-plate-link:hover {
+    color: rgb(var(--text));
+    border-bottom-color: rgb(var(--text) / 0.6);
+  }
+  .picks-plate-ornament {
+    margin: 2rem 0;
+    font-size: 1.2rem;
+    color: rgb(var(--accent));
+    letter-spacing: 0.6em;
+  }
+  @media (max-width: 540px) {
+    .picks-plate-meta {
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .picks-plate-meta-sep { display: none; }
+  }
+
+  /* ───── Project list ───── */
+  .picks-grid {
+    margin-top: 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8rem;
+  }
+  @media (min-width: 900px) { .picks-grid { gap: 11rem; margin-top: 7rem; } }
+
+  /* Each project block */
+  .pick {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 2rem;
+    isolation: isolate;
+  }
+  @media (min-width: 900px) {
+    .pick {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      grid-template-rows: auto;
+      gap: 4.5rem;
+      align-items: center;
+    }
+    /* Alternate layout — even rows put image on the right */
+    .pick:nth-child(even) .pick-shot { order: 2; }
+    .pick:nth-child(even) .pick-text { order: 1; }
+  }
+
+  /* No full-card overlay. Clickable targets are explicit: the image, the title,
+     and the "Read case study" CTA. Eliminates the previous mystery hover-area
+     between image and text that confused users. */
+
+  /* Big number watermark — positioned per layout, parallaxes on scroll (see script below) */
+  .pick-num {
+    position: absolute;
+    z-index: 0;
+    top: -2.2rem;
+    left: -0.3rem;
+    font-family: ui-monospace, monospace;
     font-weight: 700;
-    font-size: clamp(5rem, 8vw, 7.5rem);
+    font-size: clamp(5rem, 9vw, 9rem);
     line-height: 0.8;
     color: rgb(var(--accent) / 0.09);
     pointer-events: none;
+    user-select: none;
+    will-change: transform;
+    transition: color 220ms ease;
   }
-  .cs-title { font-size: clamp(2.1rem, 4vw, 3.6rem); line-height: 1.0; }
+  .pick:hover .pick-num { color: rgb(var(--accent) / 0.14); }
+  @media (min-width: 900px) {
+    .pick:nth-child(even) .pick-num {
+      left: auto;
+      right: -0.3rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pick-num { transform: none !important; }
+  }
 
-  /* ───────── JOURNEY (md+ / motion-ok): pinned stage, cards fly through space ───────── */
-  [data-picks].is-journey .journey-stage {
-    position: sticky;
-    top: 0;
-    height: 100vh;
+  /* ───── Image block ───── */
+  .pick-shot {
+    position: relative;
+    z-index: 2;
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.55rem;
     overflow: hidden;
-    perspective: 1400px;
+    background: rgb(var(--paper) / 0.55);
+    box-shadow: 0 22px 60px rgb(0 0 0 / 0.42), 0 0 0 1px rgb(var(--border) / 0.5);
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 380ms ease, border-color 380ms ease;
   }
-  [data-picks].is-journey .pk-bg {
-    position: absolute;
-    inset: 0;
-    height: auto;
-    margin: 0;
+  .pick:hover .pick-shot {
+    transform: translateY(-4px);
+    border-color: rgb(var(--accent) / 0.5);
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(var(--accent) / 0.35);
   }
-  [data-picks].is-journey .pk-head {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    align-items: center;
-    padding-top: clamp(1.5rem, 3vh, 2.5rem);
+  .pick-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1.25rem;
+    display: block;
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  [data-picks].is-journey .pk-h2 { display: none; }
-  [data-picks].is-journey .pk-counter { display: inline; }
+  .pick:hover .pick-shot img { transform: scale(1.025); }
 
-  /* static so the absolute cards anchor to the sticky stage (full height), not the list */
-  [data-picks].is-journey .cs-list { display: block; padding: 0; position: static; }
-  [data-picks].is-journey .cs-card {
+  /* Decorative corner ticks — give the photo a "framed plate" feel */
+  .pick-shot-corner {
     position: absolute;
-    inset: 0;
-    z-index: 1;
+    width: 14px;
+    height: 14px;
+    border-color: rgb(var(--accent) / 0.55);
+    border-style: solid;
+    border-width: 0;
+    opacity: 0;
+    transition: opacity 280ms ease;
+    pointer-events: none;
+  }
+  .pick:hover .pick-shot-corner { opacity: 1; }
+  .pick-shot-corner--tl { top: 8px; left: 8px; border-top-width: 1.5px; border-left-width: 1.5px; }
+  .pick-shot-corner--tr { top: 8px; right: 8px; border-top-width: 1.5px; border-right-width: 1.5px; }
+  .pick-shot-corner--bl { bottom: 8px; left: 8px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+  .pick-shot-corner--br { bottom: 8px; right: 8px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+  /* ───── Text block ───── */
+  .pick-text {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    min-width: 0;
+  }
+
+  .pick-meta {
     display: flex;
     align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    will-change: transform, opacity;
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
+    gap: 0.6rem;
+    flex-wrap: wrap;
   }
-  [data-picks].is-journey .cs-frame { width: 100%; }
-  [data-picks].is-journey .cs-num { top: -3.6rem; }
+  .pick-meta-sep {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    color: rgb(var(--muted) / 0.6);
+  }
+
+  .pick-title {
+    font-size: clamp(2rem, 4.2vw, 3.4rem);
+    line-height: 1.0;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .pick-title a {
+    color: rgb(var(--text));
+    transition: color 220ms ease;
+    display: inline;
+  }
+  .pick-title a:hover { color: rgb(var(--accent)); }
+
+  .pick-line {
+    font-size: 1.08rem;
+    line-height: 1.55;
+    max-width: 32rem;
+    margin: 0;
+  }
+
+  /* Spec rows — Role / Stack / Distrib in a compact key-value list */
+  .pick-specs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+  .pick-specs > div {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+  .pick-specs dt {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+    margin: 0;
+  }
+  .pick-specs dd {
+    font-family: var(--font-serif, ui-serif, serif);
+    color: rgb(var(--text) / 0.9);
+    margin: 0;
+    min-width: 0;
+  }
+
+  /* Action row */
+  .pick-actions {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 1.5rem;
+  }
+  .pick-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--accent));
+    transition: gap 220ms cubic-bezier(0.22, 1, 0.36, 1), color 200ms ease;
+    padding: 0.4rem 0;
+  }
+  .pick-cta svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .pick-cta:hover { gap: 0.85rem; color: rgb(var(--text)); }
+  .pick-cta:hover svg { transform: translateX(4px); }
+  .pick-store {
+    /* StoreLinksRow already styled — just ensure it stays clickable */
+    display: inline-flex;
+    align-items: center;
+  }
 </style>
 
 <script is:inline>
+  // Scroll parallax on the .pick-num watermarks — numbers drift slower than the content,
+  // giving the section a sense of depth without scripted card animations.
   (function () {
-    const section = document.querySelector("[data-picks]");
-    if (!section) return;
-    const track = section.querySelector("[data-journey]");
-    const stage = section.querySelector(".journey-stage");
-    const cards = Array.from(section.querySelectorAll("[data-card]"));
-    const counter = section.querySelector("[data-counter]");
-    const head = section.querySelector(".pk-head");
-    const N = cards.length;
-    if (!N) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const picks = document.querySelectorAll(".pick");
+    if (!picks.length) return;
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const wide = window.matchMedia("(min-width: 900px)");
-    const STEP_VH = 85; // scroll runway per case study (tune for pacing)
-    const END = 0.4; // short tail after the last card → Experience appears soon
-    const EXIT_START = 0.7; // tunnel-exit begins this many steps before the track ends
-
-    let dirs = [];
-    const buildDirs = () =>
-      (dirs = cards.map(() => ({
-        ea: Math.random() * 6.283, // random ENTER angle
-        xa: Math.random() * 6.283, // random EXIT angle
-        erot: (Math.random() - 0.5) * 28,
-        xrot: (Math.random() - 0.5) * 50,
-        fold: (Math.random() < 0.5 ? 1 : -1) * (55 + Math.random() * 45),
-        eScale: 0.28 + Math.random() * 0.27, // enter small/far (random), grows in
-        hScale: 0.94 + Math.random() * 0.1, // held size varies → "not the same size"
-        xScale: 0.3 + Math.random() * 0.3, // recede small/far (random), shrinks out
-      })));
-    buildDirs();
-
-    const place = (card, lp, d) => {
-      if (lp <= -1.04 || lp >= 1.04) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
-      const off = Math.max(window.innerWidth, window.innerHeight) * 1.18;
-      card.style.visibility = "visible";
-      let tx, ty, tz, rot, ry, sc, op;
-      if (lp < 0) {
-        // entering: fly in from a random direction out of deep space, GROWING to size
-        const t = lp + 1, e = 1 - Math.pow(1 - t, 3), k = 1 - e;
-        tx = Math.cos(d.ea) * off * k; ty = Math.sin(d.ea) * off * k; tz = -900 * k;
-        rot = d.erot * k; ry = 0; sc = d.eScale + (d.hScale - d.eScale) * e; op = Math.min(1, e * 1.3);
-      } else {
-        // exiting: fold + spin away into depth, SHRINKING as it recedes
-        const e = lp * lp;
-        tx = Math.cos(d.xa) * off * e; ty = Math.sin(d.xa) * off * e; tz = -800 * e;
-        rot = d.xrot * e; ry = d.fold * e; sc = d.hScale + (d.xScale - d.hScale) * e; op = Math.max(0, 1 - e * 1.25);
-      }
-      card.style.opacity = op.toFixed(3);
-      card.style.transform =
-        "translate3d(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px," + tz.toFixed(0) + "px) rotate(" +
-        rot.toFixed(1) + "deg) rotateY(" + ry.toFixed(1) + "deg) scale(" + sc.toFixed(3) + ")";
-    };
-
-    const render = (p) => {
-      for (let i = 0; i < N; i++) place(cards[i], p - i, dirs[i]);
-      const ex = Math.max(0, Math.min(1, (p - (N - EXIT_START)) / (END + EXIT_START)));
-      window.__sfxExit = ex;
-      stage.style.setProperty("--sfx-opacity", (0.55 * (1 - ex * 0.92)).toFixed(2));
-      if (head) head.style.opacity = (1 - Math.max(0, Math.min(1, (ex - 0.35) / 0.65))).toFixed(2);
-      if (counter) {
-        const cur = Math.min(N, Math.max(1, Math.floor(p + 0.5) + 1));
-        counter.textContent = String(cur).padStart(2, "0") + " / " + String(N).padStart(2, "0");
-      }
-    };
+    const FACTOR = 0.22; // 0 = no parallax, 1 = number scrolls opposite to content.
+    const MAX_OFFSET = 90;  // px — cap so off-screen picks don't fly the number into other sections.
 
     let raf = 0;
     const update = () => {
       raf = 0;
-      const scrollable = track.offsetHeight - window.innerHeight;
-      if (scrollable <= 0) return;
-      const sc = Math.min(Math.max(-track.getBoundingClientRect().top, 0), scrollable);
-      render((sc / scrollable) * (N + END)); // 0..N = cards, short tail = tunnel exit
+      const vh = window.innerHeight;
+      picks.forEach((pick) => {
+        const num = pick.querySelector(".pick-num");
+        if (!num) return;
+        const rect = pick.getBoundingClientRect();
+        const center = rect.top + rect.height / 2;
+        // Negative when pick is below viewport center; positive when above.
+        // Number translates *opposite* to scroll direction → reads as "anchored slower."
+        let offset = (vh / 2 - center) * FACTOR;
+        // Cap so the watermark can't escape its parent pick when far off-screen.
+        if (offset > MAX_OFFSET) offset = MAX_OFFSET;
+        else if (offset < -MAX_OFFSET) offset = -MAX_OFFSET;
+        num.style.transform = "translate3d(0," + offset.toFixed(1) + "px,0)";
+      });
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
-
-    let active = false;
-    const activate = () => {
-      if (active) return; active = true;
-      section.classList.add("is-journey");
-      track.style.height = (N + END) * STEP_VH + "vh";
-      window.addEventListener("scroll", onScroll, { passive: true });
-      update();
-    };
-    const deactivate = () => {
-      if (!active) return; active = false;
-      section.classList.remove("is-journey");
-      track.style.height = "";
-      window.removeEventListener("scroll", onScroll);
-      cards.forEach((c) => { c.style.transform = ""; c.style.opacity = ""; c.style.visibility = ""; });
-      window.__sfxExit = 0;
-      stage.style.removeProperty("--sfx-opacity");
-      if (head) head.style.opacity = "";
-    };
-
-    const apply = () => { (!reduce.matches && wide.matches) ? activate() : deactivate(); };
-    apply();
-    wide.addEventListener && wide.addEventListener("change", apply);
-    reduce.addEventListener && reduce.addEventListener("change", apply);
-    window.addEventListener("resize", () => { apply(); buildDirs(); if (active) update(); }, { passive: true });
-
-    // expose for staged verification in the throttled preview harness
-    window.__journey = { activate, update, setP: render };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    update();
   })();
 </script>

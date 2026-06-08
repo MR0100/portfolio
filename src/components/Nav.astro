@@ -1,5 +1,4 @@
 ---
-import { profile } from "~/data/profile";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 
 const links = [
@@ -15,13 +14,14 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
 
 <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-bg/80 border-b border-border/60">
   <nav class="container-page flex h-16 items-center justify-between">
-    <a href="/" class="flex items-baseline gap-2.5 group">
+    <a href="/" class="flex items-baseline gap-2.5 group" aria-label="Home">
       <span class="font-display text-lg font-semibold tracking-tight">
         M. Vaghasiya<span class="text-accent">.</span>
       </span>
     </a>
 
     <div class="flex items-center gap-1 md:gap-2">
+      <!-- Desktop nav -->
       <ul class="hidden md:flex items-center gap-0.5">
         {
           links.map(({ href, label }) => (
@@ -29,8 +29,10 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
               <a
                 href={href}
                 class:list={[
-                  "px-3 py-2 rounded-md font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
-                  isActive(href) ? "text-accent" : "text-muted hover:text-text",
+                  "relative px-3 py-2 rounded-md font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                  isActive(href)
+                    ? "text-accent after:absolute after:inset-x-3 after:bottom-1 after:h-0.5 after:bg-accent after:rounded-sm"
+                    : "text-muted hover:text-text",
                 ]}
                 aria-current={isActive(href) ? "page" : undefined}
               >
@@ -42,6 +44,115 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
       </ul>
 
       <ThemeToggle />
+
+      <!-- Mobile menu toggle -->
+      <button
+        type="button"
+        class="md:hidden flex items-center justify-center h-9 w-9 rounded-md border border-border/60 text-text hover:border-accent/40 hover:text-accent transition-colors"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-mobile-menu-toggle
+      >
+        <svg
+          class="h-4 w-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+          data-menu-icon="open"
+        >
+          <line x1="4" y1="7" x2="20" y2="7" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="17" x2="20" y2="17" />
+        </svg>
+        <svg
+          class="h-4 w-4 hidden"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+          data-menu-icon="close"
+        >
+          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="6" y1="18" x2="18" y2="6" />
+        </svg>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile menu sheet -->
+  <div
+    id="mobile-menu"
+    class="md:hidden hidden border-t border-border/60 bg-bg/95 backdrop-blur"
+    data-mobile-menu
+  >
+    <ul class="container-page py-4 space-y-1">
+      {
+        links.map(({ href, label }) => (
+          <li>
+            <a
+              href={href}
+              class:list={[
+                "block py-3 px-3 rounded-md font-mono text-sm uppercase tracking-[0.18em] transition-colors",
+                isActive(href)
+                  ? "text-accent border-l-2 border-accent pl-4"
+                  : "text-text hover:text-accent",
+              ]}
+              aria-current={isActive(href) ? "page" : undefined}
+            >
+              {label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
 </header>
+
+<script is:inline>
+  (function () {
+    const toggle = document.querySelector("[data-mobile-menu-toggle]");
+    const menu = document.querySelector("[data-mobile-menu]");
+    if (!toggle || !menu) return;
+
+    const iconOpen = toggle.querySelector('[data-menu-icon="open"]');
+    const iconClose = toggle.querySelector('[data-menu-icon="close"]');
+
+    const closeOnEscape = (e) => {
+      if (e.key === "Escape") close();
+    };
+
+    const close = () => {
+      menu.classList.add("hidden");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open menu");
+      iconOpen?.classList.remove("hidden");
+      iconClose?.classList.add("hidden");
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+
+    const open = () => {
+      menu.classList.remove("hidden");
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "Close menu");
+      iconOpen?.classList.add("hidden");
+      iconClose?.classList.remove("hidden");
+      document.addEventListener("keydown", closeOnEscape);
+    };
+
+    toggle.addEventListener("click", () => {
+      const isOpen = toggle.getAttribute("aria-expanded") === "true";
+      if (isOpen) close(); else open();
+    });
+
+    // Close when a link inside the menu is activated
+    menu.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", close);
+    });
+  })();
+</script>

@@ -5,7 +5,6 @@ import Lead from "~/components/home/Lead.astro";
 import Now from "~/components/home/Now.astro";
 import Story from "~/components/home/Story.astro";
 import Numbers from "~/components/home/Numbers.astro";
-import Atlas from "~/components/home/Atlas.astro";
 import Picks from "~/components/home/Picks.astro";
 import Track from "~/components/home/Track.astro";
 import Stack from "~/components/home/Stack.astro";
@@ -28,23 +27,34 @@ import GetInTouch from "~/components/home/GetInTouch.astro";
   <!-- Picks is a sticky scroll-sequence; it must NOT sit inside a transformed (.reveal) ancestor. -->
   <Picks />
   <div class="reveal"><Track /></div>
-  <!-- Atlas (where the work shipped) now sits below the work-experience track record -->
-  <div class="reveal"><Atlas /></div>
   <div class="reveal"><Stack /></div>
   <div class="reveal"><GetInTouch /></div>
 
-  <!-- Parallax the first-three-sections dot-grid: it drifts slower than the page. -->
+  <!-- Shared dot-grid parallax — drives both .zone-grid (first three sections wrapper)
+       and any [data-parallax-grid] elements elsewhere on the page. Each grid moves at
+       0.55× its containing section's scroll progress for a noticeable depth effect. -->
   <script is:inline>
     (function () {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      // Targets: the legacy .zone-grid (paired with .grid-zone parent) + any new opt-in elements
+      const targets = [];
       const zone = document.querySelector(".grid-zone");
-      const grid = zone && zone.querySelector(".zone-grid");
-      if (!grid) return;
+      const zoneGrid = zone && zone.querySelector(".zone-grid");
+      if (zone && zoneGrid) targets.push({ grid: zoneGrid, parent: zone });
+      document.querySelectorAll("[data-parallax-grid]").forEach((grid) => {
+        const parent = grid.parentElement;
+        if (parent) targets.push({ grid, parent });
+      });
+      if (!targets.length) return;
+
+      const FACTOR = 0.55;
       let ticking = false;
       const update = () => {
         ticking = false;
-        const y = Math.max(0, Math.min(-zone.getBoundingClientRect().top, zone.offsetHeight));
-        grid.style.transform = "translate3d(0," + (y * 0.3).toFixed(1) + "px,0)";
+        for (const { grid, parent } of targets) {
+          const y = Math.max(0, Math.min(-parent.getBoundingClientRect().top, parent.offsetHeight));
+          grid.style.transform = "translate3d(0," + (y * FACTOR).toFixed(1) + "px,0)";
+        }
       };
       window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
       window.addEventListener("resize", update, { passive: true });

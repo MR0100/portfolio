@@ -1,0 +1,819 @@
+---
+import "~/styles/globals.css";
+import { getCollection } from "astro:content";
+import SectionFX from "~/components/SectionFX.astro";
+
+const all = await getCollection("work");
+const featured = all
+  .filter((e) => e.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 6);
+
+// 20 cinematic action variants — SEQUENTIAL (one card at a time, no overlap)
+// Each card has its own scroll window: enter → hold → exit, completing before the next begins.
+const variants = [
+  { n: "01", id: "v1",  name: "Smash Cut + Shake",      concept: "Card slams in from scale 1.35 with frame shake. Camera tremor on hold. Snaps out with motion blur.", bg: "warp" },
+  { n: "02", id: "v2",  name: "Whip Pan",                concept: "Extreme horizontal motion blur — card whips across frame with 40px blur trail and skew lean.", bg: "warp" },
+  { n: "03", id: "v3",  name: "Bullet Time",             concept: "Slow-mo arrival from −1500px depth, freezes mid-air, accelerates out the back. Matrix vibe.", bg: "constellation" },
+  { n: "04", id: "v4",  name: "Glitch Cut",              concept: "RGB chromatic split + random horizontal jitter on enter/exit. Clean signal in the middle.", bg: "glitch" },
+  { n: "05", id: "v5",  name: "Vortex Spin",             concept: "Card spirals in from off-screen with 720° rotation, settles, spirals out the opposite way.", bg: "warp" },
+  { n: "06", id: "v6",  name: "Light Burst",             concept: "Bright accent flash overlay washes the screen, card emerges from the flash. Exits in another burst.", bg: "aurora" },
+  { n: "07", id: "v7",  name: "Wormhole",                concept: "Card emerges from a contracting iris with strong depth push. Exits by sucking back into the hole.", bg: "warp-center" },
+  { n: "08", id: "v8",  name: "Holographic Crack",       concept: "Multi-ghost RGB after-images during transit, sharp signal at center. Cyberpunk hologram.", bg: "glitch" },
+  { n: "09", id: "v9",  name: "Shutter Snap",            concept: "Top+bottom shutter bars open like a camera shutter to reveal. Close to hide.", bg: "vgradient" },
+  { n: "10", id: "v10", name: "Speed Lines",             concept: "Anime-style radial speed lines (CSS pseudo) during entry/exit with strong directional motion.", bg: "warp" },
+  { n: "11", id: "v11", name: "Camera Punch-In",         concept: "Hard scale 0.3 → 1 entry with impact shake. Exit punches through to 2× and blur.", bg: "warp" },
+  { n: "12", id: "v12", name: "Pixel Materialize",       concept: "Card materializes via expanding pixel grid clip-path. De-pixelates on exit.", bg: "dots" },
+  { n: "13", id: "v13", name: "Mirror Shatter",          concept: "Polygon clip-path fragments card into shards that fly outward on exit. Reverse for entry.", bg: "hex" },
+  { n: "14", id: "v14", name: "Title Sting",             concept: "Strong directional motion blur + dramatic scale jump. Like a movie title card landing.", bg: "warp" },
+  { n: "15", id: "v15", name: "Light Beam Scan",         concept: "Accent beam scans top-to-bottom revealing the card progressively. Scans up to hide.", bg: "black" },
+  { n: "16", id: "v16", name: "Drone Flyby",             concept: "RotateY 90° entry from extreme side angle, settles facing camera. Exits with opposite swing.", bg: "grid" },
+  { n: "17", id: "v17", name: "Earthquake Hold",         concept: "Card slams in calmly. While held, continuous CSS shake. Slams out with shake increase.", bg: "warp" },
+  { n: "18", id: "v18", name: "Solar Flare",             concept: "Bright radial accent burst from center reveals card. Card holds. Exits in another flare.", bg: "warp-center" },
+  { n: "19", id: "v19", name: "Time Warp Trail",         concept: "Card with multi-layer after-image trails during fast transit. Long blur tail.", bg: "warp" },
+  { n: "20", id: "v20", name: "Punch-Through Camera",    concept: "Card flies in from −1800px depth, slams center, punches through to +1500px exit. Through-the-screen.", bg: "warp-center" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Lab — Selected Work action animations · 20 variants</title>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <header class="container-page py-12 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · Selected Work — action cinema</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">20 cinematic action variants</h1>
+      <p class="mt-4 max-w-2xl font-serif text-lg text-muted">
+        <strong class="text-text">Sequential timing</strong> — only one card on screen at a time. The next card never enters until
+        the current one has fully left. <strong class="text-text">Action-cinema effects</strong> — smash cuts, whip pans, glitch
+        bursts, wormholes, shatter, shake. No tame fades. Tell me which numbers feel right.
+      </p>
+      <nav class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+        {variants.map((v) => (
+          <a href={`#${v.id}`} class="text-muted hover:text-accent transition-colors py-1 border-b border-border/40">
+            <span class="text-accent">{v.n}</span> · {v.name}
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    {variants.map((v) => (
+      <section id={v.id} class="pkv" data-pkv={v.id} data-pkv-bg={v.bg}>
+        <div class="pkv-track">
+          <div class="pkv-stage">
+            <div class="pkv-bg" aria-hidden="true">
+              {(v.bg === "warp" || v.bg === "warp-center") && <SectionFX variant="warp" />}
+              {v.bg === "constellation" && <SectionFX variant="constellation" />}
+              {v.bg === "dots" && <SectionFX variant="dots" />}
+              {v.bg === "aurora" && <SectionFX variant="aurora" />}
+              {v.bg === "grid" && <SectionFX variant="grid" />}
+              {v.bg === "glitch" && <SectionFX variant="glitch" />}
+              {v.bg === "hex" && <SectionFX variant="hex" />}
+            </div>
+
+            {v.bg === "vgradient" && <div class="pkv-vgradient"></div>}
+            {v.bg === "black" && <div class="pkv-black-stage"></div>}
+            {v.bg === "warp-center" && <div class="pkv-centerglow"></div>}
+
+            <div class="pkv-hud">
+              <div>
+                <div class="pkv-num">{v.n} · variant</div>
+                <h2 class="pkv-name">{v.name}</h2>
+                <p class="pkv-concept">{v.concept}</p>
+              </div>
+              <div class="pkv-counter" data-counter>01 / 06</div>
+            </div>
+
+            <!-- Flash + beam overlay layers, used by certain variants -->
+            <div class="pkv-flash" data-flash></div>
+            <div class="pkv-beam" data-beam></div>
+
+            <div class="pkv-cards">
+              {featured.map((e, i) => {
+                const d = e.data;
+                const img = d.hero || d.gallery[0];
+                return (
+                  <article class="pkv-card" data-card={i}>
+                    <div class="pkv-card-inner">
+                      <div class="pkv-card-shot">
+                        {img && <img src={img} alt="" loading="lazy" decoding="async" />}
+                      </div>
+                      <div class="pkv-card-text">
+                        <span class="pkv-card-cat">{d.category}</span>
+                        <h3 class="pkv-card-title">{d.title}</h3>
+                        <p class="pkv-card-line">{d.oneLiner}</p>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <footer class="container-page py-16 max-w-5xl">
+      <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+        End of lab · noindex · sequential cinematic timing · pick a number to wire it in.
+      </p>
+    </footer>
+
+    <script is:inline>
+      (function () {
+        // Sequential timing: each card is visible ONLY for lp ∈ [0, 1].
+        // Within that window: ENTER [0, 0.22] → HOLD [0.22, 0.78] → EXIT [0.78, 1.0].
+        // Outside the window, card is fully hidden. No overlap between cards.
+
+        const rand = (min, max) => min + Math.random() * (max - min);
+
+        // Helper: parse 3-phase lp into { phase, t } where t is 0..1 within phase
+        const phase = (lp) => {
+          if (lp < 0.22) return { p: "enter", t: lp / 0.22 };
+          if (lp > 0.78) return { p: "exit", t: (lp - 0.78) / 0.22 };
+          return { p: "hold", t: (lp - 0.22) / 0.56 };
+        };
+
+        const PLACE = {
+          // V01 — Smash Cut + Shake
+          v1(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let sc, op, sx = 0, sy = 0, blur = 0;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 5);
+              sc = 1.35 - e * 0.35; op = e; blur = (1 - e) * 8;
+              const sk = t > 0.7 ? (t - 0.7) / 0.3 : 0;
+              sx = (Math.random() - 0.5) * sk * 14; sy = (Math.random() - 0.5) * sk * 14;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              sc = 1 + e * 0.4; op = 1 - e; blur = e * 12;
+            } else {
+              sc = 1; op = 1; sx = (Math.random() - 0.5) * 1.5; sy = (Math.random() - 0.5) * 1.5;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(" + sx.toFixed(1) + "px," + sy.toFixed(1) + "px,0) scale(" + sc.toFixed(3) + ")";
+          },
+          // V02 — Whip Pan
+          v2(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tx, skew = 0, blur = 0, op;
+            const dir = d.dir > 0.5 ? 1 : -1;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 3);
+              tx = (1 - e) * w * 1.2 * dir; blur = (1 - e) * 40; skew = (1 - e) * 18 * -dir;
+              op = Math.min(1, e * 2);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 1.2 * dir; blur = e * 40; skew = -e * 18 * -dir;
+              op = Math.max(0, 1 - e * 2);
+            } else {
+              tx = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0) skew(" + skew.toFixed(1) + "deg)";
+          },
+          // V03 — Bullet Time
+          v3(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tz, blur, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              tz = -1500 + e * 1500; blur = (1 - e) * 18; op = Math.min(1, e * 1.5);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              tz = -e * 1500; blur = e * 18; op = Math.max(0, 1 - e * 2);
+            } else {
+              tz = 0; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(0,0," + tz.toFixed(0) + "px)";
+          },
+          // V04 — Glitch Cut
+          v4(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tx, split, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 3);
+              tx = (1 - e) * 30 * (Math.random() - 0.5); split = (1 - e) * 18; op = Math.min(1, e * 2);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = e * 30 * (Math.random() - 0.5); split = e * 18; op = Math.max(0, 1 - e * 2);
+            } else {
+              tx = 0; split = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = split > 0.5
+              ? "drop-shadow(" + split.toFixed(1) + "px 0 rgba(244,63,94,0.75)) drop-shadow(" + (-split).toFixed(1) + "px 0 rgba(94,234,212,0.75))"
+              : "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0)";
+          },
+          // V05 — Vortex Spin
+          v5(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            const dir = d.dir > 0.5 ? 1 : -1;
+            let tx, ty, rot, sc, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              const r = (1 - e) * Math.hypot(w, h) * 0.7;
+              const a = (1 - e) * Math.PI * 3 * dir + d.angle;
+              tx = Math.cos(a) * r; ty = Math.sin(a) * r;
+              rot = (1 - e) * 720 * dir; sc = 0.3 + e * 0.7; op = Math.min(1, e * 1.5);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              const r = e * Math.hypot(w, h) * 0.7;
+              const a = e * Math.PI * 3 * -dir + d.angle + Math.PI;
+              tx = Math.cos(a) * r; ty = Math.sin(a) * r;
+              rot = e * 720 * -dir; sc = 1 - e * 0.7; op = Math.max(0, 1 - e * 1.5);
+            } else {
+              tx = 0; ty = 0; rot = 0; sc = 1; op = 1;
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px,0) rotate(" + rot.toFixed(1) + "deg) scale(" + sc.toFixed(3) + ")";
+          },
+          // V06 — Light Burst (CSS overlay flash signals via card class)
+          v6(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.classList.remove("pkv-flash-on"); return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let sc, blur, op, flash = 0;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 5);
+              sc = 0.7 + e * 0.3; blur = (1 - e) * 10; op = e;
+              flash = t < 0.4 ? (1 - t / 0.4) : 0;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              sc = 1 + e * 0.4; blur = e * 14; op = 1 - e;
+              flash = t > 0.6 ? ((t - 0.6) / 0.4) : 0;
+            } else {
+              sc = 1; blur = 0; op = 1; flash = 0;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = "brightness(" + (1 + flash * 0.8).toFixed(2) + ")" + (blur > 0.2 ? " blur(" + blur.toFixed(1) + "px)" : "");
+            card.style.transform = "scale(" + sc.toFixed(3) + ")";
+            // Drive section-level flash overlay via data attr
+            const flashEl = card.closest(".pkv-stage")?.querySelector("[data-flash]");
+            if (flashEl) flashEl.style.opacity = (flash * 0.9).toFixed(2);
+          },
+          // V07 — Wormhole (iris + depth push)
+          v7(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.style.clipPath = ""; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let irisR, tz, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              irisR = e * 100; tz = -800 * (1 - e); op = Math.min(1, e * 1.5);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              irisR = (1 - e) * 100; tz = e * -600; op = Math.max(0, 1 - e);
+            } else {
+              irisR = 100; tz = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.clipPath = "circle(" + irisR.toFixed(0) + "% at 50% 50%)";
+            card.style.transform = "translate3d(0,0," + tz.toFixed(0) + "px)";
+          },
+          // V08 — Holographic Crack (multiple RGB ghosts during transit)
+          v8(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tx, ghostR, ghostB, blur, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 3);
+              tx = (1 - e) * w * 0.3; ghostR = (1 - e) * 22; ghostB = (1 - e) * -22; blur = (1 - e) * 4;
+              op = Math.min(1, e * 1.6);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 0.3; ghostR = e * 22; ghostB = e * -22; blur = e * 4;
+              op = Math.max(0, 1 - e * 1.6);
+            } else {
+              tx = 0; ghostR = 0; ghostB = 0; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = (Math.abs(ghostR) > 0.5 || blur > 0.2)
+              ? "blur(" + blur.toFixed(1) + "px) drop-shadow(" + ghostR.toFixed(1) + "px " + (ghostR * 0.3).toFixed(1) + "px rgba(244,63,94,0.7)) drop-shadow(" + ghostB.toFixed(1) + "px " + (ghostB * 0.3).toFixed(1) + "px rgba(94,234,212,0.7))"
+              : "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0)";
+          },
+          // V09 — Shutter Snap
+          v9(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.style.clipPath = ""; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let pct, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              pct = (1 - e) * 50; op = Math.min(1, e * 1.5);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              pct = e * 50; op = Math.max(0, 1 - e);
+            } else {
+              pct = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.clipPath = "inset(" + pct.toFixed(1) + "% 0)";
+            card.style.transform = "";
+          },
+          // V10 — Speed Lines (CSS pseudo overlays via class toggle)
+          v10(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.classList.remove("pkv-speedlines"); return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tx, op, blur = 0;
+            const dir = d.dir > 0.5 ? 1 : -1;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              tx = (1 - e) * w * 0.4 * dir; blur = (1 - e) * 18;
+              op = Math.min(1, e * 1.6);
+              card.classList.add("pkv-speedlines");
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 0.4 * dir; blur = e * 18;
+              op = Math.max(0, 1 - e * 1.6);
+              card.classList.add("pkv-speedlines");
+            } else {
+              tx = 0; op = 1;
+              card.classList.remove("pkv-speedlines");
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0)";
+          },
+          // V11 — Camera Punch-In
+          v11(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let sc, blur, op, sx = 0, sy = 0;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 6);
+              sc = 0.3 + e * 0.7; blur = (1 - e) * 20; op = Math.min(1, e * 2);
+              const sk = t > 0.8 ? (t - 0.8) / 0.2 : 0;
+              sx = (Math.random() - 0.5) * sk * 18; sy = (Math.random() - 0.5) * sk * 18;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              sc = 1 + e * 1; blur = e * 24; op = Math.max(0, 1 - e * 1.5);
+            } else {
+              sc = 1; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(" + sx.toFixed(1) + "px," + sy.toFixed(1) + "px,0) scale(" + sc.toFixed(3) + ")";
+          },
+          // V12 — Pixel Materialize (clip-path inset shrinks to reveal whole)
+          v12(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.style.clipPath = ""; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let blur, op, pct;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              pct = (1 - e) * 35; blur = (1 - e) * 14; op = Math.min(1, e * 1.6);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              pct = e * 35; blur = e * 14; op = Math.max(0, 1 - e * 1.6);
+            } else {
+              pct = 0; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px) contrast(1.4)" : "";
+            // Use a polygon with random offset points for pixel-like reveal
+            card.style.clipPath = "inset(" + pct.toFixed(1) + "% " + pct.toFixed(1) + "%)";
+            card.style.transform = "";
+          },
+          // V13 — Mirror Shatter (polygon clip into a star-shape that expands)
+          v13(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.style.clipPath = ""; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let s, op, rot;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              s = e * 100; op = Math.min(1, e * 1.5); rot = (1 - e) * 30;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              s = (1 - e) * 100; op = Math.max(0, 1 - e); rot = e * 30;
+            } else {
+              s = 100; op = 1; rot = 0;
+            }
+            const half = s / 2;
+            // Star/burst polygon: 8 points
+            const pts = [];
+            for (let i = 0; i < 8; i++) {
+              const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+              const r = i % 2 === 0 ? half : half * 0.45;
+              pts.push((50 + Math.cos(a) * r).toFixed(1) + "% " + (50 + Math.sin(a) * r).toFixed(1) + "%");
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.clipPath = "polygon(" + pts.join(", ") + ")";
+            card.style.transform = "rotate(" + rot.toFixed(1) + "deg)";
+          },
+          // V14 — Title Sting (strong scale + motion blur in same direction)
+          v14(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            const dir = d.dir > 0.5 ? 1 : -1;
+            let tx, sc, blur, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 6);
+              tx = (1 - e) * w * 0.6 * dir; sc = 0.6 + e * 0.4; blur = (1 - e) * 16; op = Math.min(1, e * 1.6);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 0.6 * dir; sc = 1 + e * 0.5; blur = e * 20; op = Math.max(0, 1 - e * 1.6);
+            } else {
+              tx = 0; sc = 1; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px) contrast(1.15)" : "contrast(1.05)";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0) scale(" + sc.toFixed(3) + ")";
+          },
+          // V15 — Light Beam Scan (clip-path band that grows, signals overlay beam)
+          v15(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.style.clipPath = ""; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let topPct, botPct, op, beamY = -1;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              topPct = 0; botPct = (1 - e) * 100; op = Math.min(1, e * 1.6);
+              beamY = t * 100;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              topPct = e * 100; botPct = 0; op = Math.max(0, 1 - e * 1.6);
+              beamY = (1 - t) * 100;
+            } else {
+              topPct = 0; botPct = 0; op = 1; beamY = -1;
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.clipPath = "inset(" + topPct.toFixed(1) + "% 0 " + botPct.toFixed(1) + "% 0)";
+            card.style.transform = "";
+            const beamEl = card.closest(".pkv-stage")?.querySelector("[data-beam]");
+            if (beamEl) {
+              if (beamY >= 0 && beamY <= 100) {
+                beamEl.style.opacity = "0.9";
+                beamEl.style.top = beamY.toFixed(1) + "%";
+              } else {
+                beamEl.style.opacity = "0";
+              }
+            }
+          },
+          // V16 — Drone Flyby (3D Y rotation)
+          v16(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            const dir = d.dir > 0.5 ? 1 : -1;
+            let tx, ry, tz, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              tx = (1 - e) * w * 0.7 * dir; ry = (1 - e) * 90 * -dir; tz = -400 * (1 - e); op = Math.min(1, e * 1.6);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 0.7 * dir; ry = e * 90 * dir; tz = -400 * e; op = Math.max(0, 1 - e * 1.6);
+            } else {
+              tx = 0; ry = 0; tz = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3); card.style.filter = "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0," + tz.toFixed(0) + "px) rotateY(" + ry.toFixed(1) + "deg)";
+          },
+          // V17 — Earthquake Hold (CSS shake class while held)
+          v17(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; card.classList.remove("pkv-quake"); return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let sc, blur, op, sx = 0, sy = 0;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 5);
+              sc = 0.8 + e * 0.2; blur = (1 - e) * 12; op = Math.min(1, e * 1.8);
+              card.classList.remove("pkv-quake");
+              const sk = t > 0.7 ? (t - 0.7) / 0.3 : 0;
+              sx = (Math.random() - 0.5) * sk * 16; sy = (Math.random() - 0.5) * sk * 16;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              sc = 1 + e * 0.2; blur = e * 14; op = Math.max(0, 1 - e * 1.6);
+              card.classList.remove("pkv-quake");
+              sx = (Math.random() - 0.5) * e * 22; sy = (Math.random() - 0.5) * e * 22;
+            } else {
+              sc = 1; blur = 0; op = 1;
+              card.classList.add("pkv-quake");
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(" + sx.toFixed(1) + "px," + sy.toFixed(1) + "px,0) scale(" + sc.toFixed(3) + ")";
+          },
+          // V18 — Solar Flare
+          v18(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let sc, blur, op, flare = 0;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 5);
+              sc = 0.85 + e * 0.15; blur = (1 - e) * 10; op = Math.min(1, e * 1.6);
+              flare = t < 0.5 ? (1 - t / 0.5) : 0;
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              sc = 1 + e * 0.3; blur = e * 12; op = Math.max(0, 1 - e * 1.6);
+              flare = t > 0.5 ? ((t - 0.5) / 0.5) : 0;
+            } else {
+              sc = 1; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px) brightness(" + (1 + flare * 0.5).toFixed(2) + ")" : "brightness(" + (1 + flare * 0.5).toFixed(2) + ")";
+            card.style.transform = "scale(" + sc.toFixed(3) + ")";
+            const flashEl = card.closest(".pkv-stage")?.querySelector("[data-flash]");
+            if (flashEl) {
+              flashEl.style.background = "radial-gradient(circle at 50% 50%, rgba(217,161,99,0.85) 0%, rgba(94,234,212,0.4) 25%, transparent 60%)";
+              flashEl.style.opacity = (flare * 1.0).toFixed(2);
+            }
+          },
+          // V19 — Time Warp Trail (multi-layer drop-shadow for ghosting)
+          v19(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            const dir = d.dir > 0.5 ? 1 : -1;
+            let tx, trail, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 4);
+              tx = (1 - e) * w * 0.6 * dir; trail = (1 - e) * 60; op = Math.min(1, e * 1.6);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.5);
+              tx = -e * w * 0.6 * dir; trail = e * 60; op = Math.max(0, 1 - e * 1.6);
+            } else {
+              tx = 0; trail = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            // Three after-images via stacked drop-shadows
+            card.style.filter = trail > 0.5
+              ? "drop-shadow(" + (trail * 0.5 * dir).toFixed(1) + "px 0 rgba(94,234,212,0.35)) drop-shadow(" + (trail * 1.0 * dir).toFixed(1) + "px 0 rgba(94,234,212,0.18)) drop-shadow(" + (trail * 1.5 * dir).toFixed(1) + "px 0 rgba(94,234,212,0.08))"
+              : "";
+            card.style.transform = "translate3d(" + tx.toFixed(1) + "px,0,0)";
+          },
+          // V20 — Punch-Through Camera
+          v20(card, lp, d, w, h) {
+            if (lp <= 0 || lp >= 1) { card.style.opacity = "0"; card.style.visibility = "hidden"; return; }
+            card.style.visibility = "visible";
+            const { p, t } = phase(lp);
+            let tz, sc, blur, op;
+            if (p === "enter") {
+              const e = 1 - Math.pow(1 - t, 5);
+              tz = -1800 + e * 1800; sc = 0.5 + e * 0.5; blur = (1 - e) * 14;
+              op = Math.min(1, e * 1.5);
+            } else if (p === "exit") {
+              const e = Math.pow(t, 0.4);
+              tz = e * 1500; sc = 1 + e * 1.5; blur = e * 24;
+              op = Math.max(0, 1 - e * 1.6);
+            } else {
+              tz = 0; sc = 1; blur = 0; op = 1;
+            }
+            card.style.opacity = op.toFixed(3);
+            card.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(1) + "px)" : "";
+            card.style.transform = "translate3d(0,0," + tz.toFixed(0) + "px) scale(" + sc.toFixed(3) + ")";
+          },
+        };
+
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        document.querySelectorAll("[data-pkv]").forEach((section) => {
+          const variant = section.getAttribute("data-pkv");
+          const place = PLACE[variant];
+          if (!place) return;
+          const track = section.querySelector(".pkv-track");
+          const cards = Array.from(section.querySelectorAll(".pkv-card"));
+          const counter = section.querySelector("[data-counter]");
+          const N = cards.length;
+          const STEP_VH = 100; // taller steps for more breathing room per card
+
+          // Per-card random directional seeds — different cards get different "directions"
+          const dirs = cards.map(() => ({
+            dir: Math.random(),
+            angle: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 2,
+          }));
+
+          if (reduce) {
+            cards.forEach((c) => { c.style.position = "relative"; c.style.opacity = "1"; c.style.visibility = "visible"; });
+            track.style.height = "auto";
+            return;
+          }
+
+          track.style.height = N * STEP_VH + "vh";
+
+          let raf = 0;
+          const update = () => {
+            raf = 0;
+            const scrollable = track.offsetHeight - window.innerHeight;
+            if (scrollable <= 0) return;
+            const sc = Math.min(Math.max(-track.getBoundingClientRect().top, 0), scrollable);
+            const p = (sc / scrollable) * N;
+            const w = window.innerWidth, h = window.innerHeight;
+            for (let i = 0; i < N; i++) place(cards[i], p - i, dirs[i], w, h);
+            if (counter) {
+              const cur = Math.min(N, Math.max(1, Math.floor(p) + 1));
+              counter.textContent = String(cur).padStart(2, "0") + " / " + String(N).padStart(2, "0");
+            }
+          };
+          const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+
+          const io = new IntersectionObserver((es) => {
+            if (es[0].isIntersecting) {
+              window.addEventListener("scroll", onScroll, { passive: true });
+              update();
+            } else {
+              window.removeEventListener("scroll", onScroll);
+            }
+          }, { threshold: 0 });
+          io.observe(section);
+
+          window.addEventListener("resize", update, { passive: true });
+          update();
+        });
+      })();
+    </script>
+
+    <style is:global>
+      /* ──────────────────────── Base ──────────────────────── */
+      .pkv { position: relative; isolation: isolate; }
+      .pkv-track { position: relative; }
+      .pkv-stage {
+        position: sticky; top: 0; height: 100vh;
+        overflow: hidden; perspective: 1400px;
+        background: rgb(var(--bg));
+      }
+      .pkv-bg { position: absolute; inset: 0; opacity: 0.4; z-index: 0; }
+      .pkv-cards { position: absolute; inset: 0; z-index: 2; }
+      .pkv-card {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; visibility: hidden;
+        will-change: transform, opacity, filter, clip-path;
+        transform-style: preserve-3d; backface-visibility: hidden;
+      }
+      .pkv-card-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem; align-items: center;
+        max-width: 80rem;
+        padding: 0 clamp(1rem, 4vw, 4rem);
+        width: 100%;
+      }
+      @media (max-width: 900px) { .pkv-card-inner { grid-template-columns: 1fr; gap: 1.5rem; } }
+      .pkv-card-shot {
+        position: relative; aspect-ratio: 16 / 10;
+        border: 1px solid rgb(var(--border)); border-radius: 0.6rem;
+        overflow: hidden;
+        background: rgb(var(--paper) / 0.45);
+        box-shadow: 0 30px 80px rgb(0 0 0 / 0.5);
+      }
+      .pkv-card-shot img { width: 100%; height: 100%; object-fit: contain; padding: 1rem; display: block; }
+      .pkv-card-text { display: flex; flex-direction: column; gap: 1rem; }
+      .pkv-card-cat {
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.22em; text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .pkv-card-title {
+        font-family: var(--font-display, ui-serif, serif);
+        font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 600;
+        line-height: 1.02; color: rgb(var(--text));
+        letter-spacing: -0.01em; margin: 0;
+      }
+      .pkv-card-line {
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 1.1rem; color: rgb(var(--muted));
+        line-height: 1.5; max-width: 30rem; margin: 0;
+      }
+
+      /* HUD */
+      .pkv-hud {
+        position: absolute; top: clamp(1.5rem, 3vh, 2.5rem);
+        left: 0; right: 0; z-index: 5;
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 1.5rem; max-width: 80rem; margin: 0 auto;
+        padding: 0 clamp(1rem, 4vw, 4rem); pointer-events: none;
+      }
+      .pkv-num {
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--accent)); margin-bottom: 0.4rem;
+      }
+      .pkv-name {
+        font-family: var(--font-display, ui-serif, serif);
+        font-size: 1.05rem; font-weight: 600;
+        color: rgb(var(--text)); margin: 0;
+      }
+      .pkv-concept {
+        font-family: var(--font-serif, ui-serif, serif);
+        font-size: 0.85rem; color: rgb(var(--muted));
+        max-width: 30rem; margin-top: 0.25rem; line-height: 1.4;
+      }
+      .pkv-counter {
+        font-family: ui-monospace, monospace; font-size: 10px;
+        letter-spacing: 0.24em; text-transform: uppercase;
+        color: rgb(var(--muted)); font-variant-numeric: tabular-nums;
+        align-self: flex-start; padding-top: 0.4rem;
+      }
+
+      /* ──────────────────────── Variant overlay elements ──────────────────────── */
+      /* Flash overlay (V06 light burst, V18 solar flare) */
+      .pkv-flash {
+        position: absolute; inset: 0; z-index: 4;
+        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(94,234,212,0.4) 30%, transparent 60%);
+        opacity: 0; pointer-events: none;
+        mix-blend-mode: screen;
+      }
+      /* Light beam scan (V15) */
+      .pkv-beam {
+        position: absolute; left: 0; right: 0;
+        height: 5px; z-index: 4;
+        top: -10%;
+        background: linear-gradient(90deg, transparent 0%, rgba(94,234,212,0.9) 50%, transparent 100%);
+        box-shadow: 0 0 24px 8px rgba(94,234,212,0.45);
+        opacity: 0; pointer-events: none;
+      }
+
+      /* Background overlays */
+      .pkv-vgradient {
+        position: absolute; inset: 0; z-index: 1;
+        background: linear-gradient(180deg, rgb(var(--bg)) 0%, transparent 30%, transparent 70%, rgb(var(--bg)) 100%);
+        pointer-events: none;
+      }
+      .pkv-black-stage {
+        position: absolute; inset: 0; z-index: 1;
+        background: rgb(0 0 0); pointer-events: none;
+      }
+      .pkv-centerglow {
+        position: absolute; inset: 0; z-index: 1;
+        background: radial-gradient(circle at 50% 50%, rgb(var(--accent) / 0.16) 0%, transparent 35%);
+        pointer-events: none; mix-blend-mode: screen;
+      }
+
+      /* Earthquake shake (V17) */
+      @keyframes pkv-quake-anim {
+        0%   { transform: translate3d(0, 0, 0); }
+        10%  { transform: translate3d(-4px, 3px, 0); }
+        20%  { transform: translate3d(5px, -2px, 0); }
+        30%  { transform: translate3d(-3px, -4px, 0); }
+        40%  { transform: translate3d(4px, 2px, 0); }
+        50%  { transform: translate3d(-2px, 5px, 0); }
+        60%  { transform: translate3d(3px, -3px, 0); }
+        70%  { transform: translate3d(-4px, 2px, 0); }
+        80%  { transform: translate3d(2px, 4px, 0); }
+        90%  { transform: translate3d(-3px, -2px, 0); }
+        100% { transform: translate3d(0, 0, 0); }
+      }
+      .pkv-card.pkv-quake .pkv-card-inner {
+        animation: pkv-quake-anim 0.65s linear infinite;
+      }
+
+      /* Speed lines (V10) */
+      .pkv-card.pkv-speedlines::before,
+      .pkv-card.pkv-speedlines::after {
+        content: "";
+        position: absolute; inset: 0;
+        pointer-events: none;
+        background:
+          repeating-linear-gradient(90deg,
+            transparent 0px,
+            rgba(94,234,212,0.4) 1px,
+            transparent 2px,
+            transparent 30px),
+          repeating-linear-gradient(90deg,
+            transparent 0px,
+            rgba(255,255,255,0.25) 1px,
+            transparent 3px,
+            transparent 60px);
+        opacity: 0.6;
+        mix-blend-mode: screen;
+      }
+      .pkv-card.pkv-speedlines::before { mask: linear-gradient(90deg, black 0%, transparent 30%); }
+      .pkv-card.pkv-speedlines::after  { mask: linear-gradient(90deg, transparent 70%, black 100%); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pkv-card.pkv-quake .pkv-card-inner { animation: none; }
+        .pkv-card.pkv-speedlines::before,
+        .pkv-card.pkv-speedlines::after { display: none; }
+      }
+    </style>
+  </body>
+</html>

@@ -68,9 +68,22 @@
     top: -35%; left: 0; right: 0; height: 170%;
     z-index: -2;
     pointer-events: none;
-    background-image: radial-gradient(rgb(var(--grid) / 0.38) 1.2px, transparent 1.2px);
+    background-image: radial-gradient(rgb(var(--grid) / 0.55) 1.4px, transparent 1.4px);
     background-size: 26px 26px;
     animation: grid-drift 120s linear infinite;
+    will-change: transform;
+  }
+
+  /* Canonical dot-grid utility — use anywhere a section needs the dot texture.
+     Same color / size / spacing as .zone-grid for visual consistency. Pair with
+     [data-parallax-grid] on the same element to opt into the shared parallax script. */
+  .bg-dot-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgb(var(--grid) / 0.55) 1.4px, transparent 1.4px);
+    background-size: 26px 26px;
     will-change: transform;
   }
 

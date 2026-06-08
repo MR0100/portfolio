@@ -2,35 +2,139 @@
 import { profile } from "~/data/profile";
 
 const year = new Date().getFullYear();
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/work", label: "Work" },
+  { href: "/resume", label: "Resume" },
+  { href: "/contact", label: "Contact" },
+];
 ---
 
-<footer class="mt-32 border-t border-border/60">
-  <div class="container-page py-12 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-    <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
-      <div class="space-y-2">
-        <div class="font-display text-base font-semibold text-text normal-case tracking-tight">
+<footer class="footer-bg relative mt-2 border-t border-border/60 overflow-hidden">
+  <!-- Static gradient-mesh atmosphere — no animation. Accent teal glow top-left,
+       sepia warm glow bottom-right, soft vignette pulls focus to centre. -->
+  <div class="footer-mesh" aria-hidden="true"></div>
+
+  <div class="container-page relative z-10 py-10 md:py-12">
+    <div class="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
+
+      <!-- ── Identity ── -->
+      <div class="space-y-3">
+        <div class="font-display text-xl font-semibold text-text tracking-tight">
           {profile.shortName}<span class="text-accent">.</span>
         </div>
-        <div>{profile.location}</div>
-      </div>
-
-      <div class="space-y-2">
-        <div class="text-sepia">Colophon</div>
-        <div>Doc rev. 2026.06</div>
-        <div>Set in Fraunces &amp; Inter</div>
-        <div>Built with Astro</div>
-        <div>© {year} {profile.name}</div>
-      </div>
-
-      <div class="space-y-2">
-        <div class="text-sepia">Channels</div>
-        <div class="flex flex-col gap-1.5 normal-case tracking-normal text-sm font-sans">
-          <a href={profile.socials.email} class="hover:text-accent transition-colors">{profile.email}</a>
-          <a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">github.com/MR0100</a>
-          <a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">/in/mitul-vaghasiya-075a53166</a>
-          <a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">@_MR_0100</a>
+        <div class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted leading-relaxed">
+          {profile.headline}
+        </div>
+        <div class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+          {profile.location}
+        </div>
+        <div class="pt-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+          <span class="text-sepia">Currently</span>
+          <span class="text-text">— Mobile lead at KGK InfoTech</span>
         </div>
       </div>
+
+      <!-- ── Sitemap ── -->
+      <nav class="space-y-1.5" aria-label="Footer navigation">
+        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-3">Sitemap</div>
+        {navLinks.map((l) => (
+          <a
+            href={l.href}
+            class="block font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors py-1"
+          >
+            → {l.label}
+          </a>
+        ))}
+      </nav>
+
+      <!-- ── Channels ── -->
+      <div class="space-y-1.5">
+        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-3">Reach out</div>
+        <a
+          href={profile.socials.email}
+          class="block font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors py-1"
+        >
+          → Email
+        </a>
+        <a
+          href={profile.socials.github}
+          target="_blank"
+          rel="noreferrer noopener"
+          class="block font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors py-1"
+        >
+          → GitHub
+        </a>
+        <a
+          href={profile.socials.linkedin}
+          target="_blank"
+          rel="noreferrer noopener"
+          class="block font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors py-1"
+        >
+          → LinkedIn
+        </a>
+        <a
+          href={profile.socials.twitter}
+          target="_blank"
+          rel="noreferrer noopener"
+          class="block font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors py-1"
+        >
+          → Twitter / X
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Bottom strip ── -->
+    <div class="mt-10 pt-5 border-t border-border/40 flex flex-wrap items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <div>© {year} {profile.name}</div>
+      <button
+        type="button"
+        data-footer-top
+        class="inline-flex items-center gap-1.5 hover:text-accent transition-colors group"
+        aria-label="Scroll to top"
+      >
+        <span aria-hidden="true" class="transition-transform group-hover:-translate-y-0.5">↑</span>
+        Back to top
+      </button>
     </div>
   </div>
 </footer>
+
+<style>
+  /* Footer atmosphere — three-layer static gradient mesh on top of the page bg.
+     Top-left: accent teal glow. Bottom-right: sepia warm glow. Centre: a soft
+     vignette pulling focus inward. No animation. */
+  .footer-mesh {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 70% at 12% 18%, rgb(var(--accent) / 0.10), transparent 60%),
+      radial-gradient(55% 60% at 88% 82%, rgb(var(--sepia) / 0.08), transparent 60%),
+      radial-gradient(80% 110% at 50% 50%, transparent 32%, rgb(0 0 0 / 0.35) 100%);
+  }
+  .footer-bg {
+    background-color: rgb(var(--bg));
+  }
+  .footer-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.2) 100%);
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const btn = document.querySelector("[data-footer-top]");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  })();
+</script>

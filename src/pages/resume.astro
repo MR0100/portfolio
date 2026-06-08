@@ -17,11 +17,9 @@ for (const e of all) {
 }
 
 const verified = all.filter((e) => e.data.status === "verified").length;
-const regions = new Set(all.map((e) => e.data.region));
 const cities = new Set(
   all.filter((e) => e.data.city).map((e) => `${e.data.city},${e.data.country}`),
 );
-const industries = new Set(all.map((e) => e.data.category));
 ---
 
 <Base title="Resume" description={`Resume for ${profile.name} — senior mobile engineer & development lead, ${profile.yearsExperience} years shipping Flutter apps across diamond trading, agritech, health, and consumer. Experience, skills, education, contact.`}>
@@ -63,12 +61,11 @@ const industries = new Set(all.map((e) => e.data.category));
 
       <SpecBlock label="Subject metadata" trailing="00.A">
         <SpecRow label="Doc rev.">2026.06</SpecRow>
+        <SpecRow label="Yrs">{profile.yearsExperience}</SpecRow>
         <SpecRow label="Based">{profile.location}</SpecRow>
         <SpecRow label="Languages">{profile.languagesSpoken.join(" / ")}</SpecRow>
-        <SpecRow label="Yrs">{profile.yearsExperience}</SpecRow>
-        <SpecRow label="Email">{profile.email}</SpecRow>
-        <SpecRow label="Github">@MR0100</SpecRow>
-        <SpecRow label="LinkedIn">/mitul-vaghasiya-075a53166</SpecRow>
+        <SpecRow label="Open to">Senior IC · Lead · Architecture</SpecRow>
+        <SpecRow label="Now shipping">KGK Buy Diamonds + HRMS</SpecRow>
       </SpecBlock>
     </header>
   </section>
@@ -93,9 +90,9 @@ const industries = new Set(all.map((e) => e.data.category));
         <dd class="stat-label">in public stores</dd>
       </div>
       <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Industries</dt>
-        <dd class="stat-num">{industries.size}</dd>
-        <dd class="stat-label">categories</dd>
+        <dt class="stat-label text-sepia">Promotions</dt>
+        <dd class="stat-num">4</dd>
+        <dd class="stat-label">Jr → Senior in 5 yrs</dd>
       </div>
       <div class="space-y-1.5">
         <dt class="stat-label text-sepia">Cities</dt>
