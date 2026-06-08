@@ -28,17 +28,19 @@ todos:
 
 ## Overview
 
-Warden Tracker is a geo-fencing system — background location feeds spatial queries which trigger low-latency proximity alerts via native push. Built at Sadguru Soft; the technical interest is in keeping the location loop honest while battery cost stays defensible.
+Warden Tracker is a geo-fencing system — background location feeds spatial queries which trigger low-latency proximity alerts via native push. Built at Sadguru Soft as an internal B2B tool; the technical interest is in keeping the location loop honest while battery cost stays defensible.
 
 ## Problem &amp; context
 
 The phrase "high-precision geo-fencing" gets thrown around easily and is much harder to deliver. The classic trap is letting GPS updates dominate the battery budget; the second-classic trap is over-quieting location and missing the fence-cross. Warden's success criterion was hit-rate on real proximity events, not pretty maps.
 
+Background location on both platforms has tightened year over year — Android's foreground-service requirements, iOS's significant-change vs. full-precision modes, the consent prompts a user actually sees. A geo-fencing app that doesn't navigate all of that ends up either drained or silent, both of which fail the same way.
+
 ## My approach &amp; key decisions
 
-- **Background location tuned per platform** — Android foreground service with a sensible duty cycle, iOS background modes with significant-location-change fallbacks.
-- **Spatial queries on-device** for the fence-cross detection, kept on the device so the alert can fire instantly.
-- **Native push for proximity alerts**, with a delivery path that doesn't depend on FCM being awake.
+- **Background location tuned per platform** — Android foreground service with a sensible duty cycle and the required notification channel; iOS background modes with significant-location-change as the low-power fallback and full-precision modes engaged on demand.
+- **Spatial queries on-device** for the fence-cross detection, kept on the device so the alert can fire instantly without a server round-trip. A round-trip is the gap where a fence-cross silently misses.
+- **Native push for proximity alerts**, with a delivery path that doesn't depend on FCM being awake. Proximity alerts are a category where late delivery is worse than no delivery — the user expects the ping when they cross, not minutes later.
 
 ## Architecture &amp; stack
 
@@ -50,8 +52,8 @@ The phrase "high-precision geo-fencing" gets thrown around easily and is much ha
 
 ## Challenges
 
-- **Battery vs. event-hit-rate.** Tuning the duty cycle so neither the device dies mid-day nor the fence-cross goes silent.
-- **Spatial query speed on the device.** The check has to be fast enough not to add latency between cross and alert.
+- **Battery vs. event-hit-rate.** The duty cycle is the lever; too aggressive and the device dies mid-day, too quiet and the fence-cross goes silent. Tuning was per-platform and per-OS-version.
+- **Spatial query speed on the device.** The check has to be fast enough not to add perceptible latency between cross and alert — the location update is what triggers it, so the spatial check sits on the critical path.
 - **Same-name confusion in research.** Several unrelated "Warden" / "WardenGPS" apps exist on both stores — none are this build.
 
 ## Results &amp; impact

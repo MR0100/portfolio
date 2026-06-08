@@ -14,6 +14,37 @@
 
 ---
 
+## ⏸️ Current state — last touched 2026-06-08 (Mon)
+
+### What's landed and verified in the browser
+- **Phase 0** — all 13 content decisions made. 5 design decisions parked for later.
+- **Phase 1** — critical content/bug fixes (contact form stripped, Pro5 link wired, footer year dynamic, phone removed, lab pages noindex, Resume page TODO cleaned). Carryover: OG PNG.
+- **Phase 2** — naming + copy sweep complete. Spec Sheets / Datasheet / Catalog / Vol. I-III vocabulary dropped everywhere except `Plate XX` on case studies (per 0.1). Title tags include role on every page. Story pull-quote rewritten with derived counts. Numbers stats rebalanced.
+- **Round 1 + 2 link research** — 14 of 19 case studies enriched with real store metadata. Verified count: 11 → 13.
+- **Phase 3 narrative polish** _(2026-06-08)_ — 3 thin case studies (careshare, synergy, warden-tracker) expanded with substantive prose. Other 16 already substantive or intentionally thin.
+- **Per-MDX TODO cleanup** _(2026-06-08)_ — 9 of 19 files had resolved `todos:` pruned; 10 retain genuine open items.
+- **Phase 4 SEO/metadata** _(2026-06-08)_ — `/resume` and `/contact` descriptions polished from generic placeholders to role-aware sentences. Status-badge legend added under stats grid on `/work`. Sitemap `/lab/*` exclusion verified. JSON-LD already at `MobileApplication` tier (better than original spec).
+
+### What's blocked on the user
+1. **Play Store install bands + ratings** for the 9 verified Play Store apps — see `PROJECT_LINKS.md` template. Once provided, I wire them into each Results section in a single batched pass.
+2. **1200×630 OG PNG** at `public/og-default.png` — I can't generate PNG. Once dropped, I swap the reference in `Base.astro`.
+3. ~~**`site` URL confirmation**~~ — ✅ confirmed 2026-06-08: `https://mitulvaghasiya.com` is the working URL for now.
+4. **`/uses` page data** (optional Phase 6) — your setup: editor, shell, hardware (laptop / monitor / phone / keyboard), daily tools. Without this, the page can't be built with real content.
+5. **(Optional)** Havitglam KR iOS "Largo 라르고" URL.
+6. **(Optional)** Tier 2/3 metrics for any project (crash-free %, retention, customer count).
+
+### What's parked for later
+- **Phase 6 additions** beyond `/uses` — talks/press section (only if applicable), blog or `/notes` (deferred design styling).
+- **Design pass** — hero hierarchy (0.2), Picks layout (0.3), ambient effects (0.4), section order (0.13), headshot placement (0.12), animation audit. Kicks in once content is locked.
+
+### How to resume
+- Read the `Decisions log` section (bottom) for the most recent context.
+- Tell me which blocked item you have data for, or just say "continue" and I'll work on whatever isn't blocked.
+
+---
+
+---
+
 ## Workflow
 
 1. Answer **Phase 0** content decisions inline (one question at a time via chat).
@@ -118,53 +149,53 @@ Drafted in chat, approved by you, then committed.
 
 ### Home
 
-- [ ] Rewrite pull-quote in Story (per 0.8) — direction TBD → [src/components/home/Story.astro:11](src/components/home/Story.astro)
-- [ ] Rebalance Numbers stats — lead with `11 live in stores`, reframe `Continents served` (copy only, not layout) → [src/components/home/Numbers.astro:14-20](src/components/home/Numbers.astro)
-- [ ] Decouple "Shipping" subtitle from KGK Diamonds — make generic or derive correctly → [src/components/home/Now.astro:82](src/components/home/Now.astro)
-- [ ] Resolve `currentlyLearning` ↔ `skillGroups.PostgreSQL` contradiction per 0.9 → [src/data/profile.ts:20,80](src/data/profile.ts)
-- [ ] Reconcile "five years at Sadguru Soft" vs "6+ years" framing per 0.20 → [src/data/profile.ts:11-15](src/data/profile.ts)
-- [ ] Update "Currently learning" list per 0.17 → [src/data/profile.ts:20](src/data/profile.ts)
+- [x] Rewrite pull-quote in Story (per 0.8) — landed in Phase 2 with derived counts → [src/components/home/Story.astro](src/components/home/Story.astro)
+- [x] Rebalance Numbers stats — landed in Phase 2 → [src/components/home/Numbers.astro](src/components/home/Numbers.astro)
+- [x] Decouple "Shipping" subtitle from KGK Diamonds — landed in Phase 2 → [src/components/home/Now.astro](src/components/home/Now.astro)
+- [x] Resolve `currentlyLearning` ↔ `skillGroups.PostgreSQL` contradiction per 0.9 — landed in Phase 1 → [src/data/profile.ts](src/data/profile.ts)
+- [x] Reconcile "five years at Sadguru Soft" vs "6+ years" framing per 0.20 — landed in Phase 1 → [src/data/profile.ts](src/data/profile.ts)
+- [x] Update "Currently learning" list per 0.17 — landed in Phase 1 → [src/data/profile.ts](src/data/profile.ts)
 
 ### Case-study Results pass (19 files)
 
-Rewrite Results section per 0.11 + 0.18. Currently 18/19 restate the badge.
+Rewrite Results section per 0.11 + 0.18. **Status: all 19 case studies have had their non-badge Results sections enriched via Round 1+2 link research, anonymity decisions, or the 2026-06-08 narrative polish pass.** Per-file Play Store metric injection still pending (blocked on user-supplied install bands + ratings — see queue item #1).
 
-- [ ] [kgk-buy-diamonds.mdx](src/content/work/kgk-buy-diamonds.mdx) — also apply 0.15 metric choice
-- [ ] [kgk-hrms.mdx](src/content/work/kgk-hrms.mdx)
-- [ ] [lili.mdx](src/content/work/lili.mdx)
-- [ ] [foresite.mdx](src/content/work/foresite.mdx) — also confirm agronomist-facing vs grower-facing
-- [ ] [remody.mdx](src/content/work/remody.mdx)
-- [ ] [locket.mdx](src/content/work/locket.mdx)
-- [ ] [lux-ecards.mdx](src/content/work/lux-ecards.mdx)
-- [ ] [havitglam.mdx](src/content/work/havitglam.mdx) — confirm whether to mention KR "Largo 라르고"
-- [ ] [tarot-cat.mdx](src/content/work/tarot-cat.mdx) — confirm whether to mention KR "MyTarot 마이타로"
-- [ ] [todays-quote.mdx](src/content/work/todays-quote.mdx) — apply 0.16 mechanic confirmation
-- [ ] [physio-mobile.mdx](src/content/work/physio-mobile.mdx)
-- [ ] [bookmrk.mdx](src/content/work/bookmrk.mdx)
-- [ ] [bookmrk-delivery.mdx](src/content/work/bookmrk-delivery.mdx)
-- [ ] [marline-media.mdx](src/content/work/marline-media.mdx) — confirm framing per 0.14
-- [ ] [synergy.mdx](src/content/work/synergy.mdx) — apply 0.14 anonymity decision
-- [ ] [setera-tpms.mdx](src/content/work/setera-tpms.mdx) — apply 0.14
-- [ ] [warden-tracker.mdx](src/content/work/warden-tracker.mdx) — apply 0.14
-- [ ] [careshare.mdx](src/content/work/careshare.mdx) — apply 0.14
-- [ ] [radio-station.mdx](src/content/work/radio-station.mdx)
+- [x] [kgk-buy-diamonds.mdx](src/content/work/kgk-buy-diamonds.mdx) — Round 1 metrics + 0.15 metric line applied; pending project-specific crash-free number (open `todos:` line in file).
+- [x] [kgk-hrms.mdx](src/content/work/kgk-hrms.mdx) — Round 2 Results enrichment with store-listing positioning.
+- [x] [lili.mdx](src/content/work/lili.mdx) — Round 1 metrics + APKPure framing.
+- [x] [foresite.mdx](src/content/work/foresite.mdx) — Round 1 metrics + 2026-06-06 agronomist/grower softening.
+- [x] [studymap.mdx](src/content/work/studymap.mdx) (formerly remody) — 2026-06-06 rebrand documented in body; brand site link only, store URLs removed.
+- [x] [locket.mdx](src/content/work/locket.mdx) — Round 1 metrics, delisting + APKPure framing.
+- [x] [lux-ecards.mdx](src/content/work/lux-ecards.mdx) — Round 2 Results enrichment.
+- [x] [havitglam.mdx](src/content/work/havitglam.mdx) — Round 2 Results enrichment with store-listing positioning. KR "Largo 라르고" URL still open in `todos:`.
+- [x] [tarot-cat.mdx](src/content/work/tarot-cat.mdx) — Round 2 with confirmed MyTarot iOS rebrand (4.7★ / 2,100 reviews).
+- [x] [todays-quote.mdx](src/content/work/todays-quote.mdx) — Round 2 Results enrichment, 0.16 mechanic confirmed in body.
+- [x] [physio-mobile.mdx](src/content/work/physio-mobile.mdx) — Round 1 metrics.
+- [x] [bookmrk.mdx](src/content/work/bookmrk.mdx) — Round 1 with APKPure mirror, status upgrade to verified.
+- [x] [bookmrk-delivery.mdx](src/content/work/bookmrk-delivery.mdx) — Round 1 with parent-app framing.
+- [x] [marline-media.mdx](src/content/work/marline-media.mdx) — Round 1 with APKPure mirror, status upgrade.
+- [x] [synergy.mdx](src/content/work/synergy.mdx) — 0.14 anonymity applied (body already generic); 2026-06-08 narrative polish.
+- [x] [setera-tpms.mdx](src/content/work/setera-tpms.mdx) — 2026-06-06 0.14 partially reversed: Setera identity went public; Results updated.
+- [x] [warden-tracker.mdx](src/content/work/warden-tracker.mdx) — 0.14 applied; 2026-06-08 narrative polish.
+- [x] [careshare.mdx](src/content/work/careshare.mdx) — 0.14 applied; 2026-06-08 narrative polish.
+- [x] [radio-station.mdx](src/content/work/radio-station.mdx) — intentionally thin per 0.18 voice + own narrative ("interesting work is everything that came after").
 
 ### Per-MDX inline `todos:` cleanup
 
 Each case study has a `todos:` array surfaced as a visible "Editor's notes" amber box. Once content rewrites land, these should be either resolved (deleted) or moved to internal-only notes.
 
-- [ ] Walk every MDX, resolve or remove `todos:` entries → 19 files
+- [x] Walk every MDX, resolve or remove `todos:` entries → 19 files (9 pruned, 10 genuine open items remain — dates, asset gaps, optional decisions)
 
 ---
 
 ## Phase 4 — Content polish (SEO, metadata, copy)
 
-- [ ] Per-page `description` on `/work`, `/resume`, `/contact` (currently all fall back to same string)
-- [ ] Title tag includes role on every page (also covered by Phase 2)
-- [ ] Status-badge legend copy — write a one-liner explaining `verified` vs `brand-verified` vs `unlisted` vs `internal` vs `early` → place on `/work`
-- [ ] Set real `site` URL in `astro.config.mjs` and `src/pages/sitemap.xml.ts` (currently placeholder `mitulvaghasiya.com`)
-- [ ] Verify `/sitemap.xml` excludes `/lab/*` after 0.10 decision
-- [ ] CreativeWork JSON-LD — upgrade to `SoftwareApplication` schema per case study (content/metadata work, not layout) → [src/components/CreativeWorkJsonLd.astro](src/components/CreativeWorkJsonLd.astro)
+- [x] Per-page `description` on `/work`, `/resume`, `/contact` — `/work` was already substantive; `/resume` and `/contact` polished from generic placeholders to specific, role-aware sentences (2026-06-08).
+- [x] Title tag includes role on every page (also covered by Phase 2)
+- [x] Status-badge legend copy — added under the stats grid on `/work`: "Verified live in a public store today · Brand-verified client brand confirmed, store listing delisted or unlisted · Unlisted previously listed, now removed · Internal B2B or staff-only, never on public stores · Early pre-2021 small project." (2026-06-08).
+- [x] Set real `site` URL in `astro.config.mjs` and `src/pages/sitemap.xml.ts` — user confirmed 2026-06-08: `https://mitulvaghasiya.com` is the working URL for now. Existing config in [astro.config.mjs:6](astro.config.mjs) and [sitemap.xml.ts:4](src/pages/sitemap.xml.ts) is correct. Revisit if/when a different domain is chosen.
+- [x] Verify `/sitemap.xml` excludes `/lab/*` after 0.10 decision — confirmed: `sitemap.xml.ts` enumerates only `["/", "/work", "/resume", "/contact"]` + work slugs by construction. Lab pages excluded.
+- [x] CreativeWork JSON-LD — already at `MobileApplication` schema (a `SoftwareApplication` subtype) when an app-store/Play/APKPure link exists; falls back to `CreativeWork` otherwise. Better than spec'd in the original task. → [src/components/CreativeWorkJsonLd.astro:20](src/components/CreativeWorkJsonLd.astro)
 
 ---
 
@@ -257,6 +288,11 @@ Design-pass open work items (move from Phase 2/4 to here):
 - _2026-06-06_ — **Outstanding fetch gaps.** Play Store install bands + ratings are not extractable via WebFetch (Google anti-scraping); next move is for the user to manually copy install bands + ratings from each Play Store listing in their browser. The few remaining unsurfaced items are: Havitglam KR iOS "Largo 라르고" (not in search), Lux ECards iOS (probably Android-only), Today's Quote iOS (probably Android-only), Lux ECards site (SSL chain error from WebFetch).
 - _2026-06-06_ — **Pull-quote number drift flagged.** Draft A says "eleven still live in the stores." After Round 1+2 status changes, verified count is now 14. When Story.astro is updated with Draft A in the Phase 2 sweep, change "eleven" → "fourteen" (or wire to `getCollection("work")` count so it stays in sync).
 - _2026-06-06_ — **Phase 1 landed and verified in browser.** Contact form stripped to mailto + LinkedIn + GitHub + X buttons (Reach out panel). Footer year dynamic. Pro5 cert link wired + visible TODO removed. Phone removed from profile.ts. PostgreSQL out of currentlyLearning. bioLong tightened. Promotion sentence rewritten. Lab pages already had noindex meta tags. Sitemap excludes lab pages by construction. Verified at `/contact`, `/`, `/resume` via Claude_Preview snapshots — no errors, copy renders correctly. **One Phase 1 carryover:** user must generate `public/og-default.png` (1200×630) to replace the SVG that Slack/LinkedIn/iMessage can't preview-render — I can't generate PNG files.
+- _2026-06-08_ — **Site URL confirmed as `https://mitulvaghasiya.com` for now.** User confirmed the existing config in `astro.config.mjs` and `sitemap.xml.ts` is correct as the working URL. No code change needed; status flipped from "blocked" to "confirmed (revisit on domain change)."
+- _2026-06-08_ — **Custom 404 page + robots.txt tightening landed.** Added `src/pages/404.astro` matching the site's voice: ribbon "404 · Off the map" / "No such plate", H1 "Lost.", subtitle "That URL doesn't match anything shipped…", then four navigation cards (Home / Work / Resume / Contact) each with a one-liner descriptor. Page has `noindex={true}` so search engines don't index dead URLs. Updated `public/robots.txt` to add `Disallow: /lab/` — belt-and-braces with the existing noindex meta on lab pages. Verified both: 404 returns proper 404 status with custom HTML; robots.txt returns 200 with the new directive.
+- _2026-06-08_ — **Phase 4 content polish landed (4 of 5 items).** Polished `/resume` description from `"Full resume for X — experience, skills, education, contact."` to a role-aware specific sentence; same for `/contact` (was `"Get in touch with X."`). Added a status-badge legend under the stats grid on `/work` — single line explaining verified / brand-verified / unlisted / internal / early. Verified `sitemap.xml.ts` already excludes `/lab/*` by enumeration. Confirmed `CreativeWorkJsonLd.astro` already uses `MobileApplication` (a `SoftwareApplication` subtype) when there's an app-store link — the original task spec was actually less specific than the live code. **Outstanding:** `site` URL is still `https://mitulvaghasiya.com` in `astro.config.mjs` and `sitemap.xml.ts` — original audit flagged this as placeholder; user to confirm whether this is the real domain or a placeholder that needs replacement.
+- _2026-06-08_ — **Phase 3 narrative polish landed (scoped down).** After re-reading all 19 case studies in full to assess where the body copy was actually thin, only 3 needed real expansion: `careshare`, `synergy`, `warden-tracker`. Each had its Overview, Problem & context, My approach, and Challenges sections extended with substantive prose — no invented facts, just unpacking the reasoning behind each existing bullet. Voice matches the foresite/lili gold-standard per 0.18. The other 16 case studies were either already substantive from Round 1+2 enrichment (most) or intentionally thin by design (radio-station). Net effect: the "9 case studies to walk" estimate was conservative; actual scope was 3.
+- _2026-06-08_ — **Per-MDX TODO cleanup pass landed.** 9 of 19 case studies had resolved `todos:` entries pruned (bookmrk-delivery, bookmrk, foresite, kgk-hrms, lili, locket, lux-ecards, marline-media, studymap). Removed items were either already answered in prior decisions (foresite role focus, lili Android, studymap rebrand) or already documented in the body copy (bookmrk install path, kgk-hrms iOS framing, locket release window, marline delisting). The remaining 10 files keep genuine open items — mostly `Confirm dates.` and asset-gap requests (screenshots). No content/body edits made; frontmatter only.
 - _2026-06-06_ — **Phase 2 landed and verified in browser.** Spec Sheets / Datasheet / Catalog / Vol. I-III vocabulary dropped from nav, page H1s, ribbons, footer, Base titles, and SpecimenHeading instances. Plate numbering kept on case studies per 0.1. Title tag pattern includes role on every page. Story pull-quote rewritten with derived counts (currently "Six years, nineteen apps shipped, thirteen still live in the stores"). Numbers stats rebalanced to lead with verified count and fold cities+continents into one tile. Lead.astro CTAs cleaned. Now console separator and Shipping subtitle decoupled from KGK Diamonds. Verified via fetch-based eval across `/`, `/work`, `/resume`, `/contact`, `/work/kgk-buy-diamonds` — no server errors, all page titles include the role, no visible Spec Sheets vocabulary remaining (only dev-only CSS comments). One verified-count clarification: 11 → 13 (not 14) — math: 11 original + Marline Media + BookMrk + Setera - Studymap = 13. Pull-quote auto-displays "thirteen" correctly.
 
 ---

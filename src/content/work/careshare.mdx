@@ -33,19 +33,21 @@ todos:
 
 ## Overview
 
-CareShare was a consumer health care and assistance app — pulling activity data from Google Fit and Apple Health, layering on engagement features (camera-based check-ins, push reminders, IAP), and presenting it through a polished consumer mobile UI. Built at Sadguru Soft.
+CareShare was a consumer health-care companion app — ingesting passive activity data from Google Fit and Apple Health, layering on engagement features (camera-based check-ins, push reminders, IAP), and presenting it through a polished consumer mobile UI. Built at Sadguru Soft.
+
+The interesting work sat at two seams: cross-platform health-data unification (two very different APIs describing similar data) and the engagement loop (camera-driven proof points wired into the daily-reminder cadence).
 
 ## Problem &amp; context
 
-Multi-platform health-data integration is its own discipline. Google Fit and Apple Health expose subtly different data shapes and permission models, and a consumer health app has to harmonise them while still respecting each platform's privacy expectations.
+Multi-platform health-data integration is its own discipline. Google Fit and Apple Health expose subtly different data shapes and permission models. The metrics overlap (steps, heart rate, sleep) but the units, sampling frequencies, and consent flows do not. A consumer app on top of both has to harmonise the data into a single internal model without flattening detail, and respect each platform's privacy expectations as defaults.
 
-Beyond the data integrations, the product had a polished consumer surface — camera-driven check-ins, FCM-driven engagement, IAP for premium features.
+Beyond the data integrations, the product carried a polished consumer surface — camera-driven check-ins as soft engagement proof, FCM for the daily reminders, and an IAP layer for premium features.
 
 ## My approach &amp; key decisions
 
-- **Cross-platform health-data ingestion** unifying Google Fit (Android) and Apple Health (iOS) into a single internal data model.
-- **Camera-based check-ins** as a soft verification mechanism within the engagement loop.
-- **FCM for daily engagement, IAP for premium features** — the standard consumer-app commerce + retention stack.
+- **Cross-platform health-data ingestion** unifying Google Fit (Android) and Apple Health (iOS) into a single internal data model. Each platform's adapter normalises into the same Dart-side schema so the engagement code never has to know where a metric came from.
+- **Camera-based check-ins** as a soft verification mechanism within the engagement loop. A daily routine isn't a routine until you've done it — the photo capture sat inside the reminder flow rather than as a separate task.
+- **FCM for daily engagement, IAP for premium features** — the standard consumer-app commerce + retention stack, applied carefully in a category where users are more sensitive about how often they're pinged.
 
 ## Architecture &amp; stack
 
@@ -57,8 +59,9 @@ Beyond the data integrations, the product had a polished consumer surface — ca
 
 ## Challenges
 
-- **Two different health-data APIs.** Same metrics, different shapes, different permission models — unification is non-trivial.
-- **Privacy framing.** Health data, even consumer-grade, has expectations about handling.
+- **Two health-data APIs, one internal model.** Same metrics, different shapes, different permission models — unification is non-trivial, and the seams have to stay clean as both platforms evolve.
+- **Privacy framing as a product decision.** Health data, even consumer-grade, has expectations about handling — the permission UX, the data flow, and the on-device caching were all deliberate decisions rather than defaults inherited from a framework.
+- **Engagement without nagging.** The category leans toward heavy notifications; the reminder cadence had to feel calm rather than gamified.
 
 ## Results &amp; impact
 

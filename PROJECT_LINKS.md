@@ -61,6 +61,26 @@
 - Today's Quote iOS — no listing found. Probably Android-only.
 - Lux ECards site fetch failed (SSL chain validation error from WebFetch).
 
+---
+
+## ⏸️ Paused 2026-06-05 — pickup template for Monday
+
+When you have a moment before/during Monday, fill in any of these. Paste the line back in chat or edit in place. Skip apps you can't easily check.
+
+```
+KGK Diamonds (com.kgk.diamonds):              ___K+ installs / _.__ ★ on ___ reviews
+KGK HRMS (com.kgkhrms.app):                    ___K+ installs / _.__ ★ on ___ reviews
+Foresite (com.ukkoag.enterprise):              ___K+ installs / _.__ ★ on ___ reviews
+Lux ECards (com.luxecard.app):                 ___K+ installs / _.__ ★ on ___ reviews
+Havitglam (com.onezlabs.havitglam):            ___K+ installs / _.__ ★ on ___ reviews
+Tarot Cat (com.onezlabs.tarot_cat):            ___K+ installs / _.__ ★ on ___ reviews
+Today's Quote (com.onezlabs.todaysquote):      ___K+ installs / _.__ ★ on ___ reviews
+Physio Mobile (com.physiomoboile.training_app):___K+ installs / _.__ ★ on ___ reviews
+Studymap/Remody (jp.co.remody.remody):         ___K+ installs / _.__ ★ on ___ reviews
+```
+
+Once I have these, I'll wire them into each Results section in a single batched pass, and update the verified-count display if any status changes shift.
+
 **Still-to-research (next round):**
 - KR rebrand URLs for Havitglam ("Largo 라르고") and Tarot Cat ("MyTarot 마이타로")
 - KGK HRMS Play Store metrics

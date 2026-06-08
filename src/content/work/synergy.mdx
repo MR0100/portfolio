@@ -31,20 +31,22 @@ todos:
 
 ## Overview
 
-Synergy was a match-making and dating app — Flutter on the client, WebSocket-based real-time chat, IAP for premium features. Client project from the Sadguru Soft years; no longer in public stores.
+Synergy was a match-making and dating app — Flutter on the client, WebSocket-based real-time chat, IAP for premium features. A client project from the Sadguru Soft years; no longer in public stores.
+
+The technically interesting work sat at the chat layer — keeping a real-time conversation surface coherent while the underlying WebSocket drops and reconnects through the day.
 
 ## Problem &amp; context
 
 Dating apps are an obvious product to underestimate. Real-time messaging at scale isn't optional — it's table stakes. The interesting work is at the WebSocket-state-management seam, keeping the chat surface fluid while the underlying connection drops and reconnects through the day.
 
-A real-time consumer messaging product also has hidden hard parts: typing indicators that don't lie, read receipts that survive the network blinking, message ordering that survives delivery race conditions, and a state model that the UI can render without jitter when re-syncing.
+A real-time consumer messaging product also has hidden hard parts: typing indicators that don't lie, read receipts that survive the network blinking, message ordering that survives delivery race conditions, and a state model that the UI can render without jitter when re-syncing. Each is a small piece that has to be deliberate; collectively they're what separates a chat that feels solid from one that feels flaky.
 
 ## My approach &amp; key decisions
 
-- **WebSockets for instant messaging**, with a state model that survives connection drops cleanly.
-- **Advanced state handling** so the chat UI never shows a half-state when the network blinks.
-- **IAP layered for premium features.**
-- **Push (FCM)** to bring users back when conversations were waiting.
+- **WebSockets for instant messaging**, with a state model that survives connection drops cleanly. The reconnect logic was treated as a first-class path, not an exception handler — every UI surface had to render the "we're reconnecting" state without misleading the user.
+- **Advanced state handling** so the chat UI never shows a half-state when the network blinks. Ordering, dedup, and delivery acknowledgement were reduced to disciplined event handling rather than ad-hoc patches.
+- **IAP layered for premium features**, with the entitlements gate kept off the chat path so the messaging surface never had to wait on a commerce check.
+- **Push (FCM)** to bring users back when conversations were waiting — the strongest re-engagement signal in a dating product.
 
 ## Architecture &amp; stack
 
@@ -55,9 +57,9 @@ A real-time consumer messaging product also has hidden hard parts: typing indica
 
 ## Challenges
 
-- **Network instability vs. perceived chat reliability.** A chat that _looks_ broken is a chat that's broken to the user, even if everything is fine under the hood.
-- **State during re-sync.** When the WebSocket drops and the app reconnects, the UI has to update without flicker.
-- **Dating-app trust.** Identity, safety and reporting features matter as much as match mechanics.
+- **Network instability vs. perceived chat reliability.** A chat that _looks_ broken is a chat that's broken to the user, even if everything is fine under the hood. The fix is making the in-flight states visible and explicit, not hiding them.
+- **State during re-sync.** When the WebSocket drops and the app reconnects, the UI has to update without flicker; retried messages mustn't appear twice and missed messages mustn't leave gaps.
+- **Dating-app trust.** Identity, safety and reporting features matter as much as match mechanics — the product surface has to make them visible without making them noisy.
 
 ## Results &amp; impact
 

@@ -1,0 +1,69 @@
+---
+import Base from "~/layouts/Base.astro";
+---
+
+<Base
+  title="404"
+  description="Page not found — try Home, Work, Resume, or Contact."
+  noindex={true}
+>
+  <section class="container-page pt-10 md:pt-14">
+    <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+      <div>404 · Off the map</div>
+      <div>No such plate</div>
+    </div>
+    <div class="mt-4 rule-thin"></div>
+
+    <header class="mt-12 md:mt-16 max-w-4xl">
+      <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-4">Status · 404</div>
+      <h1 class="font-display text-6xl md:text-8xl font-semibold tracking-tight leading-[0.92]">
+        Lost<span class="text-accent">.</span>
+      </h1>
+      <p class="mt-5 font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-2xl">
+        That URL doesn't match anything shipped. The page may have moved, been renamed, or never existed.
+      </p>
+    </header>
+  </section>
+
+  <section class="container-page mt-16 md:mt-20">
+    <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-6">Try one of these</div>
+    <ul class="grid gap-3 sm:grid-cols-2 max-w-3xl">
+      <li>
+        <a
+          href="/"
+          class="block rounded-md border border-border bg-paper/60 px-5 py-4 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        >
+          → Home
+          <span class="block mt-1 font-serif text-sm normal-case tracking-normal text-muted">The front door — bio, picks, numbers.</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="/work"
+          class="block rounded-md border border-border bg-paper/60 px-5 py-4 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        >
+          → Work
+          <span class="block mt-1 font-serif text-sm normal-case tracking-normal text-muted">Every project, sortable by status, region, category.</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="/resume"
+          class="block rounded-md border border-border bg-paper/60 px-5 py-4 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        >
+          → Resume
+          <span class="block mt-1 font-serif text-sm normal-case tracking-normal text-muted">Experience, skills, education, contact.</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="/contact"
+          class="block rounded-md border border-border bg-paper/60 px-5 py-4 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        >
+          → Contact
+          <span class="block mt-1 font-serif text-sm normal-case tracking-normal text-muted">Email, LinkedIn, GitHub, X.</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+</Base>

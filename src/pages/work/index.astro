@@ -52,7 +52,7 @@ const counts = {
     </p>
 
     <!-- At-a-glance stats -->
-    <dl class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-10 border-t border-b border-border/60 py-8">
+    <dl class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-10 border-t border-border/60 pt-8">
       <div>
         <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Total</dt>
         <dd class="stat-num">{counts.total}</dd>
@@ -74,6 +74,14 @@ const counts = {
         <dd class="stat-num">{counts.industries}</dd>
       </div>
     </dl>
+    <p class="mt-4 pb-8 border-b border-border/60 font-serif text-sm text-muted leading-relaxed max-w-4xl">
+      <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mr-2">Status legend</span>
+      <strong class="text-text">Verified</strong> live in a public store today ·
+      <strong class="text-text">Brand-verified</strong> client brand confirmed, store listing delisted or unlisted ·
+      <strong class="text-text">Unlisted</strong> previously listed, now removed ·
+      <strong class="text-text">Internal</strong> B2B or staff-only, never on public stores ·
+      <strong class="text-text">Early</strong> pre-2021 small project.
+    </p>
   </section>
 
   <!-- Map -->
