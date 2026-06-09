@@ -1,0 +1,293 @@
+---
+// Inline theme variant picker — sits next to ThemeToggle in the nav.
+// Click the palette icon to open the swatch panel; click a swatch to apply
+// that theme across the entire site (persisted in localStorage).
+const themes = [
+  // Default
+  { key: "onyx",      name: "Onyx",      hint: "Premium slate + ice cyan · DEFAULT" },
+  // Sophisticated matte
+  { key: "slate",     name: "Slate",     hint: "Cool gray + electric blue" },
+  { key: "carbon",    name: "Carbon",    hint: "Charcoal + clean cyan" },
+  { key: "atlas",     name: "Atlas",     hint: "Cool paper + refined teal" },
+  { key: "plum",      name: "Plum",      hint: "Plum purple + lavender" },
+  { key: "mono",      name: "Mono",      hint: "Refined neutral gray" },
+  { key: "aurora",    name: "Aurora",    hint: "Cool gray + emerald" },
+  // Refined cyberpunk neon
+  { key: "matrix",    name: "Matrix",    hint: "Deep green + refined neon" },
+  { key: "synthwave", name: "Synthwave", hint: "Hot pink + cyan" },
+  { key: "cyber",     name: "Cyber",     hint: "Magenta + cyan" },
+];
+---
+
+<div class="theme-picker" data-theme-picker>
+  <button
+    type="button"
+    class="theme-picker-btn"
+    aria-label="Pick theme palette"
+    aria-haspopup="true"
+    aria-expanded="false"
+    data-theme-picker-toggle
+  >
+    <!-- Palette icon -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-4 w-4">
+      <path d="M12 2a10 10 0 1 0 10 10c0-2-1-3-3-3h-3a2 2 0 0 1 0-4 2 2 0 0 0 0-4h-4Z" />
+      <circle cx="7.5" cy="11" r="0.8" fill="currentColor" />
+      <circle cx="10.5" cy="7.5" r="0.8" fill="currentColor" />
+      <circle cx="14.5" cy="7.5" r="0.8" fill="currentColor" />
+      <circle cx="17" cy="11" r="0.8" fill="currentColor" />
+    </svg>
+  </button>
+
+  <!-- Panel — opens on click, closes on outside-click / Escape -->
+  <div class="theme-picker-panel" data-theme-picker-panel hidden>
+    <div class="theme-picker-head">
+      <span class="theme-picker-eyebrow font-mono">Theme palette</span>
+      <span class="theme-picker-active font-mono">Active: <span data-active>onyx</span></span>
+    </div>
+    <ul class="theme-picker-list">
+      {themes.map((t) => (
+        <li>
+          <button type="button" class="theme-picker-item" data-variant={t.key}>
+            <span class="theme-picker-scope" data-theme-scope={t.key}>
+              <span class="theme-picker-swatches">
+                <span class="theme-picker-swatch" style="background: rgb(var(--bg))"></span>
+                <span class="theme-picker-swatch" style="background: rgb(var(--paper))"></span>
+                <span class="theme-picker-swatch" style="background: rgb(var(--accent))"></span>
+                <span class="theme-picker-swatch" style="background: rgb(var(--sepia))"></span>
+                <span class="theme-picker-swatch" style="background: rgb(var(--text))"></span>
+              </span>
+            </span>
+            <span class="theme-picker-meta">
+              <span class="theme-picker-name font-display">{t.name}</span>
+              <span class="theme-picker-hint font-mono">{t.hint}</span>
+            </span>
+            <span class="theme-picker-check" aria-hidden="true" data-check>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3">
+                <path d="M5 12l5 5 9-11" />
+              </svg>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .theme-picker {
+    position: relative;
+  }
+  .theme-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    width: 2.25rem;
+    border-radius: 0.4rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--surface));
+    color: rgb(var(--muted));
+    transition: color 200ms, border-color 200ms;
+    cursor: pointer;
+  }
+  .theme-picker-btn:hover {
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent) / 0.5);
+  }
+  .theme-picker[data-open="1"] .theme-picker-btn {
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent));
+  }
+
+  .theme-picker-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 60;
+    min-width: 18rem;
+    padding: 0.65rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--surface));
+    border-radius: 0.6rem;
+    box-shadow: 0 22px 48px rgb(0 0 0 / 0.28), 0 0 0 1px rgb(var(--border) / 0.5);
+    backdrop-filter: blur(8px);
+  }
+  .theme-picker-panel[hidden] { display: none; }
+
+  .theme-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.35rem 0.55rem 0.65rem;
+    border-bottom: 1px solid rgb(var(--border) / 0.7);
+    margin-bottom: 0.4rem;
+  }
+  .theme-picker-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .theme-picker-active {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+  }
+  .theme-picker-active span[data-active] {
+    color: rgb(var(--accent));
+  }
+
+  .theme-picker-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .theme-picker-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: rgb(var(--text));
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 180ms, border-color 180ms;
+  }
+  .theme-picker-item:hover {
+    background: rgb(var(--accent) / 0.06);
+    border-color: rgb(var(--accent) / 0.25);
+  }
+  .theme-picker-item[aria-current="true"] {
+    background: rgb(var(--accent) / 0.1);
+    border-color: rgb(var(--accent) / 0.4);
+  }
+  .theme-picker-item[aria-current="true"] [data-check] { opacity: 1; }
+
+  .theme-picker-scope {
+    display: inline-flex;
+    /* The swatch row pulls colours from data-theme-scope, set as data-theme
+       on this element by the boot script. Static even if the page theme changes. */
+  }
+  .theme-picker-swatches {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid rgb(var(--border));
+    border-radius: 5px;
+    background: rgb(var(--bg) / 0.6);
+  }
+  .theme-picker-swatch {
+    width: 11px;
+    height: 18px;
+    border-radius: 2px;
+  }
+
+  .theme-picker-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+  .theme-picker-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .theme-picker-hint {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+  }
+  .theme-picker-check {
+    color: rgb(var(--accent));
+    opacity: 0;
+    transition: opacity 180ms;
+  }
+
+  @media (max-width: 540px) {
+    .theme-picker-panel {
+      position: fixed;
+      top: auto;
+      right: 1rem;
+      left: 1rem;
+      bottom: 1rem;
+      min-width: 0;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    const VARIANTS = ["onyx","slate","carbon","atlas","plum","mono","aurora","matrix","synthwave","cyber"];
+    const DEFAULT_KEY = "onyx";
+    const wrap = document.querySelector("[data-theme-picker]");
+    if (!wrap) return;
+    const root = document.documentElement;
+    const toggle = wrap.querySelector("[data-theme-picker-toggle]");
+    const panel = wrap.querySelector("[data-theme-picker-panel]");
+    const activeEl = wrap.querySelector("[data-active]");
+    const items = Array.from(wrap.querySelectorAll(".theme-picker-item"));
+
+    // Each scope renders its own palette regardless of the page theme — push
+    // the data-theme-scope value onto the element as data-theme.
+    wrap.querySelectorAll("[data-theme-scope]").forEach((el) => {
+      el.setAttribute("data-theme", el.dataset.themeScope);
+    });
+
+    const getCurrent = () => root.getAttribute("data-theme") || DEFAULT_KEY;
+
+    const sync = () => {
+      const current = getCurrent();
+      if (activeEl) activeEl.textContent = current;
+      items.forEach((it) => {
+        it.setAttribute("aria-current", it.dataset.variant === current ? "true" : "false");
+      });
+    };
+    sync();
+
+    const setVariant = (key) => {
+      if (!VARIANTS.includes(key)) return;
+      if (key === DEFAULT_KEY) root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", key);
+      try { localStorage.setItem("themeVariant", key); } catch (e) {}
+      sync();
+    };
+
+    const open = () => {
+      panel.hidden = false;
+      wrap.dataset.open = "1";
+      toggle.setAttribute("aria-expanded", "true");
+      document.addEventListener("click", onDocClick);
+      document.addEventListener("keydown", onKey);
+    };
+    const close = () => {
+      panel.hidden = true;
+      delete wrap.dataset.open;
+      toggle.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+    const onDocClick = (e) => { if (!wrap.contains(e.target)) close(); };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (panel.hidden) open(); else close();
+    });
+
+    items.forEach((it) => {
+      it.addEventListener("click", () => setVariant(it.dataset.variant));
+    });
+  })();
+</script>

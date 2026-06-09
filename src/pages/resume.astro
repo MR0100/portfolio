@@ -1,229 +1,318 @@
 ---
-import { getCollection } from "astro:content";
 import Base from "~/layouts/Base.astro";
-import SkillsSection from "~/components/SkillsSection.astro";
-import SpecBlock from "~/components/SpecBlock.astro";
-import SpecRow from "~/components/SpecRow.astro";
-import SpecimenHeading from "~/components/SpecimenHeading.astro";
-import { profile, experience, education, certifications } from "~/data/profile";
+import { profile, experience, education, certifications, openSource, talks, skillGroups } from "~/data/profile";
 
-const all = (await getCollection("work")).sort((a, b) => a.data.order - b.data.order);
+// ──────────────────────────────────────────────────────────────────────────
+// Resume — redesigned per T01 Resume Fundamentals.
+// Strict editorial order: Header → Summary → Meta strip → Experience → Skills
+// → Education → (Optional: External signal) → Contact.
+// Strip mode: every component earns its place; no decorative SpecBlocks, no
+// redundant stats grid, no in-page skill search — those belong in tools, not
+// on a resume. The visual hierarchy mirrors the print view so the two stay
+// in sync as you tune copy.
+// ──────────────────────────────────────────────────────────────────────────
 
-const byEmployer = new Map<string, typeof all>();
-for (const e of all) {
-  const key = e.data.employer;
-  if (!byEmployer.has(key)) byEmployer.set(key, []);
-  byEmployer.get(key)!.push(e);
-}
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-const verified = all.filter((e) => e.data.status === "verified").length;
-const cities = new Set(
-  all.filter((e) => e.data.city).map((e) => `${e.data.city},${e.data.country}`),
-);
+// Per the T01 guide: one-line top-of-page meta strip. Short, scannable.
+const metaCells = [
+  { label: "YOE",        value: profile.yearsExperience + " yrs" },
+  { label: "Now",        value: "KGK Buy Diamonds + HRMS" },
+  { label: "Notice",     value: profile.noticePeriod },
+  { label: "Open to",    value: "Senior IC · Lead · Architecture" },
+  { label: "Languages",  value: profile.languagesSpoken.join(" / ") },
+];
+
+const linkedinDisplay = "linkedin.com/in/mitul-vaghasiya";
+const githubDisplay = "github.com/MR0100";
 ---
 
-<Base title="Resume" description={`Resume for ${profile.name} — senior mobile engineer & development lead, ${profile.yearsExperience} years shipping Flutter apps across diamond trading, agritech, health, and consumer. Experience, skills, education, contact.`}>
-  <section class="container-page pt-10 md:pt-14">
-    <!-- Ribbon -->
+<Base
+  title="Resume"
+  description={`Resume for ${profile.name} — ${profile.headline}. ${profile.yearsExperience} years shipping Flutter + native mobile apps, 19 production builds across iOS + Android.`}
+>
+  <article class="container-page py-12 md:py-16">
+    <!-- ── Top ribbon ── -->
     <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Resume · 2026.06</div>
-      <div>Generated from {all.length} projects</div>
+      <div><span class="text-accent">§</span>&nbsp;Resume · 2026.06</div>
+      <a href="/resume/print" class="hover:text-accent transition-colors">ATS-safe print view →</a>
     </div>
     <div class="mt-4 rule-thin"></div>
 
-    <!-- Title -->
-    <header class="mt-10 md:mt-14 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-12 lg:items-end">
-      <div class="space-y-6">
-        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Resume</div>
-        <h1 class="font-display text-5xl md:text-7xl lg:text-[5.5rem] font-semibold tracking-tight leading-[0.92]">
-          {profile.name}<span class="text-accent">.</span>
-        </h1>
-        <p class="font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-3xl">
-          {profile.bioShort}
-        </p>
-
-        <div class="flex flex-wrap gap-3 pt-2">
-          <a
-            href={profile.resumeFile}
-            download
-            class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-bg transition-colors hover:bg-accent-hover"
-          >
-            Download PDF →
-          </a>
-          <a
-            href="javascript:window.print()"
-            class="inline-flex items-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-text hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            Print this page
-          </a>
-        </div>
+    <!-- ── Header — name + role + summary + actions ── -->
+    <header class="mt-10 md:mt-14 max-w-4xl">
+      <div class="font-mono text-[10px] uppercase tracking-[0.42em] text-sepia mb-5">
+        <span class="text-accent">—</span>&nbsp;Resume
       </div>
 
-      <SpecBlock label="Subject metadata" trailing="00.A">
-        <SpecRow label="Doc rev.">2026.06</SpecRow>
-        <SpecRow label="Yrs">{profile.yearsExperience}</SpecRow>
-        <SpecRow label="Based">{profile.location}</SpecRow>
-        <SpecRow label="Languages">{profile.languagesSpoken.join(" / ")}</SpecRow>
-        <SpecRow label="Open to">Senior IC · Lead · Architecture</SpecRow>
-        <SpecRow label="Now shipping">KGK Buy Diamonds + HRMS</SpecRow>
-      </SpecBlock>
+      <h1 class="font-display text-5xl md:text-7xl lg:text-[5.5rem] font-semibold tracking-tight leading-[0.92]">
+        {profile.name}<span class="text-accent">.</span>
+      </h1>
+      <div class="mt-4 font-display text-xl md:text-2xl tracking-tight text-muted">
+        {profile.headline}
+      </div>
+
+      <p class="mt-7 font-serif text-lg md:text-xl text-text/90 leading-relaxed">
+        {profile.bioShort}
+      </p>
+
+      <!-- Inline contact line — keeps everything findable without a boxed card -->
+      <div class="mt-7 font-mono text-[11px] uppercase tracking-[0.22em] text-muted flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span>{profile.location}</span>
+        <span class="opacity-40">·</span>
+        <a href={profile.socials.email} class="hover:text-accent transition-colors">{profile.email}</a>
+        <span class="opacity-40">·</span>
+        <a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">{linkedinDisplay}</a>
+        <span class="opacity-40">·</span>
+        <a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="hover:text-accent transition-colors">{githubDisplay}</a>
+      </div>
+
+      <!-- Actions — single tier of CTAs -->
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a
+          href="/resume/print"
+          class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-bg transition-colors hover:bg-accent-hover"
+        >
+          ATS-safe print view →
+        </a>
+        <a
+          href={profile.resumeFile}
+          download
+          class="inline-flex items-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        >
+          Download PDF
+        </a>
+      </div>
     </header>
-  </section>
 
-  <!-- Stat grid -->
-  <section class="container-page mt-16 md:mt-20">
-    <div class="rule-thin mb-8"></div>
-    <dl class="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-10">
-      <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Experience</dt>
-        <dd class="stat-num">{profile.yearsExperience}</dd>
-        <dd class="stat-label">years in field</dd>
-      </div>
-      <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Apps shipped</dt>
-        <dd class="stat-num">{all.length}</dd>
-        <dd class="stat-label">projects</dd>
-      </div>
-      <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Verified</dt>
-        <dd class="stat-num">{verified}</dd>
-        <dd class="stat-label">in public stores</dd>
-      </div>
-      <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Promotions</dt>
-        <dd class="stat-num">4</dd>
-        <dd class="stat-label">Jr → Senior in 5 yrs</dd>
-      </div>
-      <div class="space-y-1.5">
-        <dt class="stat-label text-sepia">Cities</dt>
-        <dd class="stat-num">{cities.size}</dd>
-        <dd class="stat-label">on the map</dd>
-      </div>
+    <!-- ── Meta strip — horizontal facts band, replaces the old subject-metadata SpecBlock ── -->
+    <dl class="mt-14 md:mt-16 grid grid-cols-2 md:grid-cols-5 border-t border-b border-border">
+      {metaCells.map((c) => (
+        <div class="border-r border-border last:border-r-0 px-4 py-4 odd:border-r md:border-b-0 border-b">
+          <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">{c.label}</dt>
+          <dd class="mt-1.5 font-serif text-base text-text leading-snug">{c.value}</dd>
+        </div>
+      ))}
     </dl>
-    <div class="rule-thin mt-8"></div>
-  </section>
 
-  <!-- § I — Experience as a datasheet -->
-  <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="01" title="Experience" trailing={`${experience.length} roles`} />
+    <!-- ── § 01 · Experience ── -->
+    <section class="mt-20 md:mt-28">
+      <div class="specimen-heading">
+        <span class="num">§ 01</span>
+        <span>—</span>
+        <span class="text-text">Experience</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>{experience.length} roles</span>
+      </div>
 
-    <ol class="mt-12 space-y-16 relative md:pl-10">
-      {experience.map((role) => {
-        const projectsAtThisEmployer = byEmployer.get(role.company) ?? [];
-        return (
-          <li class="relative md:grid md:grid-cols-[180px_1fr] md:gap-10">
+      <ol class="mt-10 space-y-14 md:pl-10 relative">
+        {experience.map((role, i) => (
+          <li class="relative md:grid md:grid-cols-[200px_1fr] md:gap-10">
+            <!-- Sticky date column on desktop, inline label on mobile -->
             <aside class="md:sticky md:top-24 md:self-start space-y-2 mb-4 md:mb-0">
               <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-accent">{role.period}</div>
               <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">{role.location}</div>
+              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted/60">§ {String(i + 1).padStart(2, "0")} of {String(experience.length).padStart(2, "0")}</div>
             </aside>
 
-            <div class="space-y-6 relative">
-              <div class="absolute -left-[26px] top-2 hidden md:block">
-                <span class="block h-2 w-2 rounded-full bg-accent" />
-              </div>
-              <div>
+            <div class="space-y-5 relative">
+              <!-- Timeline node — visible on desktop only -->
+              <span class="hidden md:block absolute -left-[26px] top-3 h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+
+              <header>
                 <h3 class="font-display text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                   {role.title}
                 </h3>
                 <div class="mt-1 font-mono text-xs uppercase tracking-[0.24em] text-muted">{role.company}</div>
-              </div>
-              <ul class="space-y-3 text-base md:text-lg text-text leading-relaxed font-serif max-w-prose">
+              </header>
+
+              <ul class="space-y-3 text-base md:text-[1.0625rem] text-text/90 leading-relaxed font-serif">
                 {role.highlights.map((h) => (
-                  <li class="relative pl-5 before:absolute before:left-0 before:top-3 before:h-px before:w-3 before:bg-accent/60">
+                  <li class="relative pl-6 before:absolute before:left-0 before:top-[0.85em] before:h-px before:w-3.5 before:bg-accent/60">
                     {h}
                   </li>
                 ))}
               </ul>
-
-              {projectsAtThisEmployer.length > 0 && (
-                <div class="mt-6 pt-6 border-t border-border/60">
-                  <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-3">
-                    Projects shipped here · {projectsAtThisEmployer.length}
-                  </div>
-                  <ul class="grid sm:grid-cols-2 gap-x-6 gap-y-2 font-serif text-base">
-                    {projectsAtThisEmployer.map((e) => (
-                      <li class="flex items-baseline gap-2">
-                        <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted tabular-nums">
-                          {String(e.data.order).padStart(2, "0")}
-                        </span>
-                        <a href={`/work/${e.slug}`} class="link-underline">
-                          {e.data.title}
-                        </a>
-                        {e.data.city && (
-                          <span class="text-muted text-sm"> — {e.data.city}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </li>
-        );
-      })}
-    </ol>
-  </section>
-
-  <!-- § II — Skills (searchable) -->
-  <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="02" title="Skills" trailing="searchable" />
-    <p class="mt-4 max-w-2xl font-serif text-base md:text-lg text-muted">
-      Search or filter by category. Hit <kbd class="rounded border border-border px-1.5 py-0.5 font-mono text-xs">/</kbd> anywhere to jump to the search box.
-    </p>
-    <div class="mt-6 rule-thin mb-10"></div>
-
-    <SkillsSection />
-  </section>
-
-  <!-- § III — Schooling -->
-  <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="03" title="Education" />
-    <div class="mt-8 rule-thin mb-12"></div>
-
-    <div class="grid gap-12 md:grid-cols-2">
-      <div class="space-y-5">
-        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Education</div>
-        {education.map((edu) => (
-          <div class="space-y-1">
-            <div class="font-display text-lg font-semibold tracking-tight">{edu.degree}</div>
-            <div class="font-serif text-base text-muted">{edu.institution}</div>
-            <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">{edu.period} · {edu.location}</div>
-          </div>
         ))}
+      </ol>
+    </section>
+
+    <!-- ── § 02 · Skills ── -->
+    <section class="mt-24 md:mt-32">
+      <div class="specimen-heading">
+        <span class="num">§ 02</span>
+        <span>—</span>
+        <span class="text-text">Skills</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>{skillGroups.length} categories</span>
       </div>
 
-      <div class="space-y-5">
-        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Certifications</div>
-        {certifications.map((cert) => (
-          <div class="space-y-1">
-            <div class="font-display text-lg font-semibold tracking-tight">
-              {cert.url ? (
-                <a href={cert.url} target="_blank" rel="noreferrer noopener" class="link-underline">{cert.title}</a>
-              ) : (
-                cert.title
-              )}
+      <div class="mt-10 grid gap-x-12 gap-y-10 md:grid-cols-2">
+        {skillGroups.map((group, i) => (
+          <div class="space-y-4" id={`skills-${slug(group.title)}`}>
+            <div class="flex items-baseline justify-between gap-4 pb-2 border-b border-border/60">
+              <h3 class="font-mono text-[11px] uppercase tracking-[0.22em] text-text">{group.title}</h3>
+              <span class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted/60">§ {String(i + 1).padStart(2, "0")}</span>
             </div>
-            <div class="font-serif text-base text-muted">{cert.issuer}{cert.note ? ` · ${cert.note}` : ""}</div>
+            <ul class="flex flex-wrap gap-1.5">
+              {group.skills.map((s) => (
+                <li class:list={["chip", s.level === "expert" && "chip-accent"]}>
+                  {s.level === "expert" && <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />}
+                  {s.level === "strong" && <span class="h-1.5 w-1.5 rounded-full bg-accent/55" aria-hidden="true" />}
+                  {s.level === "learning" && <span class="h-1.5 w-1.5 rounded-full bg-sepia" aria-hidden="true" />}
+                  {s.name}
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>
-    </div>
-  </section>
 
-  <!-- § IV — Contact -->
-  <section class="container-page mt-20 md:mt-24">
-    <SpecimenHeading num="04" title="Contact" />
-    <div class="mt-8 rule-thin mb-10"></div>
+      <!-- Tiny legend — explains the dots without crowding the section -->
+      <div class="mt-8 flex flex-wrap items-center gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+        <span class="inline-flex items-center gap-2">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span> Expert
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent/55" aria-hidden="true"></span> Strong
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-1.5 w-1.5 rounded-full bg-muted/40" aria-hidden="true"></span> Familiar
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-1.5 w-1.5 rounded-full bg-sepia" aria-hidden="true"></span> Learning
+        </span>
+      </div>
+    </section>
 
-    <SpecBlock label="Channels" trailing="04.A">
-      <SpecRow label="Email"><a href={profile.socials.email} class="link-underline">{profile.email}</a></SpecRow>
-      <SpecRow label="GitHub"><a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="link-underline">github.com/MR0100</a></SpecRow>
-      <SpecRow label="LinkedIn"><a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="link-underline">/in/mitul-vaghasiya-075a53166</a></SpecRow>
-      <SpecRow label="Twitter / X"><a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="link-underline">@_MR_0100</a></SpecRow>
-      <SpecRow label="Based">{profile.location}</SpecRow>
-      <SpecRow label="Languages">{profile.languagesSpoken.join(" / ")}</SpecRow>
-    </SpecBlock>
-  </section>
+    <!-- ── § 03 · Education + Certifications ── -->
+    <section class="mt-24 md:mt-32">
+      <div class="specimen-heading">
+        <span class="num">§ 03</span>
+        <span>—</span>
+        <span class="text-text">Education</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>{education.length} degree{education.length !== 1 ? "s" : ""}{certifications.length > 0 ? ` · ${certifications.length} cert` : ""}</span>
+      </div>
+
+      <div class="mt-10 grid gap-12 md:grid-cols-2">
+        <!-- Education -->
+        <div class="space-y-6">
+          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Education</div>
+          {education.map((edu) => (
+            <div class="space-y-1.5">
+              <div class="font-display text-lg font-semibold tracking-tight">{edu.degree}</div>
+              <div class="font-serif text-base text-muted">{edu.institution}</div>
+              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted/70">{edu.period} · {edu.location}</div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Certifications -->
+        {certifications.length > 0 && (
+          <div class="space-y-6">
+            <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Certifications</div>
+            {certifications.map((cert) => (
+              <div class="space-y-1.5">
+                <div class="font-display text-lg font-semibold tracking-tight">
+                  {cert.url ? (
+                    <a href={cert.url} target="_blank" rel="noreferrer noopener" class="link-underline">{cert.title}</a>
+                  ) : (
+                    cert.title
+                  )}
+                </div>
+                <div class="font-serif text-base text-muted">{cert.issuer}{cert.note ? ` · ${cert.note}` : ""}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- ── § 04 · External signal (only when populated) ── -->
+    {(openSource.length > 0 || talks.length > 0) && (
+      <section class="mt-24 md:mt-32">
+        <div class="specimen-heading">
+          <span class="num">§ 04</span>
+          <span>—</span>
+          <span class="text-text">External signal</span>
+          <span class="sep" aria-hidden="true"></span>
+          <span>{openSource.length + talks.length} entries</span>
+        </div>
+
+        <div class="mt-10 grid gap-12 md:grid-cols-2">
+          {openSource.length > 0 && (
+            <div class="space-y-6">
+              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Open source</div>
+              {openSource.map((o) => (
+                <div class="space-y-1.5">
+                  <div class="font-display text-lg font-semibold tracking-tight">
+                    <a href={o.url} target="_blank" rel="noreferrer noopener" class="link-underline">{o.title}</a>
+                    {o.badge && (
+                      <span class="ml-2 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-accent border border-accent/40 rounded-full px-2 py-0.5 align-middle">{o.badge}</span>
+                    )}
+                  </div>
+                  <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted/70">{o.repo}</div>
+                  <p class="font-serif text-base text-text/85 leading-relaxed">{o.detail}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {talks.length > 0 && (
+            <div class="space-y-6">
+              <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Talks · writing</div>
+              {talks.map((t) => (
+                <div class="space-y-1.5">
+                  <div class="font-display text-lg font-semibold tracking-tight">
+                    {t.url ? (
+                      <a href={t.url} target="_blank" rel="noreferrer noopener" class="link-underline">{t.title}</a>
+                    ) : (
+                      t.title
+                    )}
+                  </div>
+                  <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted/70">{t.venue} · {t.date}</div>
+                  {t.detail && <p class="font-serif text-base text-text/85 leading-relaxed">{t.detail}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- ── § 05 (or 04) · Contact ── -->
+    <section class="mt-24 md:mt-32 mb-8">
+      <div class="specimen-heading">
+        <span class="num">§ {(openSource.length || talks.length) ? "05" : "04"}</span>
+        <span>—</span>
+        <span class="text-text">Contact</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>4 channels</span>
+      </div>
+
+      <ul class="mt-10 grid gap-x-12 gap-y-4 md:grid-cols-2">
+        <li class="flex items-baseline gap-4 border-b border-border/60 pb-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia w-20 shrink-0">Email</span>
+          <a href={profile.socials.email} class="font-serif text-base link-underline">{profile.email}</a>
+        </li>
+        <li class="flex items-baseline gap-4 border-b border-border/60 pb-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia w-20 shrink-0">LinkedIn</span>
+          <a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="font-serif text-base link-underline">{linkedinDisplay}</a>
+        </li>
+        <li class="flex items-baseline gap-4 border-b border-border/60 pb-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia w-20 shrink-0">GitHub</span>
+          <a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="font-serif text-base link-underline">{githubDisplay}</a>
+        </li>
+        <li class="flex items-baseline gap-4 border-b border-border/60 pb-3">
+          <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia w-20 shrink-0">Twitter</span>
+          <a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="font-serif text-base link-underline">@_MR_0100</a>
+        </li>
+      </ul>
+    </section>
+  </article>
 </Base>
 
 <style>

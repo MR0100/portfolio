@@ -1,0 +1,370 @@
+---
+import "~/styles/globals.css";
+
+// 10 theme variants. Each one applies a full token set via [data-theme] —
+// click any swatch on the page to switch the WHOLE site, persisted to
+// localStorage so it sticks across navigation.
+const themes = [
+  // Default
+  { key: "onyx",      name: "Onyx",      hint: "Premium slate · ice cyan",      note: "Default · premium · executive" },
+  // Sophisticated matte
+  { key: "slate",     name: "Slate",     hint: "Cool gray · electric blue",     note: "The gold standard" },
+  { key: "carbon",    name: "Carbon",    hint: "Charcoal · clean cyan",         note: "Matte · technical" },
+  { key: "atlas",     name: "Atlas",     hint: "Cool paper · refined teal",     note: "Matte · cartographic" },
+  { key: "plum",      name: "Plum",      hint: "Plum purple · lavender",        note: "Matte · refined · regal" },
+  { key: "mono",      name: "Mono",      hint: "Sophisticated grayscale",       note: "Matte · minimal · timeless" },
+  { key: "aurora",    name: "Aurora",    hint: "Cool gray · emerald green",     note: "Matte · calm · botanical" },
+  // Refined cyberpunk neon
+  { key: "matrix",    name: "Matrix",    hint: "Deep green · refined neon",     note: "Neon · cyberpunk · console" },
+  { key: "synthwave", name: "Synthwave", hint: "Hot pink · cyan",               note: "Neon · 80s arcade" },
+  { key: "cyber",     name: "Cyber",     hint: "Magenta · cyan",                note: "Neon · futuristic" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Theme Variants · 10 palettes</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <!-- Boot the persisted variant so the page opens in the user's last pick -->
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem("theme");
+          if (saved === "dark") document.documentElement.classList.add("dark");
+          const variant = localStorage.getItem("themeVariant");
+          if (variant && variant !== "onyx") {
+            document.documentElement.setAttribute("data-theme", variant);
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <!-- ── Sticky header with mode + variant controls ── -->
+    <header class="themes-bar">
+      <div class="container-page themes-bar-inner">
+        <div class="themes-bar-title">
+          <span class="themes-bar-eyebrow font-mono">Lab · theme variants</span>
+          <h1 class="themes-bar-h1 font-display">10 palettes · light + dark</h1>
+        </div>
+        <div class="themes-bar-controls">
+          <button type="button" class="themes-mode" data-mode-toggle>
+            <span data-mode-label>Toggle dark</span>
+          </button>
+          <span class="themes-bar-hint font-mono">Active: <span data-active-key>onyx</span></span>
+        </div>
+      </div>
+    </header>
+
+    <section class="container-page themes-grid">
+      {themes.map((t) => (
+        <button type="button" class="theme-card" data-variant={t.key}>
+          <!-- Each card wraps in its OWN data-theme scope so the swatches
+               show their colours regardless of the page's current variant. -->
+          <span class="theme-card-scope" data-theme-scope={t.key}>
+            <span class="theme-card-overline font-mono">{String(themes.indexOf(t) + 1).padStart(2, "0")} · {t.key}</span>
+            <span class="theme-card-name font-display">{t.name}<span style="color: rgb(var(--accent))">.</span></span>
+            <span class="theme-card-hint font-serif">{t.hint}</span>
+
+            <!-- Mini sample UI to show the palette in action -->
+            <span class="theme-card-sample">
+              <span class="theme-card-row">
+                <span class="theme-card-eyebrow font-mono">— Selected works</span>
+              </span>
+              <span class="theme-card-heading font-display">Things I've shipped<span style="color: rgb(var(--accent))">.</span></span>
+              <span class="theme-card-lede font-serif">Nineteen apps across iOS, Android, and the web.</span>
+              <span class="theme-card-ctas">
+                <span class="theme-card-cta theme-card-cta--primary font-mono">App Store →</span>
+                <span class="theme-card-cta font-mono">Live site →</span>
+              </span>
+            </span>
+
+            <!-- Swatch strip -->
+            <span class="theme-card-swatches">
+              <span class="theme-card-swatch" style="background: rgb(var(--bg))" title="bg"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--paper))" title="paper"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--surface))" title="surface"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--accent))" title="accent"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--accent-soft))" title="accent-soft"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--sepia))" title="sepia"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--text))" title="text"></span>
+              <span class="theme-card-swatch" style="background: rgb(var(--muted))" title="muted"></span>
+            </span>
+
+            <span class="theme-card-note font-mono">{t.note}</span>
+            <span class="theme-card-action font-mono">Apply this palette →</span>
+          </span>
+        </button>
+      ))}
+    </section>
+
+    <footer class="container-page themes-footer font-mono">
+      Click any card to apply the palette across the whole site (persisted in localStorage).
+    </footer>
+
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+
+      .themes-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgb(var(--bg) / 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgb(var(--border));
+      }
+      .themes-bar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 1.4rem 0;
+        flex-wrap: wrap;
+      }
+      .themes-bar-eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: rgb(var(--accent));
+      }
+      .themes-bar-h1 {
+        margin: 0.3rem 0 0;
+        font-size: clamp(1.4rem, 2.2vw, 2rem);
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+      .themes-bar-controls {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+      }
+      .themes-mode {
+        padding: 0.5rem 0.9rem;
+        border: 1px solid rgb(var(--border));
+        background: rgb(var(--surface));
+        border-radius: 9999px;
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgb(var(--text));
+        cursor: pointer;
+        transition: border-color 200ms, color 200ms, background-color 200ms;
+      }
+      .themes-mode:hover {
+        border-color: rgb(var(--accent));
+        color: rgb(var(--accent));
+      }
+      .themes-bar-hint {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+
+      .themes-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding-top: 2.5rem;
+        padding-bottom: 4rem;
+      }
+      @media (min-width: 760px) {
+        .themes-grid { grid-template-columns: 1fr 1fr; }
+      }
+      @media (min-width: 1140px) {
+        .themes-grid { grid-template-columns: 1fr 1fr 1fr; }
+      }
+
+      .theme-card {
+        all: unset;
+        cursor: pointer;
+        display: block;
+        transition: transform 220ms ease;
+      }
+      .theme-card:hover { transform: translateY(-2px); }
+
+      .theme-card-scope {
+        /* This element is the live theme preview — its tokens come from the
+           data-theme-scope attribute, which scopes the variant to this card. */
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        padding: 1.3rem 1.4rem 1.5rem;
+        border: 1px solid rgb(var(--border));
+        border-radius: 0.7rem;
+        background: rgb(var(--paper));
+        color: rgb(var(--text));
+        transition: border-color 220ms ease, background-color 220ms ease;
+      }
+      .theme-card:hover .theme-card-scope {
+        border-color: rgb(var(--accent));
+      }
+
+      .theme-card-overline {
+        font-size: 9px;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .theme-card-name {
+        font-size: 1.55rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1;
+        margin: 0;
+      }
+      .theme-card-hint {
+        font-style: italic;
+        font-size: 0.92rem;
+        color: rgb(var(--muted));
+        line-height: 1.4;
+      }
+
+      .theme-card-sample {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        margin-top: 0.4rem;
+        padding: 1rem 1.1rem 1.1rem;
+        background: rgb(var(--bg));
+        border: 1px solid rgb(var(--border));
+        border-radius: 0.5rem;
+      }
+      .theme-card-eyebrow {
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .theme-card-heading {
+        font-size: 1.4rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.015em;
+        color: rgb(var(--text));
+      }
+      .theme-card-lede {
+        font-size: 0.88rem;
+        line-height: 1.45;
+        color: rgb(var(--muted));
+      }
+      .theme-card-ctas {
+        display: flex;
+        gap: 0.45rem;
+        margin-top: 0.3rem;
+      }
+      .theme-card-cta {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.7rem;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        border: 1px solid rgb(var(--border));
+        background: rgb(var(--surface));
+        border-radius: 9999px;
+        color: rgb(var(--text));
+      }
+      .theme-card-cta--primary {
+        background: rgb(var(--accent));
+        color: rgb(var(--bg));
+        border-color: rgb(var(--accent));
+      }
+
+      .theme-card-swatches {
+        display: flex;
+        gap: 4px;
+        padding: 0.6rem 0;
+      }
+      .theme-card-swatch {
+        flex: 1;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid rgb(var(--border) / 0.6);
+      }
+
+      .theme-card-note {
+        font-size: 9px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+      .theme-card-action {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgb(var(--accent));
+      }
+
+      .themes-footer {
+        text-align: center;
+        padding: 2rem 0 3rem;
+        font-size: 10px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: rgb(var(--muted));
+      }
+    </style>
+
+    <script is:inline>
+      (function () {
+        const VARIANTS = ["onyx","slate","carbon","atlas","plum","mono","aurora","matrix","synthwave","cyber"];
+        const DEFAULT_KEY = "onyx";
+        const root = document.documentElement;
+        const activeKeyEl = document.querySelector("[data-active-key]");
+        const modeBtn = document.querySelector("[data-mode-toggle]");
+        const modeLabel = document.querySelector("[data-mode-label]");
+
+        const setActive = (key) => {
+          if (!VARIANTS.includes(key)) return;
+          if (key === DEFAULT_KEY) root.removeAttribute("data-theme");
+          else root.setAttribute("data-theme", key);
+          try { localStorage.setItem("themeVariant", key); } catch (e) {}
+          if (activeKeyEl) activeKeyEl.textContent = key;
+        };
+
+        // Read current state into the badge
+        const current = root.getAttribute("data-theme") || DEFAULT_KEY;
+        if (activeKeyEl) activeKeyEl.textContent = current;
+
+        document.querySelectorAll(".theme-card").forEach((btn) => {
+          btn.addEventListener("click", () => setActive(btn.dataset.variant));
+        });
+
+        // Each card preview uses data-theme-scope on its inner wrapper —
+        // promote that into a data-theme attribute on the wrapper so the
+        // tokens scope correctly even when the page is in a different variant.
+        // We do this by adding a temporary <span data-theme="<key>"> wrapper
+        // via a class trick: we re-emit a per-card style block.
+        // Simpler approach: pin each scope by attribute.
+        document.querySelectorAll("[data-theme-scope]").forEach((el) => {
+          el.setAttribute("data-theme", el.dataset.themeScope);
+        });
+
+        // Light/dark toggle
+        const refreshModeLabel = () => {
+          if (modeLabel) modeLabel.textContent = root.classList.contains("dark") ? "Switch to light" : "Switch to dark";
+        };
+        refreshModeLabel();
+        if (modeBtn) {
+          modeBtn.addEventListener("click", () => {
+            const next = root.classList.contains("dark") ? "light" : "dark";
+            if (next === "dark") root.classList.add("dark"); else root.classList.remove("dark");
+            try { localStorage.setItem("theme", next); } catch (e) {}
+            refreshModeLabel();
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

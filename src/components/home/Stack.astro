@@ -1,5 +1,6 @@
 ---
 import { skillGroups } from "~/data/profile";
+import SectionFX from "~/components/SectionFX.astro";
 
 const dotFor = (lvl?: string) => {
   switch (lvl) {
@@ -12,8 +13,12 @@ const dotFor = (lvl?: string) => {
 };
 ---
 
-<section id="skills" class="border-y border-border bg-paper/40">
-  <div class="container-page py-16 md:py-24" data-toolkit-motion>
+<section id="skills" class="stack-section relative overflow-hidden border-y border-border" style="--sfx-opacity: 0.18;">
+  <!-- Atmospheric gradients — matches the Numbers section above -->
+  <div class="stack-gradient" aria-hidden="true"></div>
+  <!-- Hex shockwave field — same variant + opacity as Numbers for continuity -->
+  <SectionFX variant="hex" />
+  <div class="container-page py-16 md:py-24 relative z-10" data-toolkit-motion>
     <div class="flex flex-wrap items-end justify-between gap-4 mb-10">
       <div class="space-y-3">
         <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">The toolkit</div>
@@ -57,6 +62,26 @@ const dotFor = (lvl?: string) => {
 </section>
 
 <style>
+  /* Toolkit section — mirrors the `By the numbers` section above for
+     consistency: solid paper base + the same accent / accent-soft gradient
+     mesh. Hides the page-level dot grid. */
+  .stack-section {
+    background: rgb(var(--paper));
+  }
+  .stack-gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      /* Accent glow — top-left corner (matches Numbers) */
+      radial-gradient(ellipse 60% 80% at 0% 0%, rgb(var(--accent) / 0.14), transparent 65%),
+      /* Accent-soft balance — bottom-right corner (matches Numbers) */
+      radial-gradient(ellipse 70% 70% at 100% 100%, rgb(var(--accent-soft) / 0.18), transparent 60%),
+      /* Centre breathing wash */
+      radial-gradient(ellipse 90% 60% at 50% 50%, rgb(var(--accent) / 0.04), transparent 80%);
+  }
+
   .tk-chip { opacity: 0; transform: translateY(6px); }
   .tk-chip.tk-in {
     opacity: 1;

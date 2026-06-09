@@ -1,11 +1,9 @@
 ---
+import { getCollection } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 import Base from "~/layouts/Base.astro";
 import StatusBadge from "~/components/StatusBadge.astro";
-import StoreLinksRow from "~/components/StoreLinksRow.astro";
 import LocationCard from "~/components/LocationCard.astro";
-import SpecBlock from "~/components/SpecBlock.astro";
-import SpecRow from "~/components/SpecRow.astro";
 import SpecimenHeading from "~/components/SpecimenHeading.astro";
 import CreativeWorkJsonLd from "~/components/CreativeWorkJsonLd.astro";
 
@@ -17,165 +15,753 @@ const { entry } = Astro.props;
 const d = entry.data;
 const plate = String(d.order).padStart(2, "0");
 
+const all = (await getCollection("work")).sort((a, b) => a.data.order - b.data.order);
+const idx = all.findIndex((e) => e.slug === entry.slug);
+const prev = idx > 0 ? all[idx - 1] : null;
+const next = idx < all.length - 1 ? all[idx + 1] : null;
+
+const heroImg = d.hero || d.gallery[0];
+
 const distribution = [
   d.links.appStore && "iOS",
   (d.links.playStore || d.links.apkPure) && "Android",
   d.links.liveSite && "Web",
-].filter(Boolean).join(" / ") || "Internal / no public listing";
+].filter(Boolean).join(" · ") || "Internal";
 
-const coords =
-  typeof d.lat === "number" && typeof d.lng === "number"
-    ? `${d.lat.toFixed(2)}°${d.lat >= 0 ? "N" : "S"}, ${d.lng.toFixed(2)}°${d.lng >= 0 ? "E" : "W"}`
-    : null;
+// Build big-CTA store buttons for the hero
+type CTA = { href: string; label: string; svg: string };
+const ctas: CTA[] = [];
+if (d.links.appStore) ctas.push({
+  href: d.links.appStore,
+  label: "App Store",
+  svg: '<path d="M17.5 12.5c0-2.5 2-3.7 2.1-3.8-1.2-1.7-3-2-3.6-2-1.5-.2-3 .9-3.8.9s-2-.9-3.3-.9c-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.3 2.5 1.3-.1 1.8-.9 3.4-.9s2 .9 3.4.8c1.4 0 2.3-1.2 3.2-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-3.9zM15 5.3c.7-.8 1.1-2 1-3.1-.9.1-2 .6-2.7 1.4-.6.7-1.2 1.9-1 3 1 .1 2-.5 2.7-1.3z"/>',
+});
+if (d.links.playStore) ctas.push({
+  href: d.links.playStore,
+  label: "Play Store",
+  svg: '<path d="M3 2.5v19a1 1 0 0 0 1.6.8L19 12 4.6 1.7A1 1 0 0 0 3 2.5z"/>',
+});
+if (!d.links.playStore && d.links.apkPure) ctas.push({
+  href: d.links.apkPure,
+  label: "APKPure",
+  svg: '<rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 16V8l7 4-7 4z" fill="currentColor"/>',
+});
+if (d.links.liveSite) ctas.push({
+  href: d.links.liveSite,
+  label: "Live site",
+  svg: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18" fill="none" stroke="currentColor" stroke-width="2"/>',
+});
+if (d.links.github) ctas.push({
+  href: d.links.github,
+  label: "Source",
+  svg: '<path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 3 .8.1-.6.3-1.1.6-1.3-2.2-.3-4.5-1.1-4.5-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.5 5 .4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/>',
+});
+
+// Meta strip rows
+const metaRows: Array<{ label: string; value: string }> = [
+  { label: "Role", value: d.role },
+  { label: "Employer", value: d.employer },
+];
+if (d.client) metaRows.push({ label: "Client", value: d.client });
+if (d.publisher && d.publisher !== d.client) metaRows.push({ label: "Publisher", value: d.publisher });
+metaRows.push({ label: "Period", value: d.period });
+metaRows.push({ label: "Region", value: [d.city, d.country, d.region].filter(Boolean).join(" · ") || d.region });
+metaRows.push({ label: "Distrib.", value: distribution });
+
+const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && typeof d.lng === "number"));
 ---
 
 <Base title={d.title} description={d.oneLiner} type="article">
   <CreativeWorkJsonLd entry={entry} />
 
-  <article class="container-page py-10 md:py-14">
-    <!-- Ribbon -->
-    <div class="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Plate {plate}</div>
-      <a href="/work" class="hover:text-text transition-colors">← Work</a>
+  <article class="cs-zone">
+    <!-- Page-level dot-grid backdrop lives in Base.astro — no per-section grid here. -->
+
+    <!-- Top ribbon — back link + plate number -->
+    <div class="container-page pt-10 md:pt-12 relative">
+      <div class="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+        <a href="/work" class="cs-back inline-flex items-center gap-2 hover:text-accent transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="w-3 h-3 cs-back-arrow">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          All work
+        </a>
+        <div class="flex items-baseline gap-3">
+          <span><span class="text-accent">§</span>&nbsp;Plate {plate}</span>
+          <span class="text-muted/40">/</span>
+          <span>{String(all.length).padStart(2, "0")} entries</span>
+        </div>
+      </div>
     </div>
-    <div class="mt-4 rule-thin"></div>
 
-    <!-- Title block -->
-    <header class="mt-10 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
-      <div class="space-y-6">
-        <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">
-          {d.category}
-        </div>
-
-        <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95]">
-          {d.title}<span class="text-accent">.</span>
-        </h1>
-
-        <p class="font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-2xl">{d.oneLiner}</p>
-
-        <div class="flex flex-wrap items-center gap-3 pt-2">
-          <StatusBadge status={d.status} />
-          {d.publisher && (
-            <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-              publisher · <span class="text-text">{d.publisher}</span>
-            </span>
-          )}
-        </div>
-
-        {(d.links.appStore || d.links.playStore || d.links.apkPure || d.links.liveSite || d.links.github) && (
-          <div class="pt-2 relative z-10">
-            <StoreLinksRow links={d.links} size="md" />
+    <!-- HERO — cinematic split (image left, meta right). Stacks on mobile. -->
+    <section class="container-page mt-10 md:mt-14 relative">
+      <div class={heroImg ? "cs-hero cs-hero--with-image" : "cs-hero cs-hero--text-only"}>
+        {heroImg && (
+          <div class="cs-hero-shot reveal">
+            <img src={heroImg} alt={`${d.title} hero`} loading="eager" decoding="async" />
+            <span class="cs-hero-shot-corner cs-hero-shot-corner--tl" aria-hidden="true"></span>
+            <span class="cs-hero-shot-corner cs-hero-shot-corner--tr" aria-hidden="true"></span>
+            <span class="cs-hero-shot-corner cs-hero-shot-corner--bl" aria-hidden="true"></span>
+            <span class="cs-hero-shot-corner cs-hero-shot-corner--br" aria-hidden="true"></span>
+            <span class="cs-hero-shot-plate" aria-hidden="true">{plate}</span>
           </div>
         )}
-      </div>
 
-      <!-- Right rail: identification spec block + location -->
-      <div class="space-y-4">
-        <SpecBlock label="Identification" trailing={`Plate ${plate}`}>
-          <SpecRow label="Role">{d.role}</SpecRow>
-          <SpecRow label="Employer">{d.employer}</SpecRow>
-          {d.client && <SpecRow label="Client">{d.client}</SpecRow>}
-          {d.publisher && <SpecRow label="Publisher">{d.publisher}</SpecRow>}
-          <SpecRow label="Period">{d.period}</SpecRow>
-          <SpecRow label="Distrib.">{distribution}</SpecRow>
-        </SpecBlock>
+        <div class="cs-hero-meta reveal">
+          <div class="cs-eyebrow font-mono">
+            <span class="cs-eyebrow-tick" aria-hidden="true"></span>
+            {d.category}
+          </div>
 
-        <LocationCard city={d.city} country={d.country} region={d.region} lat={d.lat} lng={d.lng} />
-      </div>
-    </header>
+          <h1 class="cs-title font-display font-semibold tracking-tight leading-[0.9]" data-scramble>
+            {d.title}<span class="text-accent">.</span>
+          </h1>
 
-    <!-- Stack panel (full width band) -->
-    <section class="mt-12 border border-border bg-paper/40 rounded-md p-5 md:p-6">
-      <div class="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.24em] text-muted mb-3">
-        <span>Architecture · stack</span>
-        <span>{d.stack.length} entries</span>
+          <p class="cs-lede font-serif">{d.oneLiner}</p>
+
+          <div class="cs-status-row">
+            <StatusBadge status={d.status} />
+            <span class="cs-status-period font-mono">{d.period}</span>
+          </div>
+
+          {ctas.length > 0 && (
+            <div class="cs-ctas">
+              {ctas.map((c, i) => (
+                <a
+                  href={c.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  class={i === 0 ? "cs-cta cs-cta--primary" : "cs-cta"}
+                >
+                  <svg class="cs-cta-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" set:html={c.svg} />
+                  <span>{c.label}</span>
+                  <svg class="cs-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M7 17L17 7M9 7h8v8" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-      <ul class="flex flex-wrap gap-1.5">
-        {d.stack.map((s) => <li class="chip">{s}</li>)}
-      </ul>
     </section>
 
-    {d.hero && (
-      <div class="mt-12 overflow-hidden rounded-md border border-border bg-paper/40">
-        <img src={d.hero} alt={`${d.title} hero`} class="h-auto w-full" loading="eager" decoding="async" />
-      </div>
-    )}
+    <!-- META STRIP — single horizontal band of identification rows -->
+    <section class="container-page mt-14 md:mt-20 relative">
+      <SpecimenHeading num="01" title="Identification" trailing={`Plate ${plate} of ${String(all.length).padStart(2, "0")}`} />
+      <dl class="cs-meta-strip mt-6 reveal">
+        {metaRows.map((r) => (
+          <div class="cs-meta-cell">
+            <dt class="cs-meta-label font-mono">{r.label}</dt>
+            <dd class="cs-meta-value font-serif">{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
 
-    <!-- Narrative -->
-    <SpecimenHeading num="01" title="Narrative" trailing={d.category} />
-    <div class="mt-6 grid gap-12 md:grid-cols-[1fr_240px] lg:gap-16">
-      <div
-        class="prose-page space-y-6 leading-relaxed font-serif text-lg
-          [&_h2]:font-display [&_h2]:text-2xl md:[&_h2]:text-3xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:mt-12 [&_h2]:mb-3 [&_h2]:not-italic [&_h2]:text-text
-          [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-8 [&_h3]:mb-2
-          [&_p]:text-text [&_p]:leading-relaxed
-          [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-2.5
-          [&_ul>li]:relative [&_ul>li]:pl-6 [&_ul>li]:text-text
-          [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:top-[0.65em] [&_ul>li]:before:h-px [&_ul>li]:before:w-3 [&_ul>li]:before:bg-accent/60
-          [&_strong]:text-text [&_strong]:font-semibold
-          [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-accent/30"
-      >
-        <slot />
+    <!-- NARRATIVE — clean editorial column, no sidebar -->
+    <section class="container-page mt-16 md:mt-24 relative">
+      <SpecimenHeading num="02" title="Narrative" trailing={d.category} />
+      <div class="cs-narrative mt-8 reveal">
+        <div
+          class="cs-prose
+            [&_h2]:font-display [&_h2]:text-2xl md:[&_h2]:text-3xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:not-italic [&_h2]:text-text [&_h2]:flex [&_h2]:items-baseline [&_h2]:gap-3
+            [&_h2]:before:content-[''] [&_h2]:before:h-2 [&_h2]:before:w-2 [&_h2]:before:rounded-full [&_h2]:before:bg-accent [&_h2]:before:flex-shrink-0
+            [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-text
+            [&_p]:text-text [&_p]:leading-relaxed [&_p]:my-5
+            [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-3 [&_ul]:my-5
+            [&_ul>li]:relative [&_ul>li]:pl-7 [&_ul>li]:text-text/90
+            [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:top-[0.85em] [&_ul>li]:before:h-px [&_ul>li]:before:w-4 [&_ul>li]:before:bg-accent/70
+            [&_strong]:text-text [&_strong]:font-semibold
+            [&_em]:text-muted [&_em]:italic
+            [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-accent/30 hover:[&_a]:decoration-accent
+            [&_code]:font-mono [&_code]:text-[0.9em] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:bg-paper/60 [&_code]:border [&_code]:border-border/60 [&_code]:rounded"
+        >
+          <slot />
+        </div>
 
         {d.todos.length > 0 && (
-          <aside class="mt-12 border border-dashed border-sepia/50 bg-sepia/5 rounded-md font-sans">
-            <div class="flex items-center justify-between px-4 py-2 border-b border-sepia/30 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">
+          <aside class="cs-todos mt-12 reveal">
+            <div class="cs-todos-header font-mono">
               <span>Editor's notes</span>
-              <span>{d.todos.length} pending</span>
+              <span class="text-muted/70">{d.todos.length} pending</span>
             </div>
-            <ul class="px-5 py-4 space-y-1 text-text/80 list-none pl-5">
-              {d.todos.map((t) => <li class="relative pl-0 before:hidden">— {t}</li>)}
+            <ul class="cs-todos-list">
+              {d.todos.map((t) => <li>{t}</li>)}
             </ul>
           </aside>
         )}
       </div>
+    </section>
 
-      <!-- Right rail: coordinates / metadata snippet -->
-      <aside class="hidden md:block space-y-6">
-        <div class="border-l-2 border-accent/40 pl-4 space-y-3">
-          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-muted">Plate</div>
-          <div class="font-display text-5xl tabular-nums tracking-tight text-accent leading-none">{plate}</div>
-          <dl class="text-xs font-mono uppercase tracking-[0.2em] text-muted space-y-1.5 pt-3">
-            <div class="flex justify-between gap-2">
-              <dt>Class</dt>
-              <dd class="text-text text-right">{d.category}</dd>
-            </div>
-            <div class="flex justify-between gap-2">
-              <dt>Region</dt>
-              <dd class="text-text text-right">{d.region}</dd>
-            </div>
-            {coords && (
-              <div class="flex justify-between gap-2">
-                <dt>Coords</dt>
-                <dd class="text-text text-right">{coords}</dd>
-              </div>
-            )}
-            <div class="flex justify-between gap-2">
-              <dt>Status</dt>
-              <dd class="text-text text-right">{d.status}</dd>
-            </div>
-          </dl>
-        </div>
-      </aside>
-    </div>
+    <!-- STACK — full toolkit in a polished panel -->
+    <section class="container-page mt-16 md:mt-24 relative">
+      <SpecimenHeading num="03" title="The toolkit" trailing={`${d.stack.length} entries`} />
+      <ul class="cs-stack-grid mt-6 reveal">
+        {d.stack.map((s, i) => (
+          <li class="cs-stack-chip" style={`--stack-i: ${i};`}>
+            <span class="cs-stack-chip-tick" aria-hidden="true"></span>
+            {s}
+          </li>
+        ))}
+      </ul>
+    </section>
 
+    <!-- GALLERY — staggered grid -->
     {d.gallery.length > 0 && (
-      <section class="mt-20">
-        <SpecimenHeading num="02" title="Gallery" trailing={`${d.gallery.length} plates`} />
-        <div class="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <section class="container-page mt-16 md:mt-24 relative">
+        <SpecimenHeading num="04" title="Gallery" trailing={`${d.gallery.length} ${d.gallery.length === 1 ? "plate" : "plates"}`} />
+        <div class="cs-gallery mt-6 reveal-stagger">
           {d.gallery.map((src, i) => (
-            <div class="overflow-hidden rounded-md border border-border bg-paper/40">
-              <img src={src} alt={`${d.title} screenshot ${i + 1}`} loading="lazy" decoding="async" class="h-auto w-full" />
-            </div>
+            <a href={src} class="cs-gallery-item reveal" style={`--g-i: ${i};`} target="_blank" rel="noreferrer noopener" aria-label={`Open screenshot ${i + 1} full size`}>
+              <img src={src} alt={`${d.title} screenshot ${i + 1}`} loading="lazy" decoding="async" />
+              <span class="cs-gallery-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            </a>
           ))}
         </div>
       </section>
     )}
 
+    <!-- LOCATION — compact map card -->
+    {hasLocation && (
+      <section class="container-page mt-16 md:mt-24 relative">
+        <SpecimenHeading num={d.gallery.length > 0 ? "05" : "04"} title="Where it was built" trailing={d.region} />
+        <div class="mt-6 max-w-md reveal">
+          <LocationCard city={d.city} country={d.country} region={d.region} lat={d.lat} lng={d.lng} />
+        </div>
+      </section>
+    )}
+
     {d.needsAssets && (
-      <aside class="mt-12 rounded-md border border-dashed border-border bg-paper/40 p-5 text-sm font-sans text-muted">
-        Screenshots and app icons for this specimen haven't been provided yet. Drop them under <code class="font-mono text-xs">public/work/{entry.slug}/</code> and list them in the case-study frontmatter — the gallery populates automatically.
+      <aside class="container-page mt-16 relative">
+        <div class="cs-assets-warning font-mono">
+          <span class="cs-assets-warning-label">Editor's note</span>
+          <span>Screenshots and assets for this case study are still being prepared.</span>
+        </div>
       </aside>
     )}
+
+    <!-- PREV / NEXT NAV — adjacent projects in the catalog -->
+    <section class="container-page mt-20 md:mt-28 mb-16 relative">
+      <div class="cs-paginate">
+        {prev ? (
+          <a href={`/work/${prev.slug}`} class="cs-paginate-card cs-paginate-card--prev">
+            <span class="cs-paginate-dir font-mono"><span aria-hidden="true">←</span> Previous</span>
+            <span class="cs-paginate-num font-mono">{String(prev.data.order).padStart(2, "0")}</span>
+            <span class="cs-paginate-title font-display">{prev.data.title}</span>
+            <span class="cs-paginate-cat font-mono">{prev.data.category}</span>
+          </a>
+        ) : <span class="cs-paginate-spacer" aria-hidden="true"></span>}
+
+        {next ? (
+          <a href={`/work/${next.slug}`} class="cs-paginate-card cs-paginate-card--next">
+            <span class="cs-paginate-dir font-mono">Next <span aria-hidden="true">→</span></span>
+            <span class="cs-paginate-num font-mono">{String(next.data.order).padStart(2, "0")}</span>
+            <span class="cs-paginate-title font-display">{next.data.title}</span>
+            <span class="cs-paginate-cat font-mono">{next.data.category}</span>
+          </a>
+        ) : <span class="cs-paginate-spacer" aria-hidden="true"></span>}
+      </div>
+
+      <div class="mt-12 text-center">
+        <a href="/work" class="cs-back-cta font-mono">
+          <span aria-hidden="true">←</span>
+          Back to all work
+        </a>
+      </div>
+    </section>
   </article>
 </Base>
+
+<style>
+  /* ── Zone wrapper with dot-grid backdrop (mirrors /work index) ── */
+  .cs-zone {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  /* DotGrid component handles texture + cursor interaction in one canvas
+     at z-index: -1. No external CSS plumbing needed here. */
+
+  /* ── Top back link ── */
+  .cs-back-arrow { transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .cs-back:hover .cs-back-arrow { transform: translateX(-3px); }
+
+  /* ── Hero ── */
+  .cs-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  @media (min-width: 900px) {
+    .cs-hero--with-image {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      gap: 4.5rem;
+    }
+  }
+  .cs-hero--text-only {
+    max-width: 56rem;
+  }
+
+  /* Hero shot — large showcase image with framed plate feel */
+  .cs-hero-shot {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 0%, rgb(var(--accent) / 0.06), transparent 55%),
+      rgb(var(--paper) / 0.55);
+  }
+  .cs-hero-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1.5rem;
+    display: block;
+  }
+  .cs-hero-shot-corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: rgb(var(--accent) / 0.65);
+    border-style: solid;
+    border-width: 0;
+    pointer-events: none;
+  }
+  .cs-hero-shot-corner--tl { top: 10px; left: 10px; border-top-width: 1.5px; border-left-width: 1.5px; }
+  .cs-hero-shot-corner--tr { top: 10px; right: 10px; border-top-width: 1.5px; border-right-width: 1.5px; }
+  .cs-hero-shot-corner--bl { bottom: 10px; left: 10px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+  .cs-hero-shot-corner--br { bottom: 10px; right: 10px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+  .cs-hero-shot-plate {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 0.8rem;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 0.85;
+    color: rgb(var(--accent) / 0.12);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Hero meta block */
+  .cs-hero-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+  .cs-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .cs-eyebrow-tick {
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: rgb(var(--sepia) / 0.7);
+    animation: cs-tick 5.4s ease-in-out infinite;
+    transform-origin: left center;
+  }
+  @keyframes cs-tick {
+    0%, 100% { transform: scaleX(0.55); opacity: 0.55; }
+    50%      { transform: scaleX(1);    opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs-eyebrow-tick { animation: none; transform: scaleX(1); }
+  }
+
+  .cs-title {
+    font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+  .cs-lede {
+    font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+    line-height: 1.45;
+    color: rgb(var(--text) / 0.88);
+    max-width: 36rem;
+    margin: 0;
+  }
+
+  .cs-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+  }
+  .cs-status-period {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+  }
+
+  /* Hero CTAs — prominent labeled store buttons */
+  .cs-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.4rem;
+  }
+  .cs-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--surface) / 0.6);
+    border-radius: 9999px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--text));
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms, color 200ms, background-color 200ms;
+  }
+  .cs-cta-icon { width: 13px; height: 13px; flex-shrink: 0; }
+  .cs-cta-arrow {
+    width: 12px; height: 12px;
+    color: rgb(var(--muted));
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), color 200ms;
+  }
+  .cs-cta:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--accent) / 0.55);
+    color: rgb(var(--accent));
+    background: rgb(var(--accent) / 0.06);
+  }
+  .cs-cta:hover .cs-cta-arrow { transform: translate(2px, -2px); color: rgb(var(--accent)); }
+  .cs-cta--primary {
+    border-color: rgb(var(--accent));
+    background: rgb(var(--accent));
+    color: rgb(var(--bg));
+  }
+  .cs-cta--primary .cs-cta-arrow { color: rgb(var(--bg) / 0.8); }
+  .cs-cta--primary:hover {
+    background: rgb(var(--accent-hover));
+    border-color: rgb(var(--accent-hover));
+    color: rgb(var(--bg));
+  }
+  .cs-cta--primary:hover .cs-cta-arrow { color: rgb(var(--bg)); }
+
+  /* ── Meta strip — horizontal identification band ── */
+  .cs-meta-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid rgb(var(--border));
+    border-bottom: 1px solid rgb(var(--border));
+  }
+  @media (min-width: 720px) { .cs-meta-strip { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1080px) { .cs-meta-strip { grid-template-columns: repeat(4, 1fr); } }
+
+  .cs-meta-cell {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid rgb(var(--border) / 0.5);
+    border-bottom: 1px solid rgb(var(--border) / 0.5);
+    min-width: 0;
+    transition: background-color 220ms ease;
+  }
+  .cs-meta-cell:hover { background: rgb(var(--accent) / 0.04); }
+  .cs-meta-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+    margin: 0 0 0.45rem;
+  }
+  .cs-meta-value {
+    display: block;
+    font-size: 1.02rem;
+    line-height: 1.35;
+    color: rgb(var(--text));
+    margin: 0;
+    word-wrap: break-word;
+  }
+
+  /* ── Narrative prose ── */
+  .cs-narrative {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+  .cs-prose {
+    font-family: var(--font-serif, ui-serif, serif);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: rgb(var(--text));
+  }
+  @media (min-width: 760px) {
+    .cs-prose { font-size: 1.18rem; line-height: 1.75; }
+  }
+  .cs-prose > :first-child { margin-top: 0; }
+
+  /* Drop-cap on the first paragraph for an editorial opener */
+  .cs-prose > p:first-of-type::first-letter {
+    font-family: var(--font-display, ui-serif, serif);
+    font-size: 3.4em;
+    line-height: 0.9;
+    float: left;
+    padding: 0.18em 0.18em 0 0;
+    color: rgb(var(--accent));
+    font-weight: 600;
+  }
+
+  /* Editor's notes pane */
+  .cs-todos {
+    border: 1px dashed rgb(var(--sepia) / 0.5);
+    background: rgb(var(--sepia) / 0.05);
+    border-radius: 0.5rem;
+  }
+  .cs-todos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px dashed rgb(var(--sepia) / 0.35);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .cs-todos-list {
+    list-style: none;
+    margin: 0;
+    padding: 1rem 1.25rem;
+  }
+  .cs-todos-list li {
+    position: relative;
+    padding-left: 1rem;
+    font-size: 0.92rem;
+    color: rgb(var(--text) / 0.8);
+    line-height: 1.55;
+  }
+  .cs-todos-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: rgb(var(--sepia));
+  }
+  .cs-todos-list li + li { margin-top: 0.4rem; }
+
+  /* ── Stack section ── */
+  .cs-stack-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cs-stack-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--paper) / 0.4);
+    border-radius: 9999px;
+    font-family: var(--font-serif, ui-serif, serif);
+    font-size: 0.95rem;
+    color: rgb(var(--text));
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms, color 220ms, background-color 220ms;
+  }
+  .cs-stack-chip-tick {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(var(--accent) / 0.7);
+    flex-shrink: 0;
+  }
+  .cs-stack-chip:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--accent) / 0.55);
+    color: rgb(var(--accent));
+    background: rgb(var(--accent) / 0.06);
+  }
+
+  /* ── Gallery — staggered 2-col grid ── */
+  .cs-gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 720px) {
+    .cs-gallery { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  }
+  @media (min-width: 1080px) {
+    .cs-gallery { gap: 2rem; }
+    /* Staircase offset — every other tile sits slightly lower */
+    .cs-gallery-item:nth-child(even) { transform: translateY(2.5rem); }
+  }
+  .cs-gallery-item {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.6rem;
+    overflow: hidden;
+    background: rgb(var(--paper) / 0.55);
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms;
+  }
+  .cs-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1rem;
+    display: block;
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cs-gallery-item:hover {
+    border-color: rgb(var(--accent) / 0.55);
+    /* Hover: no shadow — accent border carries the lift. */
+  }
+  @media (min-width: 1080px) {
+    .cs-gallery-item:hover { transform: translateY(-4px); }
+    .cs-gallery-item:nth-child(even):hover { transform: translateY(calc(2.5rem - 4px)); }
+  }
+  .cs-gallery-item:hover img { transform: scale(1.03); }
+  .cs-gallery-num {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.7rem;
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgb(var(--muted));
+    background: rgb(var(--bg) / 0.75);
+    padding: 0.18rem 0.55rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--border));
+    backdrop-filter: blur(6px);
+  }
+
+  /* Stagger the gallery reveal */
+  .reveal-stagger.cs-gallery > .reveal {
+    transition-delay: calc(var(--g-i, 0) * 80ms);
+  }
+
+  /* ── Editor warning ── */
+  .cs-assets-warning {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px dashed rgb(var(--border));
+    background: rgb(var(--paper) / 0.35);
+    border-radius: 0.5rem;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: rgb(var(--muted));
+  }
+  .cs-assets-warning-label {
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    color: rgb(var(--sepia));
+  }
+
+  /* ── Prev / next pagination ── */
+  .cs-paginate {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 760px) {
+    .cs-paginate { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  }
+  .cs-paginate-spacer { display: none; }
+  @media (min-width: 760px) { .cs-paginate-spacer { display: block; } }
+
+  .cs-paginate-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    column-gap: 1.25rem;
+    row-gap: 0.35rem;
+    padding: 1.5rem 1.5rem;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.65rem;
+    background: rgb(var(--paper) / 0.4);
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), border-color 320ms, background-color 320ms;
+    min-height: 9rem;
+  }
+  .cs-paginate-card:hover {
+    transform: translateY(-3px);
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--accent) / 0.04);
+    /* No shadow on hover — clean flat treatment. */
+  }
+  .cs-paginate-dir {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--accent));
+  }
+  .cs-paginate-card--next .cs-paginate-dir { text-align: right; }
+  .cs-paginate-num {
+    grid-row: 2 / 4;
+    align-self: start;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: rgb(var(--accent) / 0.45);
+    transition: color 220ms ease;
+  }
+  .cs-paginate-card:hover .cs-paginate-num { color: rgb(var(--accent)); }
+  .cs-paginate-card--next .cs-paginate-num {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    justify-self: end;
+    order: 2;
+  }
+  .cs-paginate-card--next { grid-template-columns: 1fr auto; }
+  .cs-paginate-card--next .cs-paginate-title,
+  .cs-paginate-card--next .cs-paginate-cat { text-align: right; grid-column: 1; }
+  .cs-paginate-title {
+    grid-column: 2;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    color: rgb(var(--text));
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    transition: color 220ms ease;
+  }
+  .cs-paginate-card:hover .cs-paginate-title { color: rgb(var(--accent)); }
+  .cs-paginate-cat {
+    grid-column: 2;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+
+  /* Back-to-work footer CTA */
+  .cs-back-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 1rem;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    transition: color 220ms, gap 220ms;
+  }
+  .cs-back-cta:hover { color: rgb(var(--accent)); gap: 0.85rem; }
+</style>

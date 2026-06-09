@@ -21,9 +21,6 @@ const N = featured.length;
 ---
 
 <section class="picks">
-  <!-- Shared dot-grid texture + parallax (consistent across the home page) -->
-  <div class="bg-dot-grid" data-parallax-grid aria-hidden="true"></div>
-
   <!-- Section header — Museum Plate composition (centered exhibition wall text) -->
   <header class="container-page picks-plate reveal">
     <div class="picks-plate-frame">
@@ -106,14 +103,8 @@ const N = featured.length;
   }
   @media (min-width: 900px) { .picks { padding: 4rem 0 7rem; } }
 
-  /* Mask the shared dot-grid at top + bottom so it doesn't fight adjacent sections.
-     The base pattern (colour, size, spacing) comes from .bg-dot-grid in globals.css
-     — keep all visual values centralised there for consistency across the page. */
-  .picks .bg-dot-grid {
-    z-index: -1;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
-    mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
-  }
+  /* DotGrid component handles its own fade (14% via the `fade` prop) and
+     z-index (-1). Nothing to wire here. */
 
   /* ───── Museum Plate header (centered exhibition wall text) ───── */
   .picks-plate {

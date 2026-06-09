@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import Nav from "~/components/Nav.astro";
 import Footer from "~/components/Footer.astro";
 import BackgroundFX from "~/components/BackgroundFX.astro";
+import DotGrid from "~/components/DotGrid.astro";
 import { profile } from "~/data/profile";
 
 interface Props {
@@ -63,7 +64,8 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
     />
 
-    <!-- Theme bootstrap: pick saved or system theme before paint to avoid flash -->
+    <!-- Theme bootstrap: pick saved mode (light/dark) + saved variant
+         (atlas/carbon/.../cyber) before paint to avoid flash. -->
     <script is:inline>
       (function () {
         try {
@@ -71,6 +73,13 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
           const system = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
           const mode = saved || system;
           if (mode === "dark") document.documentElement.classList.add("dark");
+
+          const VARIANTS = ["onyx","slate","carbon","atlas","plum","mono","aurora","matrix","synthwave","cyber"];
+          const variant = localStorage.getItem("themeVariant");
+          // Onyx is the no-attribute default; any other variant sets the attr.
+          if (variant && VARIANTS.indexOf(variant) !== -1 && variant !== "onyx") {
+            document.documentElement.setAttribute("data-theme", variant);
+          }
         } catch (e) {}
       })();
     </script>
@@ -93,6 +102,11 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       <span class="atmosphere-orb atmosphere-orb--sepia"></span>
       <span class="atmosphere-orb atmosphere-orb--accent-soft"></span>
     </div>
+
+    <!-- Single page-level dot-grid backdrop. Fixed to the viewport so the
+         grid is continuous across every section — no per-section seams or
+         empty bands. Also handles the cursor zoom/bounce sitewide. -->
+    <DotGrid fixed />
 
     <!-- Reactive cyberpunk background: scanlines, cursor reveal, glitch sweep, HUD reticle -->
     <BackgroundFX />

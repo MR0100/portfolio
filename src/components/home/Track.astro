@@ -4,14 +4,9 @@ import SectionFX from "~/components/SectionFX.astro";
 ---
 
 <section data-track class="relative overflow-hidden" style="--sfx-opacity: 0.4;">
-  <!-- Shared dot-grid texture + parallax (matches the rest of the home) -->
-  <div class="bg-dot-grid" data-parallax-grid aria-hidden="true"></div>
-
   <!-- Dot-grid circuit (Experience-section only): current pulses hop from dot
-       to dot orthogonally on top of the visible grid above.
-       Wrapped in a parallax container so the canvas drifts at the same 0.55×
-       rate as the bg-dot-grid above — the two layers stay locked together. -->
-  <div class="absolute inset-0" data-parallax-grid aria-hidden="true">
+       to dot orthogonally on top of the dot grid above. -->
+  <div class="absolute inset-0" aria-hidden="true">
     <SectionFX variant="dotcircuit" />
   </div>
 

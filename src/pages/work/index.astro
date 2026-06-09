@@ -3,232 +3,611 @@ import { getCollection } from "astro:content";
 import Base from "~/layouts/Base.astro";
 import StatusBadge from "~/components/StatusBadge.astro";
 import StoreLinksRow from "~/components/StoreLinksRow.astro";
-import WorldMap from "~/components/WorldMap.astro";
-import SpecimenHeading from "~/components/SpecimenHeading.astro";
 
 const all = (await getCollection("work")).sort((a, b) => a.data.order - b.data.order);
 
-// Helpers to extract a sort key from period (e.g., "2025 — Present" → 2025)
-const periodSort = (p: string) => {
-  const m = p.match(/(\d{4})/);
-  return m ? Number(m[1]) : 0;
-};
+type WorkLinks = (typeof all)[number]["data"]["links"];
 
-// Status priority: verified > brand-verified > unlisted > internal > early
-const statusOrder: Record<string, number> = {
-  verified: 0,
-  "brand-verified": 1,
-  unlisted: 2,
-  internal: 3,
-  early: 4,
-};
+const hasIOS = (l: WorkLinks) => !!l.appStore;
+const hasAndroid = (l: WorkLinks) => !!(l.playStore || l.apkPure);
+const hasWeb = (l: WorkLinks) => !!l.liveSite;
+const isInternal = (l: WorkLinks) => !hasIOS(l) && !hasAndroid(l) && !hasWeb(l);
 
-const counts = {
-  total: all.length,
-  verified: all.filter((e) => e.data.status === "verified").length,
-  brand: all.filter((e) => e.data.status === "brand-verified").length,
-  internal: all.filter((e) => ["internal", "unlisted", "early"].includes(e.data.status)).length,
-  regions: new Set(all.map((e) => e.data.region)).size,
-  industries: new Set(all.map((e) => e.data.category)).size,
+const facets = [
+  { key: "all", label: "All", count: all.length },
+  { key: "ios", label: "iOS", count: all.filter((e) => hasIOS(e.data.links)).length },
+  { key: "android", label: "Android", count: all.filter((e) => hasAndroid(e.data.links)).length },
+  { key: "web", label: "Web", count: all.filter((e) => hasWeb(e.data.links)).length },
+  { key: "internal", label: "Internal", count: all.filter((e) => isInternal(e.data.links)).length },
+].filter((f) => f.count > 0);
+
+const distribution = (l: WorkLinks) =>
+  [hasIOS(l) && "iOS", hasAndroid(l) && "Android", hasWeb(l) && "Web"].filter(Boolean).join(" · ") || "Internal";
+
+const platformTags = (l: WorkLinks) => {
+  const arr: string[] = [];
+  if (hasIOS(l)) arr.push("ios");
+  if (hasAndroid(l)) arr.push("android");
+  if (hasWeb(l)) arr.push("web");
+  if (arr.length === 0) arr.push("internal");
+  return arr.join(" ");
 };
 ---
 
 <Base
   title="Work"
-  description="The complete index of every app Mitul Vaghasiya has shipped — sortable by status, region, category, and period."
+  description="Every app Mitul Vaghasiya has shipped — case studies, screenshots, and the stack behind each one."
 >
-  <section class="container-page pt-10 md:pt-14">
-    <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Work</div>
-      <div>{all.length} projects</div>
+  <div class="work-zone">
+    <!-- Page-level dot-grid backdrop lives in Base.astro — no per-section grid here. -->
+
+  <!-- Header -->
+  <section class="container-page pt-16 md:pt-24 relative">
+    <div class="work-hero">
+      <div class="work-hero-eyebrow font-mono">
+        <span class="work-hero-eyebrow-tick" aria-hidden="true"></span>
+        Selected works
+      </div>
+
+      <h1
+        class="work-hero-title mt-5 font-display font-semibold tracking-tight leading-[0.9]"
+        data-scramble
+      >
+        Things I've <span class="work-hero-em">shipped</span><span class="text-accent">.</span>
+      </h1>
+
+      <p class="work-hero-lede mt-7 max-w-2xl font-serif text-lg md:text-xl text-muted leading-relaxed">
+        Nineteen apps across iOS, Android, and the web — diamond trading, agritech, healthcare, and consumer commerce. Each one is a real product I built end-to-end. Open any card to read the case study behind it.
+      </p>
+
+      <!-- Hairline meta strip — quiet, single-line context -->
+      <div class="mt-9 flex items-center gap-4 work-hero-meta">
+        <span class="work-hero-rule" aria-hidden="true"></span>
+        <ul class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
+          <li>Six years</li>
+          <li class="work-hero-meta-sep" aria-hidden="true">/</li>
+          <li>iOS · Android · Web</li>
+          <li class="work-hero-meta-sep" aria-hidden="true">/</li>
+          <li>Live in 10<span class="text-accent">+</span> countries</li>
+        </ul>
+      </div>
     </div>
-    <div class="mt-4 rule-thin"></div>
 
-    <h1 class="mt-10 font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95] max-w-4xl">
-      Work<span class="text-accent">.</span>
-    </h1>
-    <p class="mt-4 max-w-2xl font-serif text-lg md:text-xl text-muted leading-relaxed">
-      The complete index. Sort by status, region, category, or year. Every entry links to its full case study.
-    </p>
-
-    <!-- At-a-glance stats -->
-    <dl class="mt-10 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-10 border-t border-border/60 pt-8">
-      <div>
-        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Total</dt>
-        <dd class="stat-num">{counts.total}</dd>
-      </div>
-      <div>
-        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Verified</dt>
-        <dd class="stat-num">{counts.verified}</dd>
-      </div>
-      <div>
-        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Brand · client</dt>
-        <dd class="stat-num">{counts.brand}</dd>
-      </div>
-      <div>
-        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Internal · early</dt>
-        <dd class="stat-num">{counts.internal}</dd>
-      </div>
-      <div>
-        <dt class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Industries</dt>
-        <dd class="stat-num">{counts.industries}</dd>
-      </div>
-    </dl>
-    <p class="mt-4 pb-8 border-b border-border/60 font-serif text-sm text-muted leading-relaxed max-w-4xl">
-      <span class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mr-2">Status legend</span>
-      <strong class="text-text">Verified</strong> live in a public store today ·
-      <strong class="text-text">Brand-verified</strong> client brand confirmed, store listing delisted or unlisted ·
-      <strong class="text-text">Unlisted</strong> previously listed, now removed ·
-      <strong class="text-text">Internal</strong> B2B or staff-only, never on public stores ·
-      <strong class="text-text">Early</strong> pre-2021 small project.
-    </p>
-  </section>
-
-  <!-- Map -->
-  <section class="container-page mt-12">
-    <SpecimenHeading num="00" title="Atlas" trailing={`${counts.regions} regions`} />
-    <div class="mt-6 border border-border bg-paper/40 rounded-md p-3 md:p-4">
-      <WorldMap />
+    <!-- Filter chips -->
+    <div class="mt-12 md:mt-14 flex flex-wrap items-center gap-2" data-work-filters>
+      <span class="mr-2 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Filter by platform</span>
+      {facets.map((f, i) => (
+        <button
+          type="button"
+          data-filter={f.key}
+          aria-pressed={i === 0 ? "true" : "false"}
+          class={i === 0 ? "work-chip work-chip--active" : "work-chip"}
+        >
+          <span>{f.label}</span>
+          <span class="work-chip-count">{f.count}</span>
+        </button>
+      ))}
     </div>
   </section>
 
-  <!-- Sortable catalog -->
-  <section class="container-page mt-20" data-catalog-root>
-    <SpecimenHeading num="01" title="All projects" trailing={`${all.length} entries`} />
-
-    <!-- Sort toolbar -->
-    <div class="mt-6 flex flex-wrap items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <span>Sort by</span>
-      <button type="button" data-sort="order" class="chip chip-accent" aria-pressed="true">Featured</button>
-      <button type="button" data-sort="status" class="chip" aria-pressed="false">Status</button>
-      <button type="button" data-sort="region" class="chip" aria-pressed="false">Region</button>
-      <button type="button" data-sort="category" class="chip" aria-pressed="false">Category</button>
-      <button type="button" data-sort="period" class="chip" aria-pressed="false">Period</button>
-    </div>
-
-    <!-- Specimen rows -->
-    <ol class="mt-6 divide-y divide-border/60 border-y border-border/60" data-catalog-list>
+  <!-- Project showcase grid -->
+  <section class="container-page pb-24 mt-12 md:mt-16 relative">
+    <ol class="work-grid reveal-stagger" data-work-grid>
       {all.map((entry, i) => {
         const d = entry.data;
         const heroImg = d.hero || d.gallery[0];
-        const num = String(d.order).padStart(2, "0");
-        const location = [d.city, d.country].filter(Boolean).join(", ");
-        const distribution = [
-          d.links.appStore && "iOS",
-          (d.links.playStore || d.links.apkPure) && "Android",
-          d.links.liveSite && "Web",
-        ].filter(Boolean).join(" / ") || "Internal";
+        const num = String(i + 1).padStart(2, "0");
 
         return (
           <li
-            class="group relative"
-            data-row
-            data-sort-order={d.order}
-            data-sort-status={statusOrder[d.status] ?? 9}
-            data-sort-region={d.region}
-            data-sort-category={d.category}
-            data-sort-period={-periodSort(d.period)}
+            class="work-card reveal"
+            data-platforms={platformTags(d.links)}
+            style={`--card-i: ${i};`}
           >
-            <article class="grid gap-x-6 gap-y-3 py-7 md:grid-cols-[44px_1fr_auto] lg:grid-cols-[44px_1fr_240px]">
-              <div class="font-mono text-lg font-normal tabular-nums tracking-tight text-accent leading-none pt-1">{num}</div>
-
-              <div class="space-y-2 min-w-0">
-                <div class="flex items-baseline gap-3 flex-wrap">
-                  <h3 class="font-display text-xl md:text-2xl font-semibold tracking-tight leading-tight">
-                    <a
-                      href={`/work/${entry.slug}`}
-                      class="after:absolute after:inset-0 after:content-[''] group-hover:text-accent transition-colors"
-                    >
-                      {d.title}
-                    </a>
-                  </h3>
-                  <span class="relative z-10"><StatusBadge status={d.status} /></span>
+            <a href={`/work/${entry.slug}`} class="work-card-shot" aria-label={`Read case study: ${d.title}`}>
+              {heroImg ? (
+                <img src={heroImg} alt={`${d.title} screenshot`} loading="lazy" decoding="async" />
+              ) : (
+                <div class="work-card-placeholder">
+                  <span>{d.title}</span>
                 </div>
+              )}
+              <span class="work-card-num" aria-hidden="true">{num}</span>
+              <span class="work-card-corner work-card-corner--tl"></span>
+              <span class="work-card-corner work-card-corner--tr"></span>
+              <span class="work-card-corner work-card-corner--bl"></span>
+              <span class="work-card-corner work-card-corner--br"></span>
+              <span class="work-card-sheen" aria-hidden="true"></span>
+            </a>
 
-                <p class="font-serif text-base text-muted leading-relaxed max-w-prose">{d.oneLiner}</p>
+            <div class="work-card-body">
+              <div class="work-card-meta">
+                <span class="work-card-cat">{d.category}</span>
+                <span class="work-card-meta-sep" aria-hidden="true">·</span>
+                <StatusBadge status={d.status} />
+              </div>
 
-                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0.5 pt-1 max-w-2xl">
-                  <div class="spec-row">
-                    <dt>Class</dt>
-                    <span class="leader" aria-hidden="true"></span>
-                    <dd>{d.category}</dd>
-                  </div>
-                  <div class="spec-row">
-                    <dt>Region</dt>
-                    <span class="leader" aria-hidden="true"></span>
-                    <dd>{d.region}{location && ` · ${location}`}</dd>
-                  </div>
-                  <div class="spec-row">
-                    <dt>Period</dt>
-                    <span class="leader" aria-hidden="true"></span>
-                    <dd>{d.period}</dd>
-                  </div>
-                  <div class="spec-row">
-                    <dt>Distrib.</dt>
-                    <span class="leader" aria-hidden="true"></span>
-                    <dd>{distribution}</dd>
-                  </div>
-                </dl>
+              <h2 class="work-card-title font-display">
+                <a href={`/work/${entry.slug}`}>{d.title}</a>
+              </h2>
 
-                <div class="flex flex-wrap items-center gap-3 pt-1 relative z-10">
+              <p class="work-card-line font-serif">{d.oneLiner}</p>
+
+              <dl class="work-card-specs">
+                <div><dt>Role</dt><dd>{d.role}</dd></div>
+                <div><dt>Period</dt><dd>{d.period}</dd></div>
+                <div><dt>Distrib.</dt><dd>{distribution(d.links)}</dd></div>
+              </dl>
+
+              <div class="work-card-stack">
+                {d.stack.slice(0, 5).map((s) => <span class="work-card-tag">{s}</span>)}
+                {d.stack.length > 5 && <span class="work-card-tag work-card-tag--more">+{d.stack.length - 5}</span>}
+              </div>
+
+              <div class="work-card-actions">
+                <a class="work-card-cta" href={`/work/${entry.slug}`}>
+                  Read case study
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M5 12h14M13 5l7 7-7 7" />
+                  </svg>
+                </a>
+                <span class="work-card-stores">
                   <StoreLinksRow links={d.links} />
-                  <div class="flex flex-wrap gap-1.5">
-                    {d.stack.slice(0, 4).map((s) => <span class="chip">{s}</span>)}
-                    {d.stack.length > 4 && <span class="chip">+{d.stack.length - 4}</span>}
-                  </div>
-                </div>
+                </span>
               </div>
-
-              <div class="hidden lg:block">
-                <div class="relative overflow-hidden rounded-md border border-border bg-paper/60 aspect-[4/3] transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
-                  {heroImg ? (
-                    <img src={heroImg} alt={`${d.title} screenshot`} loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-contain object-center p-4" />
-                  ) : (
-                    <div class="absolute inset-0 flex items-center justify-center text-muted text-center text-[10px] font-mono uppercase tracking-[0.24em] p-6">
-                      Screenshots pending
-                    </div>
-                  )}
-                </div>
-              </div>
-            </article>
+            </div>
           </li>
         );
       })}
     </ol>
+
+    <p
+      class="mt-16 text-center font-mono text-[11px] uppercase tracking-[0.24em] text-muted"
+      data-work-empty
+      hidden
+    >
+      Nothing matches that filter yet.
+    </p>
   </section>
+  </div>
 </Base>
+
+<style>
+  /* ── Work zone — shared dot-grid backdrop across header + project grid ──
+     Mirrors the .picks treatment on the home page: the grid sits behind the
+     content (z:-1) and is masked at top + bottom so it never collides with
+     the global nav above or the footer below. Slow drift keeps it alive. */
+  .work-zone {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  /* DotGrid renders the texture, the wave + cursor zoom in one canvas at
+     z-index: -1 (set by the component). No external CSS needed here. */
+
+  /* ── Header / hero ── */
+  .work-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .work-hero-eyebrow-tick {
+    display: inline-block;
+    width: 26px;
+    height: 1px;
+    background: rgb(var(--sepia) / 0.7);
+    animation: work-hero-tick 5.4s ease-in-out infinite;
+    transform-origin: left center;
+  }
+  @keyframes work-hero-tick {
+    0%, 100% { transform: scaleX(0.6); opacity: 0.55; }
+    50%      { transform: scaleX(1);   opacity: 1; }
+  }
+
+  .work-hero-title {
+    font-size: clamp(2.75rem, 7.5vw, 6.25rem);
+    letter-spacing: -0.025em;
+  }
+  .work-hero-em {
+    position: relative;
+    display: inline-block;
+    color: rgb(var(--text));
+  }
+  .work-hero-em::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 0.04em;
+    height: 0.16em;
+    background: rgb(var(--accent) / 0.22);
+    z-index: -1;
+    border-radius: 2px;
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: work-hero-underline 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+  }
+  @keyframes work-hero-underline {
+    to { transform: scaleX(1); }
+  }
+
+  .work-hero-lede {
+    /* Reads as a confident editorial standfirst, not body copy. */
+    font-feature-settings: "ss01", "liga";
+  }
+
+  .work-hero-rule {
+    display: inline-block;
+    height: 1px;
+    width: 56px;
+    background: linear-gradient(to right, rgb(var(--accent)), rgb(var(--accent) / 0));
+    flex-shrink: 0;
+  }
+  .work-hero-meta-sep {
+    color: rgb(var(--muted) / 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-hero-eyebrow-tick { animation: none; transform: scaleX(1); }
+    .work-hero-em::after { animation: none; transform: scaleX(1); }
+  }
+
+  /* ── Filter chips ── */
+  .work-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--surface) / 0.6);
+    border-radius: 9999px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    cursor: pointer;
+    transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease, transform 200ms ease;
+  }
+  .work-chip:hover {
+    color: rgb(var(--text));
+    border-color: rgb(var(--accent) / 0.55);
+    background: rgb(var(--accent) / 0.06);
+    transform: translateY(-1px);
+  }
+  .work-chip-count {
+    font-size: 10px;
+    color: rgb(var(--muted) / 0.7);
+    background: rgb(var(--bg) / 0.6);
+    padding: 0.05rem 0.45rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--border) / 0.7);
+    transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease;
+  }
+  .work-chip--active {
+    color: rgb(var(--bg));
+    background: rgb(var(--accent));
+    border-color: rgb(var(--accent));
+  }
+  .work-chip--active .work-chip-count {
+    color: rgb(var(--bg));
+    background: rgb(var(--bg) / 0.18);
+    border-color: rgb(var(--bg) / 0.2);
+  }
+  .work-chip--active:hover {
+    background: rgb(var(--accent-hover));
+    border-color: rgb(var(--accent-hover));
+    color: rgb(var(--bg));
+  }
+
+  /* ── Grid ── */
+  .work-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 760px) {
+    .work-grid { grid-template-columns: 1fr 1fr; gap: 3rem 2.5rem; }
+  }
+  @media (min-width: 1180px) {
+    .work-grid { gap: 4rem 3rem; }
+  }
+
+  /* ── Card ── */
+  .work-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+    /* Filter fade — paired with hidden attribute via JS */
+    transition: opacity 320ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .work-card[hidden] { display: none !important; }
+
+  /* Hero image area */
+  .work-card-shot {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgb(var(--border));
+    border-radius: 0.65rem;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 0%, rgb(var(--accent) / 0.05), transparent 55%),
+      rgb(var(--paper) / 0.55);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), border-color 380ms ease;
+  }
+  .work-card-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1.25rem;
+    display: block;
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .work-card-placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgb(var(--muted));
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 1rem;
+  }
+  .work-card:hover .work-card-shot {
+    transform: translateY(-6px);
+    border-color: rgb(var(--accent) / 0.55);
+    /* Hover: no shadow — definition comes from the accent border alone. */
+  }
+  .work-card:hover .work-card-shot img { transform: scale(1.045); }
+
+  /* Diagonal sheen sweep on hover */
+  .work-card-sheen {
+    position: absolute;
+    top: 0; left: -120%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      115deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.08) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    transition: left 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .work-card:hover .work-card-sheen { left: 130%; }
+  :global(.dark) .work-card-sheen { background: linear-gradient(115deg, transparent 0%, rgb(94 234 212 / 0.10) 50%, transparent 100%); }
+
+  /* Index chip overlay */
+  .work-card-num {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.8rem;
+    font-family: ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgb(var(--muted));
+    background: rgb(var(--bg) / 0.75);
+    padding: 0.18rem 0.55rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--border));
+    backdrop-filter: blur(6px);
+    transition: color 220ms ease, border-color 220ms ease;
+  }
+  .work-card:hover .work-card-num {
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent) / 0.45);
+  }
+
+  /* Corner ticks */
+  .work-card-corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: rgb(var(--accent) / 0.75);
+    border-style: solid;
+    border-width: 0;
+    opacity: 0;
+    transition: opacity 280ms ease;
+    pointer-events: none;
+  }
+  .work-card:hover .work-card-corner { opacity: 1; }
+  .work-card-corner--tl { top: 8px; left: 8px; border-top-width: 1.5px; border-left-width: 1.5px; }
+  .work-card-corner--tr { top: 8px; right: 8px; border-top-width: 1.5px; border-right-width: 1.5px; }
+  .work-card-corner--bl { bottom: 8px; left: 8px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+  .work-card-corner--br { bottom: 8px; right: 8px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+  /* Body */
+  .work-card-body {
+    padding-top: 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    min-width: 0;
+  }
+  .work-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .work-card-cat {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+  }
+  .work-card-meta-sep {
+    color: rgb(var(--muted) / 0.55);
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+  }
+
+  .work-card-title {
+    font-size: clamp(1.6rem, 2.4vw, 2.15rem);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    margin: 0;
+  }
+  .work-card-title a {
+    color: rgb(var(--text));
+    transition: color 220ms ease;
+  }
+  .work-card:hover .work-card-title a { color: rgb(var(--accent)); }
+
+  .work-card-line {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: rgb(var(--muted));
+    margin: 0;
+    max-width: 36rem;
+  }
+
+  .work-card-specs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.85rem;
+  }
+  .work-card-specs > div {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 0.65rem;
+    align-items: baseline;
+  }
+  .work-card-specs dt {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(var(--sepia));
+    margin: 0;
+  }
+  .work-card-specs dd {
+    color: rgb(var(--text) / 0.9);
+    font-family: var(--font-serif, ui-serif, serif);
+    margin: 0;
+    min-width: 0;
+  }
+
+  .work-card-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+  }
+  .work-card-tag {
+    font-family: ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid rgb(var(--border));
+    border-radius: 9999px;
+    color: rgb(var(--muted));
+    background: rgb(var(--surface) / 0.4);
+    transition: color 220ms ease, border-color 220ms ease, background-color 220ms ease;
+  }
+  .work-card:hover .work-card-tag {
+    color: rgb(var(--text) / 0.9);
+    border-color: rgb(var(--accent) / 0.25);
+    background: rgb(var(--accent) / 0.05);
+  }
+  .work-card-tag--more {
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent) / 0.3);
+  }
+
+  .work-card-actions {
+    margin-top: 0.7rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+  }
+  .work-card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--accent));
+    transition: gap 220ms cubic-bezier(0.22, 1, 0.36, 1), color 200ms ease;
+  }
+  .work-card-cta svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .work-card-cta:hover { gap: 0.75rem; color: rgb(var(--text)); }
+  .work-card-cta:hover svg { transform: translateX(4px); }
+
+  /* Stagger reveal — work-grid uses a tighter per-card delay than the default
+     (we have ~20 cards; 60ms × 20 = 1.2s feels sluggish). */
+  .reveal-stagger.work-grid > .reveal {
+    transition-delay: calc(var(--card-i, 0) * 45ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work-card,
+    .work-card-shot,
+    .work-card-shot img,
+    .work-card-sheen,
+    .work-card-num,
+    .work-card-corner { transition: none !important; transform: none !important; }
+  }
+</style>
 
 <script is:inline>
   (function () {
-    const root = document.querySelector("[data-catalog-root]");
-    if (!root) return;
-    const list = root.querySelector("[data-catalog-list]");
-    const buttons = Array.from(root.querySelectorAll("[data-sort]"));
+    const root = document.querySelector("[data-work-filters]");
+    const grid = document.querySelector("[data-work-grid]");
+    const empty = document.querySelector("[data-work-empty]");
+    if (!root || !grid) return;
 
-    const sortBy = (key) => {
-      const rows = Array.from(list.querySelectorAll("[data-row]"));
-      const isString = key === "region" || key === "category";
+    const buttons = Array.from(root.querySelectorAll("[data-filter]"));
+    const cards = Array.from(grid.querySelectorAll(".work-card"));
 
-      rows.sort((a, b) => {
-        const av = a.getAttribute(`data-sort-${key}`) ?? "";
-        const bv = b.getAttribute(`data-sort-${key}`) ?? "";
-        if (isString) return av.localeCompare(bv);
-        return Number(av) - Number(bv);
+    const apply = (key) => {
+      let visible = 0;
+      cards.forEach((card) => {
+        const platforms = (card.getAttribute("data-platforms") || "").split(" ");
+        const match = key === "all" || platforms.includes(key);
+        card.hidden = !match;
+        if (match) {
+          card.style.setProperty("--card-i", String(visible));
+          visible++;
+        }
       });
-
-      rows.forEach((r) => list.appendChild(r));
+      if (empty) empty.hidden = visible > 0;
     };
 
     buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const key = btn.getAttribute("data-sort");
-        if (!key) return;
+        const key = btn.getAttribute("data-filter") || "all";
         buttons.forEach((b) => {
           const active = b === btn;
-          b.classList.toggle("chip-accent", active);
+          b.classList.toggle("work-chip--active", active);
           b.setAttribute("aria-pressed", String(active));
         });
-        sortBy(key);
+        apply(key);
       });
     });
   })();

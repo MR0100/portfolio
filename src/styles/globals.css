@@ -4,34 +4,314 @@
 
 @layer base {
   :root {
-    /* Atlas — warm cream paper, deep navy ink, teal accent, sepia second */
-    --bg: 250 247 240;          /* warm cream */
-    --paper: 245 240 228;        /* slightly deeper paper */
-    --surface: 255 252 245;      /* highlight surface */
-    --text: 12 28 47;            /* deep navy ink */
-    --muted: 92 102 122;         /* softer navy */
-    --accent: 15 95 96;          /* deep teal — cartographic */
-    --accent-hover: 11 75 76;
-    --accent-soft: 153 197 198;  /* tinted teal for fills */
-    --sepia: 175 88 31;          /* warm earth accent */
-    --sepia-soft: 232 197 159;
-    --border: 222 213 196;       /* aged paper border */
-    --grid: 200 188 162;         /* subtle dot grid */
+    /* Onyx — default. Premium deep slate + ice cyan accent.
+       Contrast tuned for comfortable reading: muted + sepia darkened
+       in light mode, brightened in dark mode. */
+    --bg: 238 242 248;
+    --paper: 222 230 240;
+    --surface: 250 252 255;
+    --text: 8 16 32;             /* darker for max contrast (was 14 22 38) */
+    --muted: 62 84 112;          /* darker for visibility (was 80 100 124) */
+    --accent: 24 96 160;
+    --accent-hover: 16 76 134;
+    --accent-soft: 156 192 226;
+    --sepia: 70 92 122;           /* darker (was 88 108 132) */
+    --sepia-soft: 196 208 224;
+    --border: 200 214 230;
+    --grid: 180 196 218;
   }
 
   .dark {
-    --bg: 11 17 26;              /* deep navy night */
-    --paper: 17 24 39;
-    --surface: 24 32 48;
-    --text: 240 235 222;         /* warm cream text */
-    --muted: 167 169 178;
-    --accent: 94 234 212;        /* glowing teal */
-    --accent-hover: 153 246 228;
-    --accent-soft: 30 70 70;
-    --sepia: 217 161 99;
-    --sepia-soft: 87 64 38;
-    --border: 47 56 74;
-    --grid: 56 67 84;
+    --bg: 6 12 22;
+    --paper: 14 22 36;
+    --surface: 22 32 50;
+    --text: 238 244 252;          /* brighter (was 222 232 246) */
+    --muted: 192 210 232;         /* significantly brighter (was 148 172 198) */
+    --accent: 140 198 250;        /* ice cyan, refined */
+    --accent-hover: 180 224 254;
+    --accent-soft: 22 50 86;
+    --sepia: 204 220 238;         /* brighter for labels/eyebrows (was 170 190 214) */
+    --sepia-soft: 56 74 100;
+    --border: 50 70 96;            /* slightly brighter so borders read (was 38 56 82) */
+    --grid: 50 74 104;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     THEME VARIANTS — applied via data-theme="<name>". Same Slate-quality
+     discipline across the set: refined accents (bright but not blaring),
+     cool/neutral bases, clean secondary tones. No amber/beige anywhere.
+     6 matte (Atlas/Carbon/Slate/Onyx/Plum/Mono) + 1 nature (Aurora)
+     + 3 refined cyberpunk (Matrix/Synthwave/Cyber).
+     ═════════════════════════════════════════════════════════════════════ */
+
+  /* ── 02 · Carbon — refined warm charcoal + clean cyan ── */
+  [data-theme="carbon"] {
+    --bg: 244 246 250;
+    --paper: 232 236 244;
+    --surface: 252 253 255;
+    --text: 18 24 36;
+    --muted: 92 108 128;
+    --accent: 16 116 158;
+    --accent-hover: 10 92 132;
+    --accent-soft: 158 200 222;
+    --sepia: 100 116 134;
+    --sepia-soft: 200 210 224;
+    --border: 210 218 226;
+    --grid: 188 200 214;
+  }
+  [data-theme="carbon"].dark, .dark [data-theme="carbon"] {
+    --bg: 12 16 24;
+    --paper: 20 26 36;
+    --surface: 30 38 52;
+    --text: 232 238 246;
+    --muted: 158 174 196;
+    --accent: 102 200 240;
+    --accent-hover: 152 220 250;
+    --accent-soft: 22 56 84;
+    --sepia: 168 184 206;
+    --sepia-soft: 60 76 98;
+    --border: 48 62 82;
+    --grid: 60 76 100;
+  }
+
+  /* ── 03 · Slate — cool slate + electric blue (the gold standard) ── */
+  [data-theme="slate"] {
+    --bg: 240 244 250;
+    --paper: 230 236 245;
+    --surface: 250 252 255;
+    --text: 18 28 42;
+    --muted: 92 105 124;
+    --accent: 50 110 220;
+    --accent-hover: 38 90 198;
+    --accent-soft: 178 198 230;
+    --sepia: 96 108 130;
+    --sepia-soft: 198 208 220;
+    --border: 210 220 232;
+    --grid: 188 200 216;
+  }
+  [data-theme="slate"].dark, .dark [data-theme="slate"] {
+    --bg: 12 18 28;
+    --paper: 18 26 38;
+    --surface: 28 36 50;
+    --text: 230 238 250;
+    --muted: 158 172 192;
+    --accent: 120 188 252;
+    --accent-hover: 168 210 254;
+    --accent-soft: 22 56 92;
+    --sepia: 168 184 208;
+    --sepia-soft: 60 72 88;
+    --border: 48 60 80;
+    --grid: 60 76 96;
+  }
+
+  /* ── 04 · Atlas — refined teal alternative (former default) ── */
+  [data-theme="atlas"] {
+    --bg: 243 247 250;
+    --paper: 230 238 245;
+    --surface: 252 254 255;
+    --text: 16 32 50;
+    --muted: 90 110 132;
+    --accent: 22 130 130;
+    --accent-hover: 14 102 102;
+    --accent-soft: 170 208 208;
+    --sepia: 98 116 138;
+    --sepia-soft: 196 212 224;
+    --border: 212 222 232;
+    --grid: 188 202 216;
+  }
+  [data-theme="atlas"].dark, .dark [data-theme="atlas"] {
+    --bg: 10 18 28;
+    --paper: 18 28 42;
+    --surface: 26 38 54;
+    --text: 228 238 246;
+    --muted: 154 174 196;
+    --accent: 104 226 222;
+    --accent-hover: 158 240 236;
+    --accent-soft: 22 60 60;
+    --sepia: 170 188 206;
+    --sepia-soft: 58 76 96;
+    --border: 46 62 84;
+    --grid: 56 76 100;
+  }
+
+  /* ── 05 · Plum — sophisticated plum purple ── */
+  [data-theme="plum"] {
+    --bg: 246 244 250;
+    --paper: 236 230 244;
+    --surface: 253 252 255;
+    --text: 28 20 42;
+    --muted: 110 96 128;
+    --accent: 116 76 160;
+    --accent-hover: 92 56 132;
+    --accent-soft: 204 188 226;
+    --sepia: 110 102 124;
+    --sepia-soft: 210 200 220;
+    --border: 222 214 234;
+    --grid: 200 192 218;
+  }
+  [data-theme="plum"].dark, .dark [data-theme="plum"] {
+    --bg: 14 12 24;
+    --paper: 22 18 38;
+    --surface: 32 26 54;
+    --text: 232 224 248;
+    --muted: 174 168 200;
+    --accent: 188 142 240;
+    --accent-hover: 214 178 252;
+    --accent-soft: 56 38 88;
+    --sepia: 186 176 212;
+    --sepia-soft: 72 62 94;
+    --border: 58 48 90;
+    --grid: 72 60 104;
+  }
+
+  /* ── 06 · Mono — sophisticated neutral grayscale ── */
+  [data-theme="mono"] {
+    --bg: 246 247 250;
+    --paper: 234 236 240;
+    --surface: 254 254 255;
+    --text: 18 20 24;
+    --muted: 100 108 120;
+    --accent: 32 38 50;
+    --accent-hover: 14 18 28;
+    --accent-soft: 198 204 212;
+    --sepia: 128 136 150;
+    --sepia-soft: 208 212 222;
+    --border: 218 222 228;
+    --grid: 198 202 212;
+  }
+  [data-theme="mono"].dark, .dark [data-theme="mono"] {
+    --bg: 12 14 18;
+    --paper: 20 22 28;
+    --surface: 30 32 40;
+    --text: 232 234 240;
+    --muted: 160 168 180;
+    --accent: 224 230 244;
+    --accent-hover: 248 250 255;
+    --accent-soft: 58 62 72;
+    --sepia: 168 176 188;
+    --sepia-soft: 64 68 78;
+    --border: 50 54 64;
+    --grid: 64 70 80;
+  }
+
+  /* ── 07 · Aurora — cool gray + refined emerald green ── */
+  [data-theme="aurora"] {
+    --bg: 240 246 244;
+    --paper: 228 238 234;
+    --surface: 250 254 252;
+    --text: 12 32 26;
+    --muted: 88 112 102;
+    --accent: 24 134 100;
+    --accent-hover: 18 106 80;
+    --accent-soft: 168 214 196;
+    --sepia: 100 120 124;
+    --sepia-soft: 200 216 212;
+    --border: 204 220 214;
+    --grid: 184 204 196;
+  }
+  [data-theme="aurora"].dark, .dark [data-theme="aurora"] {
+    --bg: 8 16 14;
+    --paper: 14 26 22;
+    --surface: 20 36 32;
+    --text: 222 240 232;
+    --muted: 152 184 168;
+    --accent: 102 224 184;
+    --accent-hover: 148 240 208;
+    --accent-soft: 22 64 50;
+    --sepia: 168 196 184;
+    --sepia-soft: 58 80 70;
+    --border: 42 64 56;
+    --grid: 54 80 70;
+  }
+
+  /* ── 08 · Matrix — refined dark + neon green (less acid) ── */
+  [data-theme="matrix"] {
+    --bg: 244 248 244;
+    --paper: 232 244 234;
+    --surface: 252 254 252;
+    --text: 8 28 16;
+    --muted: 78 104 88;
+    --accent: 20 130 50;
+    --accent-hover: 14 104 38;
+    --accent-soft: 168 218 184;
+    --sepia: 92 116 104;
+    --sepia-soft: 196 218 206;
+    --border: 198 218 202;
+    --grid: 174 200 180;
+  }
+  [data-theme="matrix"].dark, .dark [data-theme="matrix"] {
+    --bg: 6 14 8;
+    --paper: 12 24 14;
+    --surface: 18 34 22;
+    --text: 210 240 218;
+    --muted: 140 178 152;
+    --accent: 108 226 144;
+    --accent-hover: 152 240 184;
+    --accent-soft: 24 68 38;
+    --sepia: 168 196 178;
+    --sepia-soft: 60 84 70;
+    --border: 38 70 48;
+    --grid: 50 84 60;
+  }
+
+  /* ── 09 · Synthwave — refined hot pink + cyan ── */
+  [data-theme="synthwave"] {
+    --bg: 246 244 250;
+    --paper: 238 230 246;
+    --surface: 253 252 255;
+    --text: 32 16 44;
+    --muted: 112 92 128;
+    --accent: 196 64 160;
+    --accent-hover: 168 50 138;
+    --accent-soft: 234 196 220;
+    --sepia: 60 152 192;
+    --sepia-soft: 190 218 232;
+    --border: 228 218 236;
+    --grid: 208 198 222;
+  }
+  [data-theme="synthwave"].dark, .dark [data-theme="synthwave"] {
+    --bg: 14 10 28;
+    --paper: 22 14 40;
+    --surface: 32 22 58;
+    --text: 240 224 250;
+    --muted: 180 162 208;
+    --accent: 240 120 200;
+    --accent-hover: 252 158 218;
+    --accent-soft: 70 28 86;
+    --sepia: 110 212 224;
+    --sepia-soft: 32 72 92;
+    --border: 58 36 100;
+    --grid: 74 50 124;
+  }
+
+  /* ── 10 · Cyber — refined magenta + cyan ── */
+  [data-theme="cyber"] {
+    --bg: 246 242 250;
+    --paper: 238 228 248;
+    --surface: 252 250 255;
+    --text: 28 16 44;
+    --muted: 110 94 132;
+    --accent: 188 50 144;
+    --accent-hover: 160 38 124;
+    --accent-soft: 234 186 218;
+    --sepia: 36 138 168;
+    --sepia-soft: 186 220 232;
+    --border: 226 214 240;
+    --grid: 204 194 224;
+  }
+  [data-theme="cyber"].dark, .dark [data-theme="cyber"] {
+    --bg: 14 8 22;
+    --paper: 22 12 36;
+    --surface: 32 18 52;
+    --text: 236 222 250;
+    --muted: 180 166 208;
+    --accent: 236 96 200;
+    --accent-hover: 248 138 220;
+    --accent-soft: 76 24 70;
+    --sepia: 108 224 246;
+    --sepia-soft: 32 70 90;
+    --border: 60 36 92;
+    --grid: 76 50 110;
   }
 
   html {

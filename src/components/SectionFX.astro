@@ -4,7 +4,15 @@
 // that section, animates only while the section is in view (engine off otherwise),
 // reacts to scroll velocity, and is reduced-motion safe. Theme palette only.
 interface Props {
-  variant: "hex" | "warp" | "glitch" | "circuit" | "current" | "dotcircuit" | "ripple" | "transmit" | "dots" | "contour" | "constellation" | "aurora" | "grid";
+  variant:
+    | "hex" | "warp" | "glitch" | "circuit" | "current" | "dotcircuit" | "ripple" | "transmit" | "dots" | "contour" | "constellation" | "aurora" | "grid"
+    // ── 20 interactive candidates (each reacts to mouse position + velocity, and scroll) ──
+    | "magnet" | "repel" | "ripples" | "ink" | "well"
+    | "warpmesh" | "lift" | "vortex" | "trail" | "lens"
+    | "fireflies" | "sweep" | "scatter" | "ribbons" | "fieldlines"
+    | "comet" | "chase" | "shatter" | "tunnel" | "constellate"
+    // ── cursor-reactive overlay (sits on top of an existing background) ──
+    | "halo";
   bleed?: boolean; // span the full viewport width (break out of a padded/centered container)
 }
 const { variant, bleed = false } = Astro.props;
@@ -74,10 +82,10 @@ const { variant, bleed = false } = Astro.props;
         },
         step(ctx, w, h, t, st) {
           ctx.clearRect(0, 0, w, h);
-          if (t > st.next) { st.rings.push({ x: rnd(w), y: rnd(h), r: 0 }); st.next = t + rnd(95, 42); }
+          if (t > st.next) { st.rings.push({ x: rnd(w), y: rnd(h), r: 0 }); st.next = t + rnd(180, 100); }
           if (Math.abs(SC.v) > 8) st.rings.push({ x: rnd(w), y: rnd(h), r: 0 });
           const lim = Math.hypot(w, h);
-          for (const g of st.rings) g.r += 4.2;
+          for (const g of st.rings) g.r += 2.2;
           st.rings = st.rings.filter((g) => g.r < lim);
           const R = st.R;
           for (const hx of st.hexes) {
@@ -650,6 +658,917 @@ const { variant, bleed = false } = Astro.props;
           }
         },
       },
+
+      // ═════════════════════════════════════════════════════════════════════
+      // 20 INTERACTIVE variants — every step() reads `M` (mouse) and `SC`
+      // (scroll velocity). Each has visible feedback to cursor position,
+      // cursor velocity, and scroll within ~1 frame. Step signature:
+      //   step(ctx, w, h, t, st, M)
+      // where M = { sx, sy, vx, vy, in, recency, down, clicks, x, y, ... }
+      // ═════════════════════════════════════════════════════════════════════
+
+      // 01 — Magnet: a dot grid; the cursor magnetises nearby dots, dragging
+      // them toward itself. Scroll velocity tugs every dot vertically.
+      magnet: {
+        init(w, h) {
+          const SP = 38;
+          const dots = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              dots.push({ bx: x, by: y, x, y });
+          return { dots };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          const R = 180, R2 = R * R;
+          for (const d of st.dots) {
+            // Pull toward cursor if within radius; spring back to base position
+            let tx = d.bx, ty = d.by;
+            if (M.in) {
+              const dx = M.sx - d.bx, dy = M.sy - d.by;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < R2) {
+                const f = 1 - Math.sqrt(d2) / R;
+                tx += dx * f * 0.55;
+                ty += dy * f * 0.55;
+              }
+            }
+            // Scroll velocity adds vertical drag
+            ty += SC.v * 0.06;
+            d.x += (tx - d.x) * 0.18;
+            d.y += (ty - d.y) * 0.18;
+            const lift = Math.hypot(d.x - d.bx, d.y - d.by);
+            const al = 0.18 + Math.min(1, lift / 50) * 0.6;
+            const col = lift > 6 ? C.teal : C.dim;
+            ctx.fillStyle = "rgba(" + col + "," + al.toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(d.x, d.y, 1.3 + Math.min(1, lift / 50) * 1.6, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 02 — Repel: free particles flee from the cursor (force ∝ 1/r²).
+      // Mouse swipes blow particles in the direction of the swipe.
+      repel: {
+        init(w, h) {
+          const N = Math.max(80, Math.floor((w * h) / 14000));
+          const ps = [];
+          for (let i = 0; i < N; i++) ps.push({ x: rnd(w), y: rnd(h), vx: 0, vy: 0 });
+          return { ps };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.22)";
+          ctx.fillRect(0, 0, w, h);
+          const R = 220;
+          for (const p of st.ps) {
+            if (M.in) {
+              const dx = p.x - M.sx, dy = p.y - M.sy;
+              const d = Math.hypot(dx, dy) || 1;
+              if (d < R) {
+                const f = (1 - d / R) * 2.2;
+                p.vx += (dx / d) * f;
+                p.vy += (dy / d) * f;
+                // Mouse-velocity push — swipes blow particles along the swipe
+                p.vx += M.vx * 0.12 * (1 - d / R);
+                p.vy += M.vy * 0.12 * (1 - d / R);
+              }
+            }
+            p.vx *= 0.92; p.vy *= 0.92;
+            p.x += p.vx; p.y += p.vy;
+            // Wrap
+            if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+            const sp = Math.hypot(p.vx, p.vy);
+            const col = sp > 1 ? C.teal : C.dim;
+            ctx.fillStyle = "rgba(" + col + "," + (0.35 + Math.min(1, sp / 6) * 0.55).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1 + sp * 0.25, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 03 — Ripples: every pointer move drops a tiny ripple; click / scroll
+      // burst drops a big one. Rings expand outward across a dim dot grid.
+      ripples: {
+        init(w, h) {
+          const SP = 32;
+          const dots = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              dots.push({ x, y });
+          return { dots, rings: [], lastDrop: 0 };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          // Drop small ripple as the cursor moves; throttle by velocity
+          const speed = Math.hypot(M.vx, M.vy);
+          if (M.in && speed > 1.2 && t - st.lastDrop > 4) {
+            st.rings.push({ x: M.sx, y: M.sy, r: 0, max: 180 + speed * 12, strong: false });
+            st.lastDrop = t;
+          }
+          if (M.down) st.rings.push({ x: M.sx, y: M.sy, r: 0, max: 320, strong: true });
+          if (Math.abs(SC.v) > 7) {
+            st.rings.push({ x: M.in ? M.sx : w / 2, y: M.in ? M.sy : h / 2, r: 0, max: 280, strong: true });
+          }
+          // Advance rings
+          for (let i = st.rings.length - 1; i >= 0; i--) {
+            const r = st.rings[i];
+            r.r += r.strong ? 5 : 3.4;
+            if (r.r > r.max) st.rings.splice(i, 1);
+          }
+          // Render dots, brightening near ring edges
+          const BAND = 22;
+          for (const d of st.dots) {
+            let glow = 0;
+            for (const r of st.rings) {
+              const dd = Math.hypot(d.x - r.x, d.y - r.y);
+              const f = 1 - Math.abs(dd - r.r) / BAND;
+              if (f > glow) glow = f * (r.strong ? 1.2 : 0.85);
+            }
+            glow = Math.max(0, Math.min(1, glow));
+            if (glow > 0.05) {
+              ctx.fillStyle = "rgba(" + C.teal + "," + (0.2 + glow * 0.6).toFixed(3) + ")";
+              ctx.beginPath(); ctx.arc(d.x, d.y, 1.2 + glow * 2.2, 0, 6.283); ctx.fill();
+            } else {
+              ctx.fillStyle = "rgba(" + C.dim + ",0.18)";
+              ctx.beginPath(); ctx.arc(d.x, d.y, 1, 0, 6.283); ctx.fill();
+            }
+          }
+        },
+      },
+
+      // 04 — Ink: cursor leaves a long, fading ink stroke on the canvas.
+      // Trail thickness rides cursor speed; scroll burst dims the canvas.
+      ink: {
+        init() { return { trail: [], dim: 0.07 }; },
+        step(ctx, w, h, t, st, M) {
+          st.dim = 0.07 + Math.min(0.15, Math.abs(SC.v) * 0.004);
+          ctx.fillStyle = "rgba(" + C.bg + "," + st.dim.toFixed(3) + ")";
+          ctx.fillRect(0, 0, w, h);
+          if (M.in) st.trail.push({ x: M.sx, y: M.sy, v: Math.hypot(M.vx, M.vy), age: 0 });
+          if (st.trail.length > 240) st.trail.shift();
+          ctx.lineCap = "round";
+          for (let i = 1; i < st.trail.length; i++) {
+            const a = st.trail[i - 1], b = st.trail[i];
+            b.age++;
+            if (b.age > 90) continue;
+            const f = 1 - b.age / 90;
+            const w2 = 1 + Math.min(8, b.v) * 0.45 * f;
+            ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.7).toFixed(3) + ")";
+            ctx.lineWidth = w2;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        },
+      },
+
+      // 05 — Well: cursor is a gravity well — distant particles fall toward
+      // it on near-Keplerian curves and slingshot around. Click = mass spike.
+      well: {
+        init(w, h) {
+          const N = 220;
+          const ps = [];
+          for (let i = 0; i < N; i++) {
+            const a = rnd(6.28), r = Math.hypot(w, h) * (0.2 + Math.random() * 0.5);
+            const cx = w / 2 + Math.cos(a) * r, cy = h / 2 + Math.sin(a) * r;
+            ps.push({ x: cx, y: cy, vx: rnd(0.3, -0.3), vy: rnd(0.3, -0.3) });
+          }
+          return { ps };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.18)";
+          ctx.fillRect(0, 0, w, h);
+          const mass = (M.in ? 1 : 0.25) * (M.down ? 4 : 1);
+          const gx = M.in ? M.sx : w / 2, gy = M.in ? M.sy : h / 2;
+          for (const p of st.ps) {
+            const dx = gx - p.x, dy = gy - p.y;
+            const d = Math.hypot(dx, dy) + 30;
+            const f = mass * 250 / (d * d);
+            p.vx += (dx / d) * f;
+            p.vy += (dy / d) * f;
+            p.vx *= 0.985; p.vy *= 0.985;
+            p.x += p.vx; p.y += p.vy;
+            // Wrap so they re-enter
+            if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
+            if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+            const sp = Math.hypot(p.vx, p.vy);
+            ctx.strokeStyle = "rgba(" + C.teal + "," + Math.min(0.8, 0.18 + sp * 0.18).toFixed(3) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 4, p.y - p.vy * 4); ctx.stroke();
+          }
+        },
+      },
+
+      // 06 — WarpMesh: a triangulated mesh that warps away from the cursor
+      // (vertices pushed outward). Scroll velocity bows it vertically.
+      warpmesh: {
+        init(w, h) {
+          const SP = 64;
+          const cols = Math.ceil(w / SP) + 2, rows = Math.ceil(h / SP) + 2;
+          const pts = [];
+          for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+            pts.push({ bx: (c - 0.5) * SP, by: (r - 0.5) * SP, x: 0, y: 0 });
+          }
+          const tris = [];
+          for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols - 1; c++) {
+            const i = r * cols + c, j = i + 1, k = i + cols, l = i + cols + 1;
+            tris.push([i, j, k]); tris.push([j, l, k]);
+          }
+          return { pts, tris };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          const R = 220, R2 = R * R;
+          for (const p of st.pts) {
+            let tx = p.bx, ty = p.by + SC.v * 0.5;
+            if (M.in) {
+              const dx = p.bx - M.sx, dy = p.by - M.sy;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < R2) {
+                const d = Math.sqrt(d2) || 1;
+                const f = (1 - d / R) * 70;
+                tx += (dx / d) * f;
+                ty += (dy / d) * f;
+              }
+            }
+            p.x += (tx - p.x) * 0.22;
+            p.y += (ty - p.y) * 0.22;
+          }
+          for (const tr of st.tris) {
+            const a = st.pts[tr[0]], b = st.pts[tr[1]], c = st.pts[tr[2]];
+            const cx = (a.x + b.x + c.x) / 3, cy = (a.y + b.y + c.y) / 3;
+            // Brighter the closer the centroid is to cursor
+            let glow = 0;
+            if (M.in) {
+              const d = Math.hypot(cx - M.sx, cy - M.sy);
+              glow = Math.max(0, 1 - d / R);
+            }
+            ctx.fillStyle = "rgba(" + (glow > 0.3 ? C.teal : C.dim) + "," + (0.04 + glow * 0.28).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = "rgba(" + C.dim + ",0.18)";
+            ctx.lineWidth = 0.5; ctx.stroke();
+          }
+        },
+      },
+
+      // 07 — Lift: an isometric grid; cursor "lifts" cells up into a 3-D
+      // mound (taller cells = brighter). Scroll tilts the whole landscape.
+      lift: {
+        init(w, h) {
+          const SP = 28;
+          const cells = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              cells.push({ x, y, z: 0 });
+          return { cells };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.18)";
+          ctx.fillRect(0, 0, w, h);
+          const R = 180, R2 = R * R;
+          for (const c of st.cells) {
+            let tz = 0;
+            if (M.in) {
+              const dx = c.x - M.sx, dy = c.y - M.sy;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < R2) {
+                const f = 1 - Math.sqrt(d2) / R;
+                tz = Math.pow(f, 2) * 38;
+              }
+            }
+            c.z += (tz - c.z) * 0.2;
+            const tilt = SC.v * 0.2;
+            const yy = c.y - c.z + tilt;
+            const al = 0.18 + Math.min(1, c.z / 30) * 0.6;
+            const col = c.z > 8 ? C.teal : C.dim;
+            ctx.fillStyle = "rgba(" + col + "," + al.toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(c.x, yy, 1.4 + c.z * 0.07, 0, 6.283); ctx.fill();
+            // Vertical "shadow line" so the lift reads as depth
+            if (c.z > 4) {
+              ctx.strokeStyle = "rgba(" + C.dim + ",0.18)";
+              ctx.lineWidth = 0.5;
+              ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.x, yy); ctx.stroke();
+            }
+          }
+        },
+      },
+
+      // 08 — Vortex: particles swirl around the cursor (orbital force).
+      // Direction reverses when you swipe across them. Scroll = radial blast.
+      vortex: {
+        init(w, h) {
+          const N = 240;
+          const ps = [];
+          for (let i = 0; i < N; i++) ps.push({ x: rnd(w), y: rnd(h), vx: 0, vy: 0 });
+          return { ps, spin: 1 };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.18)";
+          ctx.fillRect(0, 0, w, h);
+          // Mouse-velocity x toggles spin direction smoothly
+          if (M.in) st.spin += (Math.sign(M.vx || 1) - st.spin) * 0.04;
+          for (const p of st.ps) {
+            const cx = M.in ? M.sx : w / 2, cy = M.in ? M.sy : h / 2;
+            const dx = p.x - cx, dy = p.y - cy;
+            const d = Math.hypot(dx, dy) + 12;
+            // Tangent force: perpendicular to radial vector
+            const tx = -dy / d, ty = dx / d;
+            const orbit = 90 / d * st.spin;
+            p.vx += tx * orbit;
+            p.vy += ty * orbit;
+            // Light inward pull so they don't fly off
+            p.vx -= (dx / d) * 0.05;
+            p.vy -= (dy / d) * 0.05;
+            // Scroll = radial blast
+            p.vx += (dx / d) * SC.v * 0.04;
+            p.vy += (dy / d) * SC.v * 0.04;
+            p.vx *= 0.96; p.vy *= 0.96;
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+            const sp = Math.hypot(p.vx, p.vy);
+            ctx.strokeStyle = "rgba(" + C.teal + "," + Math.min(0.85, 0.18 + sp * 0.15).toFixed(3) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3); ctx.stroke();
+          }
+        },
+      },
+
+      // 09 — Trail: a comet-tail of softly-fading dots follows the cursor.
+      // No cursor on screen → tail dies out. Scroll boosts the spawn count.
+      trail: {
+        init() { return { ts: [] }; },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.16)";
+          ctx.fillRect(0, 0, w, h);
+          if (M.in) {
+            const sp = Math.hypot(M.vx, M.vy);
+            const n = 1 + Math.min(4, Math.floor(sp / 4)) + Math.min(3, Math.floor(Math.abs(SC.v) / 6));
+            for (let i = 0; i < n; i++) {
+              st.ts.push({
+                x: M.sx + rnd(8, -8),
+                y: M.sy + rnd(8, -8),
+                vx: -M.vx * 0.15 + rnd(0.6, -0.6),
+                vy: -M.vy * 0.15 + rnd(0.6, -0.6),
+                age: 0, life: 50 + Math.random() * 30,
+              });
+            }
+          }
+          for (let i = st.ts.length - 1; i >= 0; i--) {
+            const p = st.ts[i];
+            p.age++;
+            if (p.age > p.life) { st.ts.splice(i, 1); continue; }
+            p.x += p.vx; p.y += p.vy;
+            p.vx *= 0.95; p.vy *= 0.95;
+            const f = 1 - p.age / p.life;
+            const col = f > 0.65 ? C.white : C.teal;
+            ctx.fillStyle = "rgba(" + col + "," + (f * 0.85).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1 + f * 2.5, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 10 — Lens: dot grid; under the cursor sits a circular "lens" that
+      // distorts (magnifies + bends) nearby dots like a glass marble.
+      lens: {
+        init(w, h) {
+          const SP = 24;
+          const dots = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              dots.push({ x, y });
+          return { dots };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          const R = 130 + Math.abs(SC.v) * 1.5;
+          for (const d of st.dots) {
+            let x = d.x, y = d.y, mag = 1, glow = 0;
+            if (M.in) {
+              const dx = d.x - M.sx, dy = d.y - M.sy;
+              const dist = Math.hypot(dx, dy);
+              if (dist < R) {
+                const f = 1 - dist / R;
+                // Lens magnification — bends dots radially outward
+                mag = 1 + f * 1.6;
+                const push = f * 28;
+                if (dist > 0.001) {
+                  x = d.x + (dx / dist) * push;
+                  y = d.y + (dy / dist) * push;
+                }
+                glow = f;
+              }
+            }
+            ctx.fillStyle = "rgba(" + (glow > 0.2 ? C.teal : C.dim) + "," + (0.2 + glow * 0.6).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(x, y, 1.1 * mag, 0, 6.283); ctx.fill();
+          }
+          // Soft halo at cursor
+          if (M.in) {
+            const g = ctx.createRadialGradient(M.sx, M.sy, 0, M.sx, M.sy, R);
+            g.addColorStop(0, "rgba(" + C.teal + ",0.12)");
+            g.addColorStop(1, "rgba(" + C.teal + ",0)");
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+          }
+        },
+      },
+
+      // 11 — Fireflies: drifting glowing dots; cursor attracts them, click
+      // releases a burst of new ones. Light up + connect lines when near.
+      fireflies: {
+        init(w, h) {
+          const N = 60;
+          const fs = [];
+          for (let i = 0; i < N; i++) fs.push({
+            x: rnd(w), y: rnd(h),
+            vx: rnd(0.3, -0.3), vy: rnd(0.3, -0.3),
+            ph: rnd(6.28),
+          });
+          return { fs };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.18)";
+          ctx.fillRect(0, 0, w, h);
+          // Click = burst (push existing flies away from click point)
+          for (const c of M.clicks) {
+            for (const f of st.fs) {
+              const dx = f.x - c.x, dy = f.y - c.y;
+              const d = Math.hypot(dx, dy) + 1;
+              if (d < 200) { f.vx += (dx / d) * 6; f.vy += (dy / d) * 6; }
+            }
+          }
+          M.clicks.length = 0;
+          // Update
+          for (const f of st.fs) {
+            if (M.in) {
+              const dx = M.sx - f.x, dy = M.sy - f.y;
+              const d = Math.hypot(dx, dy) || 1;
+              if (d < 260) { f.vx += (dx / d) * 0.18; f.vy += (dy / d) * 0.18; }
+            }
+            f.vx *= 0.94; f.vy *= 0.94;
+            f.x += f.vx; f.y += f.vy;
+            if (f.x < 0) f.x = w; if (f.x > w) f.x = 0;
+            if (f.y < 0) f.y = h; if (f.y > h) f.y = 0;
+          }
+          // Connect nearby flies
+          for (let i = 0; i < st.fs.length; i++)
+            for (let j = i + 1; j < st.fs.length; j++) {
+              const a = st.fs[i], b = st.fs[j];
+              const d = Math.hypot(a.x - b.x, a.y - b.y);
+              if (d < 110) {
+                ctx.strokeStyle = "rgba(" + C.teal + "," + ((1 - d / 110) * 0.32).toFixed(3) + ")";
+                ctx.lineWidth = 0.6;
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+              }
+            }
+          // Draw flies
+          for (const f of st.fs) {
+            const breath = 0.6 + 0.4 * Math.sin(t * 0.05 + f.ph);
+            ctx.fillStyle = "rgba(" + C.white + "," + (breath * 0.9).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(f.x, f.y, 1.8, 0, 6.283); ctx.fill();
+            ctx.fillStyle = "rgba(" + C.teal + "," + (breath * 0.4).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(f.x, f.y, 5, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 12 — Sweep: a radar-like beam pivots about the cursor. Particles it
+      // touches light up; scroll cranks the sweep speed.
+      sweep: {
+        init(w, h) {
+          const N = 220;
+          const ps = [];
+          for (let i = 0; i < N; i++) ps.push({ x: rnd(w), y: rnd(h), charge: 0 });
+          return { ps, ang: 0 };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.22)";
+          ctx.fillRect(0, 0, w, h);
+          const cx = M.in ? M.sx : w / 2, cy = M.in ? M.sy : h / 2;
+          st.ang += 0.02 + Math.abs(SC.v) * 0.0035 + (M.in ? Math.hypot(M.vx, M.vy) * 0.0015 : 0);
+          const half = 0.32; // ±18° beam width
+          const reach = Math.hypot(w, h) * 0.7;
+          // Beam wedge
+          ctx.fillStyle = "rgba(" + C.teal + ",0.08)";
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, reach, st.ang - half, st.ang + half);
+          ctx.closePath(); ctx.fill();
+          // Charge particles inside the beam
+          for (const p of st.ps) {
+            const dx = p.x - cx, dy = p.y - cy;
+            const a = Math.atan2(dy, dx);
+            let da = a - st.ang;
+            while (da > Math.PI) da -= 2 * Math.PI;
+            while (da < -Math.PI) da += 2 * Math.PI;
+            if (Math.abs(da) < half) p.charge = 1;
+            p.charge *= 0.96;
+            const al = 0.2 + p.charge * 0.7;
+            const col = p.charge > 0.3 ? C.white : C.teal;
+            ctx.fillStyle = "rgba(" + col + "," + al.toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1.2 + p.charge * 1.8, 0, 6.283); ctx.fill();
+          }
+          // Reticle
+          ctx.strokeStyle = "rgba(" + C.teal + ",0.4)";
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(cx, cy, 12, 0, 6.283); ctx.stroke();
+        },
+      },
+
+      // 13 — Scatter: a static photo-style scatter of dots that shy AWAY
+      // when the cursor approaches, smoothly returning when it leaves.
+      scatter: {
+        init(w, h) {
+          const N = Math.max(200, Math.floor((w * h) / 9000));
+          const ps = [];
+          for (let i = 0; i < N; i++) {
+            const x = rnd(w), y = rnd(h);
+            ps.push({ bx: x, by: y, x, y, vx: 0, vy: 0, ph: rnd(6.28) });
+          }
+          return { ps };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          const R = 130;
+          for (const p of st.ps) {
+            let tx = p.bx, ty = p.by;
+            if (M.in) {
+              const dx = p.x - M.sx, dy = p.y - M.sy;
+              const d = Math.hypot(dx, dy);
+              if (d < R) {
+                const f = (1 - d / R) * 50;
+                tx += (dx / (d || 1)) * f;
+                ty += (dy / (d || 1)) * f;
+              }
+            }
+            // Subtle idle bob
+            tx += Math.sin(t * 0.03 + p.ph) * 2.2;
+            ty += Math.cos(t * 0.025 + p.ph) * 2.2;
+            // Scroll adds shake
+            tx += rnd(Math.abs(SC.v) * 0.05, -Math.abs(SC.v) * 0.05);
+            p.vx += (tx - p.x) * 0.08;
+            p.vy += (ty - p.y) * 0.08;
+            p.vx *= 0.78; p.vy *= 0.78;
+            p.x += p.vx; p.y += p.vy;
+            const off = Math.hypot(p.x - p.bx, p.y - p.by);
+            const col = off > 8 ? C.teal : C.dim;
+            const al = 0.22 + Math.min(1, off / 30) * 0.55;
+            ctx.fillStyle = "rgba(" + col + "," + al.toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(p.x, p.y, 1.1, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 14 — Ribbons: parallel horizontal ribbons bend around the cursor
+      // like cloth. Pulled vertically by scroll velocity.
+      ribbons: {
+        init(w, h) {
+          const N = 14;
+          const rows = [];
+          for (let i = 0; i < N; i++) rows.push({ y: (i + 0.5) * (h / N), ph: rnd(6.28) });
+          return { rows };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          for (const row of st.rows) {
+            ctx.beginPath();
+            for (let x = 0; x <= w; x += 6) {
+              let yy = row.y + Math.sin(x * 0.012 + t * 0.012 + row.ph) * 6;
+              // Mouse bend
+              if (M.in) {
+                const dx = x - M.sx, dy = row.y - M.sy;
+                const d = Math.hypot(dx, dy);
+                if (d < 220) {
+                  yy += (1 - d / 220) * (M.sy - row.y) * 0.6;
+                }
+              }
+              // Scroll vertical drag
+              yy += SC.v * 0.4;
+              x === 0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+            }
+            const hot = M.in && Math.abs(row.y - M.sy) < 60;
+            ctx.strokeStyle = hot ? "rgba(" + C.teal + ",0.65)" : "rgba(" + C.dim + ",0.32)";
+            ctx.lineWidth = hot ? 1.2 : 0.7;
+            ctx.stroke();
+          }
+        },
+      },
+
+      // 15 — Field Lines: magnetic field lines radiating from the cursor.
+      // Curl direction tied to scroll; lines stay still when cursor is gone.
+      fieldlines: {
+        init() { return {}; },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.16)";
+          ctx.fillRect(0, 0, w, h);
+          if (!M.in) return;
+          const cx = M.sx, cy = M.sy;
+          const curl = 0.18 + SC.v * 0.005;
+          const N = 28, REACH = Math.hypot(w, h);
+          for (let i = 0; i < N; i++) {
+            const a0 = (i / N) * Math.PI * 2 + t * 0.005;
+            let x = cx, y = cy, a = a0;
+            ctx.beginPath(); ctx.moveTo(x, y);
+            for (let k = 0; k < 80; k++) {
+              x += Math.cos(a) * 6;
+              y += Math.sin(a) * 6;
+              a += curl;
+              if (x < -10 || x > w + 10 || y < -10 || y > h + 10) break;
+              ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = "rgba(" + C.teal + "," + (0.28 - i / N * 0.18).toFixed(3) + ")";
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        },
+      },
+
+      // 16 — Comet: each cursor flick spawns a fast comet that arcs across.
+      // Multiple comets coexist; scroll adds extra spawns.
+      comet: {
+        init() { return { cs: [] }; },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.16)";
+          ctx.fillRect(0, 0, w, h);
+          if (M.in) {
+            const sp = Math.hypot(M.vx, M.vy);
+            if (sp > 3 && Math.random() < 0.5) {
+              st.cs.push({ x: M.sx, y: M.sy, vx: M.vx * 1.2, vy: M.vy * 1.2, life: 0, max: 60 });
+            }
+          }
+          if (Math.abs(SC.v) > 9 && st.cs.length < 8) {
+            const a = rnd(6.28);
+            st.cs.push({ x: rnd(w), y: rnd(h), vx: Math.cos(a) * 6, vy: Math.sin(a) * 6, life: 0, max: 80 });
+          }
+          for (let i = st.cs.length - 1; i >= 0; i--) {
+            const c = st.cs[i]; c.life++;
+            if (c.life > c.max) { st.cs.splice(i, 1); continue; }
+            c.x += c.vx; c.y += c.vy;
+            c.vx *= 0.98; c.vy *= 0.98;
+            const f = 1 - c.life / c.max;
+            ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.8).toFixed(3) + ")";
+            ctx.lineWidth = 1 + f * 2;
+            ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.x - c.vx * 8, c.y - c.vy * 8); ctx.stroke();
+            ctx.fillStyle = "rgba(" + C.white + "," + (f * 0.95).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(c.x, c.y, 1.8 + f * 1.6, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 17 — Chase: a swarm of dots smoothly chases the cursor with offset
+      // delays — looks like a school of fish trailing your pointer.
+      chase: {
+        init(w, h) {
+          const N = 90;
+          const fs = [];
+          for (let i = 0; i < N; i++) fs.push({
+            x: rnd(w), y: rnd(h),
+            vx: 0, vy: 0,
+            lag: 0.06 + Math.random() * 0.18,
+          });
+          return { fs };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.2)";
+          ctx.fillRect(0, 0, w, h);
+          const tx = M.in ? M.sx : w / 2 + Math.cos(t * 0.01) * w * 0.3;
+          const ty = M.in ? M.sy : h / 2 + Math.sin(t * 0.013) * h * 0.3;
+          for (const f of st.fs) {
+            f.vx += (tx - f.x) * f.lag * 0.04;
+            f.vy += (ty - f.y) * f.lag * 0.04;
+            f.vx += SC.v * 0.04;
+            f.vx *= 0.92; f.vy *= 0.92;
+            f.x += f.vx; f.y += f.vy;
+            const sp = Math.hypot(f.vx, f.vy);
+            ctx.strokeStyle = "rgba(" + C.teal + "," + Math.min(0.75, 0.2 + sp * 0.15).toFixed(3) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x - f.vx * 5, f.y - f.vy * 5); ctx.stroke();
+          }
+        },
+      },
+
+      // 18 — Shatter: a grid of cells; clicking the cursor SHATTERS nearby
+      // cells outward (radial explosion). Scroll = global shake.
+      shatter: {
+        init(w, h) {
+          const SP = 26;
+          const cells = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              cells.push({ bx: x, by: y, x, y, vx: 0, vy: 0 });
+          return { cells };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.22)";
+          ctx.fillRect(0, 0, w, h);
+          // Apply click shockwaves
+          for (const c of M.clicks) {
+            for (const cell of st.cells) {
+              const dx = cell.x - c.x, dy = cell.y - c.y;
+              const d = Math.hypot(dx, dy) || 1;
+              if (d < 240) {
+                const f = (1 - d / 240) * 18;
+                cell.vx += (dx / d) * f;
+                cell.vy += (dy / d) * f;
+              }
+            }
+          }
+          M.clicks.length = 0;
+          // Continuous tiny cursor wobble + scroll shake
+          for (const c of st.cells) {
+            c.vx += (c.bx - c.x) * 0.04;
+            c.vy += (c.by - c.y) * 0.04;
+            c.vx *= 0.86; c.vy *= 0.86;
+            c.vx += rnd(Math.abs(SC.v) * 0.04, -Math.abs(SC.v) * 0.04);
+            c.x += c.vx; c.y += c.vy;
+            // Cursor proximity glow
+            let glow = 0;
+            if (M.in) glow = Math.max(0, 1 - Math.hypot(c.x - M.sx, c.y - M.sy) / 160);
+            const off = Math.hypot(c.x - c.bx, c.y - c.by);
+            const al = 0.22 + Math.min(1, off / 20) * 0.5 + glow * 0.3;
+            ctx.fillStyle = "rgba(" + (off > 4 ? C.teal : C.dim) + "," + al.toFixed(3) + ")";
+            ctx.fillRect(c.x - 2, c.y - 2, 4, 4);
+          }
+        },
+      },
+
+      // 19 — Tunnel: lanes of concentric rings emerge from the cursor —
+      // pull the cursor and the tunnel reorients to follow. Scroll = warp drive.
+      tunnel: {
+        init() { return { rings: [], next: 6 }; },
+        step(ctx, w, h, t, st, M) {
+          ctx.fillStyle = "rgba(" + C.bg + ",0.16)";
+          ctx.fillRect(0, 0, w, h);
+          const cx = M.in ? M.sx : w / 2, cy = M.in ? M.sy : h / 2;
+          if (t > st.next) {
+            st.rings.push({ x: cx, y: cy, r: 0, vr: 3 + Math.abs(SC.v) * 0.4 });
+            st.next = t + 14;
+          }
+          for (let i = st.rings.length - 1; i >= 0; i--) {
+            const r = st.rings[i];
+            r.r += r.vr;
+            if (r.r > Math.hypot(w, h)) { st.rings.splice(i, 1); continue; }
+            const f = 1 - r.r / Math.hypot(w, h);
+            ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.55).toFixed(3) + ")";
+            ctx.lineWidth = 1 + f;
+            ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.283); ctx.stroke();
+          }
+          if (M.in) {
+            ctx.fillStyle = "rgba(" + C.white + ",0.85)";
+            ctx.beginPath(); ctx.arc(M.sx, M.sy, 3, 0, 6.283); ctx.fill();
+            ctx.fillStyle = "rgba(" + C.teal + ",0.4)";
+            ctx.beginPath(); ctx.arc(M.sx, M.sy, 9, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // 20 — Constellate: free-floating nodes connect to the cursor with
+      // bright edges when close, and to each other when nearer still.
+      constellate: {
+        init(w, h) {
+          const N = Math.max(50, Math.floor((w * h) / 18000));
+          const ns = [];
+          for (let i = 0; i < N; i++) ns.push({ x: rnd(w), y: rnd(h), vx: rnd(0.25, -0.25), vy: rnd(0.25, -0.25) });
+          return { ns };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+          // Drift + bounce + scroll-driven shake
+          for (const n of st.ns) {
+            n.x += n.vx + rnd(Math.abs(SC.v) * 0.03, -Math.abs(SC.v) * 0.03);
+            n.y += n.vy;
+            if (n.x < 0 || n.x > w) n.vx *= -1;
+            if (n.y < 0 || n.y > h) n.vy *= -1;
+          }
+          // Edges between nodes
+          const D = 130;
+          for (let i = 0; i < st.ns.length; i++) for (let j = i + 1; j < st.ns.length; j++) {
+            const a = st.ns[i], b = st.ns[j];
+            const d = Math.hypot(a.x - b.x, a.y - b.y);
+            if (d < D) {
+              ctx.strokeStyle = "rgba(" + C.dim + "," + ((1 - d / D) * 0.4).toFixed(3) + ")";
+              ctx.lineWidth = 0.5;
+              ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            }
+          }
+          // Edges from cursor to nearby nodes — the interactive payoff
+          if (M.in) {
+            const CR = 240;
+            for (const n of st.ns) {
+              const d = Math.hypot(n.x - M.sx, n.y - M.sy);
+              if (d < CR) {
+                const f = 1 - d / CR;
+                ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.7).toFixed(3) + ")";
+                ctx.lineWidth = 0.5 + f * 1.5;
+                ctx.beginPath(); ctx.moveTo(M.sx, M.sy); ctx.lineTo(n.x, n.y); ctx.stroke();
+              }
+            }
+          }
+          // Draw nodes
+          for (const n of st.ns) {
+            ctx.fillStyle = "rgba(" + C.teal + ",0.7)";
+            ctx.beginPath(); ctx.arc(n.x, n.y, 1.7, 0, 6.283); ctx.fill();
+          }
+          // Cursor pip
+          if (M.in) {
+            ctx.fillStyle = "rgba(" + C.white + ",0.95)";
+            ctx.beginPath(); ctx.arc(M.sx, M.sy, 3, 0, 6.283); ctx.fill();
+          }
+        },
+      },
+
+      // ─────────────────────────────────────────────────────────────────────
+      // CURSOR-REACTIVE OVERLAY — designed to sit on top of an existing
+      // background (e.g. the static `.bg-dot-grid`). Canvas is transparent
+      // except for cursor effects. Combines lift + lens + click-ripple into
+      // one calm, focused interaction layer.
+      // ─────────────────────────────────────────────────────────────────────
+
+      // Halo: a cursor-following spotlight that
+      //   ▸ paints a soft teal radial halo at the cursor,
+      //   ▸ lifts + lenses the dots within a radius (pushed outward + upward
+      //     with a teal highlight that overlays the underlying CSS dots),
+      //   ▸ drops expanding ring ripples on click and on scroll bursts.
+      // Renders nothing when the cursor isn't inside the host — the
+      // background dot grid stays clean.
+      halo: {
+        init(w, h) {
+          // Dot positions mirror the CSS `.bg-dot-grid` 26px spacing so the
+          // teal overlay highlights sit exactly on top of the textural dots.
+          const SP = 26;
+          const dots = [];
+          for (let y = SP / 2; y < h; y += SP)
+            for (let x = SP / 2; x < w; x += SP)
+              dots.push({ x, y });
+          return { dots, rings: [] };
+        },
+        step(ctx, w, h, t, st, M) {
+          ctx.clearRect(0, 0, w, h);
+
+          // Click + scroll-burst → expanding ring ripples
+          for (const c of M.clicks) st.rings.push({ x: c.x, y: c.y, r: 0, big: true });
+          M.clicks.length = 0;
+          if (M.in && Math.abs(SC.v) > 7 && st.rings.length < 5) {
+            st.rings.push({ x: M.sx, y: M.sy, r: 0, big: true });
+          }
+
+          // Advance + render rings (persist after cursor leaves until they die)
+          const ringMax = Math.hypot(w, h) * 0.55;
+          for (let i = st.rings.length - 1; i >= 0; i--) {
+            const r = st.rings[i];
+            r.r += r.big ? 4.5 : 3;
+            if (r.r > ringMax) { st.rings.splice(i, 1); continue; }
+            const f = 1 - r.r / ringMax;
+            ctx.strokeStyle = "rgba(" + C.teal + "," + (f * 0.45).toFixed(3) + ")";
+            ctx.lineWidth = 1 + f * 1.4;
+            ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.283); ctx.stroke();
+          }
+
+          // Bail if cursor is gone — nothing else to draw
+          if (!M.in) return;
+
+          // ── Soft halo glow at cursor ──
+          const haloR = 240;
+          const halo = ctx.createRadialGradient(M.sx, M.sy, 0, M.sx, M.sy, haloR);
+          halo.addColorStop(0, "rgba(" + C.teal + ",0.13)");
+          halo.addColorStop(0.55, "rgba(" + C.teal + ",0.04)");
+          halo.addColorStop(1, "rgba(" + C.teal + ",0)");
+          ctx.fillStyle = halo;
+          ctx.fillRect(0, 0, w, h);
+
+          // ── Lens + lift overlay on the underlying dot grid ──
+          const R = 190;
+          for (const d of st.dots) {
+            const dx = d.x - M.sx, dy = d.y - M.sy;
+            const dist = Math.hypot(dx, dy);
+            if (dist >= R) continue;
+            const f = 1 - dist / R;
+            // Lens push outward — bends the visual grid around the cursor
+            const push = f * 13;
+            let x = d.x, y = d.y;
+            if (dist > 0.001) {
+              x = d.x + (dx / dist) * push;
+              y = d.y + (dy / dist) * push;
+            }
+            // 3-D lift — shift dot upward for depth
+            y -= f * 6;
+            // Teal overlay highlights the dot (the CSS dim dot is still
+            // visible at the *original* position, behind us — adds depth)
+            ctx.fillStyle = "rgba(" + C.teal + "," + (f * 0.65).toFixed(3) + ")";
+            ctx.beginPath(); ctx.arc(x, y, 1.4 + f * 1.8, 0, 6.283); ctx.fill();
+            // Subtle shadow line connects lifted dot to its base (depth cue)
+            if (f > 0.35) {
+              ctx.strokeStyle = "rgba(" + C.dim + "," + (f * 0.18).toFixed(3) + ")";
+              ctx.lineWidth = 0.5;
+              ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(x, y); ctx.stroke();
+            }
+          }
+
+          // Cursor core pip — small bright reference point
+          ctx.fillStyle = "rgba(" + C.white + ",0.75)";
+          ctx.beginPath(); ctx.arc(M.sx, M.sy, 2, 0, 6.283); ctx.fill();
+        },
+      },
+
       // Dot-Matrix Wave: a dot grid rippling outward from centre (calm, time-driven).
       dots: {
         init() { return {}; },
@@ -677,6 +1596,42 @@ const { variant, bleed = false } = Astro.props;
 
       const ctx = canvas.getContext("2d");
       let st = null, w = 0, h = 0, t = 0, dpr = 1, raf = null, running = false;
+
+      // Per-canvas interactive input: tracks pointer in canvas coords,
+      // velocity (smoothed), down/click state, and a recency timer so the
+      // effect can keep reacting for a beat after the cursor leaves. All
+      // variants receive this `M` object as a 6th step arg.
+      const M = {
+        x: -9999, y: -9999,           // current cursor position (local)
+        sx: -9999, sy: -9999,         // smoothed cursor (lerped each frame)
+        px: -9999, py: -9999,         // previous-frame smoothed pos
+        vx: 0, vy: 0,                 // smoothed cursor velocity per frame
+        in: false,                    // is the pointer currently inside?
+        recency: 0,                   // frames-since-last-move (cap 240)
+        down: false,                  // mouse button held
+        clicks: [],                   // array of { x, y, t } recent clicks
+      };
+      const onMove = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+        const cy = (e.touches ? e.touches[0].clientY : e.clientY);
+        M.x = cx - r.left;
+        M.y = cy - r.top;
+        if (!M.in) { M.sx = M.x; M.sy = M.y; M.px = M.x; M.py = M.y; }
+        M.in = true;
+        M.recency = 0;
+      };
+      const onLeave = () => { M.in = false; };
+      const onDown = (e) => { M.down = true; onMove(e); M.clicks.push({ x: M.x, y: M.y, t: t }); if (M.clicks.length > 12) M.clicks.shift(); };
+      const onUp   = () => { M.down = false; };
+      host.addEventListener("mousemove", onMove, { passive: true });
+      host.addEventListener("mouseleave", onLeave, { passive: true });
+      host.addEventListener("mousedown", onDown, { passive: true });
+      host.addEventListener("mouseup",   onUp,   { passive: true });
+      host.addEventListener("touchmove", onMove, { passive: true });
+      host.addEventListener("touchstart", onDown, { passive: true });
+      host.addEventListener("touchend",   onUp,   { passive: true });
+
       const resize = () => {
         dpr = Math.min(window.devicePixelRatio || 1, 2);
         w = canvas.clientWidth || host.clientWidth || 1;   // the canvas's RENDERED size (respects --bleed)
@@ -689,13 +1644,24 @@ const { variant, bleed = false } = Astro.props;
       const step = () => {
         if (canvas.clientWidth !== w || canvas.clientHeight !== h) resize(); // self-heal to the rendered size
         t++;
-        try { v.step(ctx, w, h, t, st); } catch (e) {}
+        // Smooth cursor toward target; compute velocity from the smoothed track
+        if (M.in) {
+          M.sx += (M.x - M.sx) * 0.25;
+          M.sy += (M.y - M.sy) * 0.25;
+          M.vx = M.sx - M.px;
+          M.vy = M.sy - M.py;
+          M.px = M.sx; M.py = M.sy;
+        } else {
+          M.vx *= 0.86; M.vy *= 0.86;
+          M.recency = Math.min(M.recency + 1, 240);
+        }
+        try { v.step(ctx, w, h, t, st, M); } catch (e) {}
         raf = requestAnimationFrame(step);
       };
       const start = () => { if (running) return; running = true; readColors(); resize(); raf = requestAnimationFrame(step); };
       const stop = () => { running = false; if (raf) cancelAnimationFrame(raf); raf = null; };
       // debug handle (used to force-warm canvases when verifying in the throttled preview harness)
-      (window.__sfx = window.__sfx || []).push({ canvas, warm: () => { resize(); for (let i = 0; i < 72; i++) { t++; try { v.step(ctx, w, h, t, st); } catch (e) {} } } });
+      (window.__sfx = window.__sfx || []).push({ canvas, M, warm: (mx, my) => { resize(); if (mx != null) { M.x = mx; M.sx = mx; M.in = true; } if (my != null) { M.y = my; M.sy = my; } for (let i = 0; i < 72; i++) { t++; try { v.step(ctx, w, h, t, st, M); } catch (e) {} } } });
       new IntersectionObserver((es) => { (es[0] && es[0].isIntersecting) ? start() : stop(); }, { threshold: 0 }).observe(host);
       new ResizeObserver(() => { if (running) resize(); }).observe(host);
     });

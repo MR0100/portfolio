@@ -32,11 +32,12 @@ const stats = [
 ];
 ---
 
-<section class="relative overflow-hidden border-y border-border bg-paper/40" data-numbers>
+<section class="numbers-section relative overflow-hidden border-y border-border" data-numbers style="--sfx-opacity: 0.18;">
+  <!-- Atmospheric gradients — accent glow top-left + accent-soft balance bottom-right -->
+  <div class="numbers-gradient" aria-hidden="true"></div>
   <SectionFX variant="hex" />
   <div class="container-page py-14 md:py-20 relative z-10">
     <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-10">
-      <span class="text-accent">◢</span>
       <span>By the numbers</span>
     </div>
 
@@ -55,6 +56,27 @@ const stats = [
     </dl>
   </div>
 </section>
+
+<style>
+  /* Solid paper base hides the page-level dot grid behind this section.
+     The gradient layer adds atmospheric depth without breaking opacity. */
+  .numbers-section {
+    background: rgb(var(--paper));
+  }
+  .numbers-gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      /* Accent glow — top-left corner */
+      radial-gradient(ellipse 60% 80% at 0% 0%, rgb(var(--accent) / 0.14), transparent 65%),
+      /* Accent-soft balance — bottom-right corner */
+      radial-gradient(ellipse 70% 70% at 100% 100%, rgb(var(--accent-soft) / 0.18), transparent 60%),
+      /* Centre breathing wash */
+      radial-gradient(ellipse 90% 60% at 50% 50%, rgb(var(--accent) / 0.04), transparent 80%);
+  }
+</style>
 
 <!-- Count-up on scroll, then a subtle glitch on each number at random intervals (3–15s).
      Scoped to this section, IntersectionObserver-driven, reduced-motion safe. -->

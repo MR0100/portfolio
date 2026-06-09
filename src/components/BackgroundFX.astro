@@ -3,7 +3,7 @@
 //   .bgfx-back  (z:-1, behind all content) — scanlines, scan sweep, cursor
 //               grid-reveal glow, rare glitch band, + parallax on the orbs.
 //   .bgfx-front (z:30, above content but below the nav; pointer-events:none)
-//               — the HUD reticle that smooth-chases the cursor with live coords.
+//               — the HUD reticle that smooth-chases the cursor.
 // Fully reduced-motion gated; cursor pieces disabled on touch.
 ---
 
@@ -25,7 +25,6 @@
       <line x1="56" y1="50" x2="70" y2="50" stroke="rgb(var(--accent))" stroke-opacity="0.7" stroke-width="1" />
       <circle cx="50" cy="50" r="1.6" fill="rgb(var(--accent))" />
     </svg>
-    <span class="bgfx-coords" data-coords>X:0000 Y:0000</span>
   </div>
 </div>
 
@@ -117,17 +116,6 @@
     0% { transform: scale(1.25) rotate(-6deg); }
     100% { transform: scale(1) rotate(0); }
   }
-  .bgfx-coords {
-    position: absolute;
-    left: 84px;
-    top: 30px;
-    font-family: ui-monospace, "JetBrains Mono", monospace;
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    white-space: nowrap;
-    color: rgb(var(--muted));
-  }
-
   @media (hover: none), (pointer: coarse) {
     .bgfx-front,
     .bgfx-reveal { display: none; }
@@ -151,13 +139,11 @@
 
     const orbs = Array.from(document.querySelectorAll(".atmosphere-orb"));
     const reticle = front && front.querySelector("[data-reticle]");
-    const coords = front && front.querySelector("[data-coords]");
     const band = back.querySelector("[data-glitchband]");
 
     let mx = window.innerWidth / 2, my = window.innerHeight / 2;
     let rx = mx, ry = my;
     let active = false, raf = null, idleT = null;
-    const pad = (n) => String(Math.round(n)).padStart(4, "0");
 
     // Hide the grid-reveal + cursor reticle once the pointer goes still.
     const hide = () => {
@@ -186,7 +172,6 @@
       rx += (mx - rx) * 0.14;
       ry += (my - ry) * 0.14;
       if (reticle && fine) reticle.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
-      if (coords && fine) coords.textContent = "X:" + pad(mx) + " Y:" + pad(my);
       const dx = mx / window.innerWidth - 0.5;
       const dy = my / window.innerHeight - 0.5;
       orbs.forEach((orb, i) => {

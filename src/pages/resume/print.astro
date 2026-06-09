@@ -1,0 +1,648 @@
+---
+import { getCollection } from "astro:content";
+import { profile, experience, education, certifications, openSource, talks, skillGroups } from "~/data/profile";
+
+// Pull featured projects from the work content collection. ATS-safe rule:
+// keep this list TIGHT — only load-bearing, recognizable work. The T01 guide
+// says skip projects at 5+ YOE unless distinctive; these 6 featured entries
+// are shipped products, so they earn their place.
+const featured = (await getCollection("work"))
+  .filter((e) => e.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// ATS-safe print view — A4 redesign with stronger structure.
+//
+// Page geometry — A4 (210mm × 297mm), 15mm top/bottom × 18mm left/right margins
+// for ~174mm × 267mm of body area. 1-page target for ≤7 YOE (T01 rule).
+//
+// ATS rules preserved (T01 Resume Fundamentals):
+//   • Single column · Workday / Lever / iCIMS / Greenhouse friendly
+//   • System fonts (Calibri / Segoe UI / Arial chain) — no web fonts loaded
+//   • Standard section labels (Summary · Experience · Skills · Education)
+//   • No icons / photos / multi-column / decorative graphics
+//   • Plain-text URLs alongside any hyperlinks
+//   • Contact info inside body (Workday drops headers/footers)
+//   • Dates in "Month YYYY — Month YYYY" format
+//
+// Design polish (still 100% parseable):
+//   • Mono palette — black / dark / gray / white only, no chromatic colors
+//   • Two-column flush alignment for company/period + title/location pairs
+//   • Double-rule editorial mark under name (thick + thin, both pure black)
+//   • Section headings: solid black accent bar + extending hairline rule
+//   • Skills: top + bottom solid black bounds, hairline gray between rows
+//   • Tight, deliberate vertical rhythm built around a 12pt baseline grid feel
+//   • Page footer mirrors the under-name treatment for editorial unity
+
+const flatSkills = skillGroups.map((g) => ({
+  title: g.title,
+  list: g.skills.map((s) => s.name).join(", "),
+}));
+
+const linkedinPlain = "linkedin.com/in/mitul-vaghasiya";
+const githubPlain = "github.com/MR0100";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{profile.name} — Resume</title>
+  </head>
+  <body>
+    <main class="page">
+      <!-- ── Header ── -->
+      <header class="hdr">
+        <h1 class="hdr-name">{profile.name}</h1>
+        <div class="hdr-role">{profile.headline}</div>
+        <!-- Double-rule under name — editorial mono treatment -->
+        <div class="hdr-rule" aria-hidden="true">
+          <span class="hdr-rule-thick"></span>
+          <span class="hdr-rule-thin"></span>
+        </div>
+
+        <div class="hdr-rows">
+          <!-- Row 1 — Location + Email (left) · Phone/Notice/etc placeholder (right) -->
+          <div class="hdr-row">
+            <span class="hdr-cell">
+              <span class="hdr-label">Location</span>
+              <span class="hdr-value">{profile.location}</span>
+            </span>
+            <span class="hdr-cell hdr-cell--right">
+              <span class="hdr-label">Email</span>
+              <a class="hdr-value" href={`mailto:${profile.email}`}>{profile.email}</a>
+            </span>
+          </div>
+          <!-- Row 2 — LinkedIn (left) · GitHub (right) -->
+          <div class="hdr-row">
+            <span class="hdr-cell">
+              <span class="hdr-label">LinkedIn</span>
+              <a class="hdr-value" href={profile.socials.linkedin}>{linkedinPlain}</a>
+            </span>
+            <span class="hdr-cell hdr-cell--right">
+              <span class="hdr-label">GitHub</span>
+              <a class="hdr-value" href={profile.socials.github}>{githubPlain}</a>
+            </span>
+          </div>
+          <!-- Row 3 — Open to + Notice + Languages, single row of facts -->
+          <div class="hdr-row hdr-row--meta">
+            <span class="hdr-meta-cell">
+              <span class="hdr-label">Open to</span>
+              <span class="hdr-value">Senior IC · Mobile Lead · Architecture</span>
+            </span>
+            <span class="hdr-meta-cell">
+              <span class="hdr-label">Notice</span>
+              <span class="hdr-value">{profile.noticePeriod}</span>
+            </span>
+            <span class="hdr-meta-cell">
+              <span class="hdr-label">Languages</span>
+              <span class="hdr-value">{profile.languagesSpoken.join(" / ")}</span>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── Summary ── -->
+      <section>
+        <h2><span class="h2-bar"></span><span class="h2-text">Summary</span><span class="h2-rule"></span></h2>
+        <p class="summary">{profile.bioShort}</p>
+      </section>
+
+      <!-- ── Experience ── -->
+      <section>
+        <h2><span class="h2-bar"></span><span class="h2-text">Experience</span><span class="h2-rule"></span></h2>
+
+        {experience.map((role, idx) => (
+          <div class={`role ${idx === 0 ? "role--first" : ""}`}>
+            <!-- Row 1: Company (flush left) · Period (flush right) -->
+            <div class="role-row">
+              <span class="role-company">{role.company}</span>
+              <span class="role-period">{role.period}</span>
+            </div>
+            <!-- Row 2: Title (flush left) · Location (flush right) -->
+            <div class="role-row role-row--sub">
+              <span class="role-title">{role.title}</span>
+              <span class="role-loc">{role.location}</span>
+            </div>
+            <ul class="bullets">
+              {role.highlights.map((h) => <li>{h}</li>)}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      <!-- ── Projects ── -->
+      {featured.length > 0 && (
+        <section>
+          <h2><span class="h2-bar"></span><span class="h2-text">Selected Projects</span><span class="h2-rule"></span></h2>
+          {featured.map((p) => {
+            const stackTop = p.data.stack.slice(0, 5).join(", ");
+            const stackMore = p.data.stack.length > 5 ? ` (+${p.data.stack.length - 5} more)` : "";
+            return (
+              <div class="project">
+                <div class="project-row">
+                  <span class="project-name">{p.data.title}</span>
+                  <span class="project-period">{p.data.period}</span>
+                </div>
+                <div class="project-row project-row--sub">
+                  <span class="project-meta">
+                    <span class="project-role">{p.data.role}</span>
+                    <span class="project-sep"> · </span>
+                    <span class="project-stack">{stackTop}{stackMore}</span>
+                  </span>
+                  <span class="project-employer">{p.data.employer}</span>
+                </div>
+                <p class="project-line">{p.data.oneLiner}</p>
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      <!-- ── Skills ── -->
+      <section>
+        <h2><span class="h2-bar"></span><span class="h2-text">Skills</span><span class="h2-rule"></span></h2>
+        <dl class="skills">
+          {flatSkills.map((g) => (
+            <div class="skill-row">
+              <dt>{g.title}</dt>
+              <dd>{g.list}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <!-- ── Education ── -->
+      <section>
+        <h2><span class="h2-bar"></span><span class="h2-text">Education</span><span class="h2-rule"></span></h2>
+        {education.map((edu) => (
+          <div class="role">
+            <div class="role-row">
+              <span class="role-company">{edu.institution}</span>
+              <span class="role-period">{edu.period}</span>
+            </div>
+            <div class="role-row role-row--sub">
+              <span class="role-title">{edu.degree}</span>
+              <span class="role-loc">{edu.location}</span>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <!-- ── Certifications ── -->
+      {certifications.length > 0 && (
+        <section>
+          <h2><span class="h2-bar"></span><span class="h2-text">Certifications</span><span class="h2-rule"></span></h2>
+          {certifications.map((c) => (
+            <div class="entry">
+              <div class="entry-row">
+                <span class="entry-title">{c.title}</span>
+                <span class="entry-side">{c.issuer}</span>
+              </div>
+              {c.note && <div class="entry-body">{c.note}</div>}
+              {c.url && <div class="entry-url">{c.url}</div>}
+            </div>
+          ))}
+        </section>
+      )}
+
+      <!-- ── Open Source (only when populated) ── -->
+      {openSource.length > 0 && (
+        <section>
+          <h2><span class="h2-bar"></span><span class="h2-text">Open Source</span><span class="h2-rule"></span></h2>
+          {openSource.map((o) => (
+            <div class="entry">
+              <div class="entry-row">
+                <span class="entry-title">{o.title}{o.badge ? ` (${o.badge})` : ""}</span>
+                <span class="entry-side">{o.repo}</span>
+              </div>
+              <div class="entry-body">{o.detail}</div>
+              <div class="entry-url">{o.url}</div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <!-- ── Talks (only when populated) ── -->
+      {talks.length > 0 && (
+        <section>
+          <h2><span class="h2-bar"></span><span class="h2-text">Talks &amp; Writing</span><span class="h2-rule"></span></h2>
+          {talks.map((t) => (
+            <div class="entry">
+              <div class="entry-row">
+                <span class="entry-title">{t.title}</span>
+                <span class="entry-side">{t.venue} · {t.date}</span>
+              </div>
+              {t.detail && <div class="entry-body">{t.detail}</div>}
+              {t.url && <div class="entry-url">{t.url}</div>}
+            </div>
+          ))}
+        </section>
+      )}
+
+      <!-- Page footer line — subtle, professional touch -->
+      <footer class="pgfoot">
+        <span>{profile.name}</span>
+        <span class="dot">·</span>
+        <span>{profile.headline}</span>
+        <span class="dot">·</span>
+        <span>{profile.email}</span>
+      </footer>
+    </main>
+
+    <!-- Floating control bar — screen only -->
+    <div class="bar no-print">
+      <span class="bar-hint">ATS-safe A4 view</span>
+      <a class="bar-btn" href={profile.resumeFile} download="Mitul-Vaghasiya-Resume.pdf">Save as PDF</a>
+      <a class="bar-link" href="/resume">← Web view</a>
+    </div>
+
+    <style>
+      :root {
+        /* MONO palette — no chromatic colors anywhere.
+           Hierarchy comes from value (black/gray/light), weight, and size. */
+        --ink:     #111;              /* body text */
+        --strong:  #000;              /* name, h2, company, accent bars */
+        --mid:     #4b4f55;           /* secondary text (period, location) */
+        --soft:    #6c7077;           /* tertiary text */
+        --softer:  #8a8e94;           /* labels, footer */
+        --rule:    #c8c8c8;           /* light dividers */
+        --rule-2:  #e2e2e2;           /* lighter row dividers */
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #f1f1f3; color: var(--ink); }
+      body {
+        /* ATS-safe font chain — system fonts, no web font load */
+        font-family: "Calibri", "Segoe UI", "Arial", "Helvetica Neue", Helvetica, sans-serif;
+        font-size: 10.5pt;
+        line-height: 1.45;
+        font-feature-settings: "kern" 1, "liga" 1;
+      }
+
+      /* On-screen: simulate an A4 page floating on a soft grey backdrop.
+         In print: page extends edge-to-edge of A4 with its own margins. */
+      .page {
+        max-width: 210mm;
+        margin: 24px auto;
+        background: #fff;
+        padding: 15mm 18mm 14mm;
+        box-shadow: 0 14px 40px rgb(0 0 0 / 0.10), 0 0 0 1px #dadada;
+      }
+
+      /* ═════════════ Header ═════════════ */
+      .hdr-name {
+        margin: 0;
+        font-size: 28pt;
+        font-weight: 700;
+        letter-spacing: -0.6pt;
+        color: var(--strong);
+        line-height: 1.0;
+      }
+      .hdr-role {
+        margin: 5pt 0 0;
+        font-size: 13pt;
+        font-weight: 500;
+        color: var(--ink);
+        letter-spacing: 0.1pt;
+      }
+      /* Double-rule editorial mark — thick over thin, both pure black */
+      .hdr-rule {
+        display: flex;
+        flex-direction: column;
+        gap: 2pt;
+        margin: 11pt 0 14pt;
+        width: 72pt;
+      }
+      .hdr-rule-thick {
+        display: block;
+        height: 2pt;
+        background: var(--strong);
+      }
+      .hdr-rule-thin {
+        display: block;
+        height: 0.6pt;
+        background: var(--strong);
+      }
+
+      .hdr-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 7pt;
+      }
+      .hdr-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18pt;
+      }
+      .hdr-row--meta {
+        grid-template-columns: 2fr 1fr 1.4fr;
+        margin-top: 7pt;
+      }
+      .hdr-cell, .hdr-meta-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5pt;
+        line-height: 1.25;
+      }
+      .hdr-cell--right { text-align: right; align-items: flex-end; }
+      .hdr-label {
+        font-size: 7.5pt;
+        font-weight: 700;
+        letter-spacing: 1.4pt;
+        text-transform: uppercase;
+        color: var(--softer);
+      }
+      .hdr-value {
+        font-size: 10.25pt;
+        color: var(--ink);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      a.hdr-value { color: var(--ink); }
+
+      /* ═════════════ Section spacing — single, even rhythm ═════════════
+         Every section sits 20pt below the previous. H2 → first content
+         is always 10pt. Inside sections, entries (.role / .project / .entry)
+         start at exactly the same 10pt gap.  */
+      section { margin-top: 20pt; }
+      h2 {
+        display: flex;
+        align-items: center;
+        gap: 10pt;
+        margin: 0 0 10pt;
+        font-size: 11pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2.6pt;
+        color: var(--strong);
+      }
+      .h2-bar {
+        display: inline-block;
+        width: 18pt;
+        height: 3pt;
+        background: var(--strong);
+        flex-shrink: 0;
+      }
+      .h2-text { white-space: nowrap; }
+      .h2-rule {
+        flex: 1;
+        height: 0;
+        border-top: 0.6pt solid var(--rule);
+      }
+
+      p { margin: 0; }
+      .summary {
+        font-size: 10.5pt;
+        line-height: 1.55;
+        text-align: left;
+        color: var(--ink);
+      }
+
+      /* ═════════════ Roles / Education ═════════════ */
+      .role { margin-top: 11pt; page-break-inside: avoid; }
+      .role.role--first { margin-top: 0; }
+
+      .role-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 14pt;
+      }
+      .role-row--sub { margin-top: 1pt; }
+
+      .role-company {
+        font-size: 11.5pt;
+        font-weight: 700;
+        color: var(--strong);
+        letter-spacing: 0.1pt;
+      }
+      .role-period {
+        font-size: 9.75pt;
+        font-weight: 600;
+        color: var(--mid);
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.2pt;
+      }
+      .role-title {
+        font-size: 10.25pt;
+        font-style: italic;
+        font-weight: 500;
+        color: var(--ink);
+      }
+      .role-loc {
+        font-size: 9.75pt;
+        color: var(--mid);
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      /* Em-dash bullets with hanging indent */
+      .bullets {
+        margin: 7pt 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .bullets li {
+        position: relative;
+        padding-left: 16pt;
+        margin-bottom: 4pt;
+        font-size: 10.25pt;
+        line-height: 1.48;
+        text-align: left;
+      }
+      .bullets li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: var(--strong);
+        font-weight: 700;
+      }
+
+      /* ═════════════ Projects ═════════════ */
+      /* Same flush-row alignment as roles, slightly tighter rhythm.
+         Project name in black bold; period right-aligned tabular-nums.
+         Role + stack on row 2 (left), employer on row 2 (right).
+         One-line description below. Mono only. */
+      .project { margin-top: 11pt; page-break-inside: avoid; }
+      .project:first-of-type { margin-top: 0; }
+      .project-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 14pt;
+      }
+      .project-row--sub { margin-top: 1pt; }
+      .project-name {
+        font-size: 11pt;
+        font-weight: 700;
+        color: var(--strong);
+        letter-spacing: 0.1pt;
+      }
+      .project-period {
+        font-size: 9.75pt;
+        font-weight: 600;
+        color: var(--mid);
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.2pt;
+      }
+      .project-meta {
+        font-size: 9.75pt;
+        color: var(--ink);
+      }
+      .project-role {
+        font-style: italic;
+        font-weight: 500;
+      }
+      .project-sep { color: var(--softer); }
+      .project-stack { color: var(--mid); }
+      .project-employer {
+        font-size: 9.75pt;
+        color: var(--mid);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .project-line {
+        margin: 3pt 0 0;
+        font-size: 10pt;
+        line-height: 1.45;
+        color: var(--ink);
+      }
+
+      /* ═════════════ Skills ═════════════ */
+      /* Clean: no row dividers. Distinction comes from the label column
+         alone — uppercase bold with letter-spacing carries the boundary. */
+      .skills {
+        margin: 0;
+        padding: 0;
+      }
+      .skill-row {
+        display: grid;
+        grid-template-columns: 120pt 1fr;
+        gap: 18pt;
+        padding: 5pt 0;
+        align-items: baseline;
+      }
+      .skill-row dt {
+        font-size: 9pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.4pt;
+        color: var(--strong);
+        line-height: 1.35;
+      }
+      .skill-row dd {
+        margin: 0;
+        font-size: 10.25pt;
+        color: var(--ink);
+        line-height: 1.5;
+        word-spacing: 0.4pt;
+      }
+
+      /* ═════════════ Certs / OSS / Talks ═════════════ */
+      .entry { margin-top: 8pt; page-break-inside: avoid; }
+      .entry:first-of-type { margin-top: 0; }
+      .entry-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12pt;
+      }
+      .entry-title {
+        font-size: 10.5pt;
+        font-weight: 700;
+        color: var(--strong);
+      }
+      .entry-side {
+        font-size: 9.75pt;
+        color: var(--mid);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .entry-body {
+        font-size: 10pt;
+        margin-top: 2pt;
+        color: var(--ink);
+      }
+      .entry-url {
+        font-size: 9.25pt;
+        color: var(--soft);
+        margin-top: 1pt;
+        word-break: break-all;
+      }
+
+      /* ═════════════ Page footer ═════════════ */
+      /* Single thin black rule above the footer line — matches the editorial
+         calm of the rest of the document. No double-rule clutter. */
+      .pgfoot {
+        margin-top: 22pt;
+        padding-top: 8pt;
+        font-size: 8.5pt;
+        color: var(--softer);
+        text-align: center;
+        letter-spacing: 0.3pt;
+        border-top: 0.5pt solid var(--rule);
+      }
+      .pgfoot .dot { color: var(--rule); margin: 0 5pt; }
+
+      /* ═════════════ Floating control bar (screen only) ═════════════ */
+      .bar {
+        position: fixed;
+        right: 18px; bottom: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 14px;
+        background: #111;
+        color: #fff;
+        border-radius: 8px;
+        font-family: "Calibri", "Arial", sans-serif;
+        font-size: 11pt;
+        box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+      }
+      .bar-hint { color: #bbb; font-size: 10pt; }
+      .bar .bar-btn {
+        padding: 7px 14px;
+        background: #fff;
+        color: #111;
+        border: 0;
+        border-radius: 5px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        line-height: 1.2;
+      }
+      .bar .bar-btn:hover { background: #eee; }
+      .bar .bar-link { color: #fff; text-decoration: underline; font-size: 10.5pt; }
+
+      /* ═════════════ Print stylesheet ═════════════ */
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        html, body { background: #fff; }
+        .no-print { display: none !important; }
+        .page {
+          margin: 0;
+          padding: 14mm 16mm 12mm;
+          max-width: none;
+          width: 210mm;
+          min-height: 297mm;
+          box-shadow: none;
+          background: #fff;
+        }
+        /* Keep h2 paired with its first paragraph */
+        h2 { page-break-after: avoid; }
+        .role, .entry { page-break-inside: avoid; }
+      }
+    </style>
+  </body>
+</html>

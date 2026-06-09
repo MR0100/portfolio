@@ -14,10 +14,9 @@ import GetInTouch from "~/components/home/GetInTouch.astro";
 <Base>
   <PersonJsonLd />
 
-  <!-- First three sections share a single parallaxing dot-grid backdrop.
-       (The spacewar game is mounted inside the hero, in Lead.astro.) -->
+  <!-- First three sections share the page-level dot-grid backdrop from
+       Base.astro. (The spacewar game is mounted inside the hero, in Lead.) -->
   <div class="grid-zone">
-    <div class="zone-grid" aria-hidden="true"></div>
     <Lead />
     <Now />
     <div class="reveal"><Story /></div>
@@ -30,35 +29,6 @@ import GetInTouch from "~/components/home/GetInTouch.astro";
   <div class="reveal"><Stack /></div>
   <div class="reveal"><GetInTouch /></div>
 
-  <!-- Shared dot-grid parallax — drives both .zone-grid (first three sections wrapper)
-       and any [data-parallax-grid] elements elsewhere on the page. Each grid moves at
-       0.55× its containing section's scroll progress for a noticeable depth effect. -->
-  <script is:inline>
-    (function () {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      // Targets: the legacy .zone-grid (paired with .grid-zone parent) + any new opt-in elements
-      const targets = [];
-      const zone = document.querySelector(".grid-zone");
-      const zoneGrid = zone && zone.querySelector(".zone-grid");
-      if (zone && zoneGrid) targets.push({ grid: zoneGrid, parent: zone });
-      document.querySelectorAll("[data-parallax-grid]").forEach((grid) => {
-        const parent = grid.parentElement;
-        if (parent) targets.push({ grid, parent });
-      });
-      if (!targets.length) return;
-
-      const FACTOR = 0.55;
-      let ticking = false;
-      const update = () => {
-        ticking = false;
-        for (const { grid, parent } of targets) {
-          const y = Math.max(0, Math.min(-parent.getBoundingClientRect().top, parent.offsetHeight));
-          grid.style.transform = "translate3d(0," + (y * FACTOR).toFixed(1) + "px,0)";
-        }
-      };
-      window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-      window.addEventListener("resize", update, { passive: true });
-      update();
-    })();
-  </script>
+  <!-- Parallax script removed — DotGrid runs its own internal drift +
+       cursor zoom/bounce, no scroll-driven transform needed. -->
 </Base>

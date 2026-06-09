@@ -1,0 +1,249 @@
+---
+import "~/styles/globals.css";
+import SectionFX from "~/components/SectionFX.astro";
+
+// 20 INTERACTIVE candidates — each one responds to:
+//   • mouse position + velocity (move the cursor inside a section to see)
+//   • mouse click (drop / burst / shatter effects)
+//   • scroll velocity (extra forces as you scroll fast)
+//
+// To test: hover into a section and move your cursor around. Click to fire.
+// Scroll past quickly to see the scroll-reactive component.
+const variants = [
+  { key: "magnet",      n: "01", name: "Magnet",       react: "Pulls dot grid toward cursor",         scroll: "Vertical drag on scroll" },
+  { key: "repel",       n: "02", name: "Repel",        react: "Particles flee the cursor",            scroll: "Swipes blow them along" },
+  { key: "ripples",     n: "03", name: "Ripples",      react: "Cursor drops ring ripples on move",    scroll: "Scroll triggers a big ring" },
+  { key: "ink",         n: "04", name: "Ink Trail",    react: "Cursor paints a fading ink stroke",    scroll: "Scroll dims the canvas faster" },
+  { key: "well",        n: "05", name: "Gravity Well", react: "Cursor sucks particles in (1/r²)",     scroll: "Click = mass spike" },
+  { key: "warpmesh",    n: "06", name: "Warp Mesh",    react: "Triangle mesh warps away from cursor", scroll: "Scroll bows the mesh down" },
+  { key: "lift",        n: "07", name: "Lift",         react: "Cursor lifts a grid into a 3-D mound", scroll: "Scroll tilts the landscape" },
+  { key: "vortex",      n: "08", name: "Vortex",       react: "Particles swirl around cursor",        scroll: "Scroll = radial blast" },
+  { key: "trail",       n: "09", name: "Comet Tail",   react: "Fading comet tail follows cursor",     scroll: "Scroll boosts spawn rate" },
+  { key: "lens",        n: "10", name: "Lens",         react: "Cursor magnifies/bends nearby dots",   scroll: "Scroll widens the lens" },
+  { key: "fireflies",   n: "11", name: "Fireflies",    react: "Glowing flies attract to cursor",      scroll: "Click = burst dispersion" },
+  { key: "sweep",       n: "12", name: "Radar Sweep",  react: "Beam pivots about cursor, illuminates", scroll: "Scroll speeds the sweep" },
+  { key: "scatter",     n: "13", name: "Scatter",      react: "Dots flinch away from cursor",         scroll: "Scroll shakes them" },
+  { key: "ribbons",     n: "14", name: "Ribbons",      react: "Horizontal ribbons bend around cursor", scroll: "Scroll drags them" },
+  { key: "fieldlines",  n: "15", name: "Field Lines",  react: "Magnetic spirals radiate from cursor", scroll: "Scroll changes the curl" },
+  { key: "comet",       n: "16", name: "Comet Burst",  react: "Swift cursor flick launches a comet",  scroll: "Scroll burst spawns extras" },
+  { key: "chase",       n: "17", name: "Chase",        react: "Swarm chases cursor with offset lag",  scroll: "Scroll skews them sideways" },
+  { key: "shatter",     n: "18", name: "Shatter",      react: "Click shatters cells outward",         scroll: "Scroll = global shake" },
+  { key: "tunnel",      n: "19", name: "Tunnel",       react: "Rings emerge from cursor",             scroll: "Scroll = warp speed" },
+  { key: "constellate", n: "20", name: "Constellate",  react: "Cursor wires up nearby nodes",         scroll: "Scroll shakes the net" },
+];
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Case-Study FX · 20 interactive candidates</title>
+  </head>
+  <body class="bg-bg text-text antialiased">
+    <header class="container-page py-12 md:py-16">
+      <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">Lab · interactive background FX</p>
+      <h1 class="mt-3 font-display text-3xl md:text-5xl font-semibold tracking-tight">20 interactive candidates · move your cursor</h1>
+      <p class="mt-4 max-w-2xl font-serif text-lg text-muted">
+        These are <strong class="text-text">live</strong>. Each section reacts to your mouse position,
+        mouse velocity, clicks, and scroll. Hover into a section, move the cursor around,
+        click, then scroll past — every variant has at least three distinct reactions.
+        Pick a number / name and I'll wire it into <code class="text-accent font-mono text-sm">/work/*</code>
+        (and optionally <code class="text-accent font-mono text-sm">/work</code>) at 30% opacity.
+      </p>
+      <ul class="mt-4 max-w-2xl space-y-1 font-mono text-[11px] uppercase tracking-[0.18em] text-sepia">
+        <li>↳ Move cursor — primary interaction</li>
+        <li>↳ Click — burst / drop / shatter trigger</li>
+        <li>↳ Scroll — secondary force (gust / shake / boost)</li>
+      </ul>
+    </header>
+
+    {variants.map((v) => (
+      <section class="csfx-stage">
+        <SectionFX variant={v.key as any} />
+
+        <div class="container-page csfx-content">
+          <div class="csfx-meta">
+            <span class="csfx-num font-mono">{v.n}</span>
+            <span class="csfx-key font-mono">{v.key}</span>
+          </div>
+
+          <h2 class="csfx-title font-display">{v.name}</h2>
+          <p class="csfx-concept font-serif">
+            <span class="csfx-react"><span class="csfx-react-icon">⌖</span>{v.react}</span>
+            <span class="csfx-react"><span class="csfx-react-icon">↕</span>{v.scroll}</span>
+          </p>
+
+          <div class="csfx-hero">
+            <div class="csfx-hero-shot" aria-hidden="true">
+              <span class="csfx-hero-plate">{v.n}</span>
+              <span class="csfx-hero-corner csfx-hero-corner--tl"></span>
+              <span class="csfx-hero-corner csfx-hero-corner--tr"></span>
+              <span class="csfx-hero-corner csfx-hero-corner--bl"></span>
+              <span class="csfx-hero-corner csfx-hero-corner--br"></span>
+            </div>
+            <div class="csfx-hero-body">
+              <div class="csfx-eyebrow font-mono">— Health &amp; AI</div>
+              <h3 class="csfx-hero-title font-display">Sample Project<span class="text-accent">.</span></h3>
+              <p class="csfx-hero-lede font-serif">A short product line that explains what was built, who it was for, and what shipped — about a paragraph. Move your cursor around this section!</p>
+              <div class="csfx-cta-row">
+                <a href="#" class="csfx-cta csfx-cta--primary font-mono" onclick="event.preventDefault()">App Store →</a>
+                <a href="#" class="csfx-cta font-mono" onclick="event.preventDefault()">Live site →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <footer class="container-page py-16 text-center font-mono text-[10px] uppercase tracking-[0.28em] text-muted">
+      End of reel · pick a number or a name
+    </footer>
+
+    <style>
+      html { scroll-behavior: smooth; }
+
+      .csfx-stage {
+        position: relative;
+        overflow: hidden;
+        min-height: 78vh;
+        padding: 5rem 0 6rem;
+        border-top: 1px solid rgb(var(--border));
+        background: rgb(var(--bg));
+        isolation: isolate;
+      }
+      .csfx-content { position: relative; z-index: 1; pointer-events: none; }
+      .csfx-content a,
+      .csfx-content button { pointer-events: auto; }
+
+      .csfx-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.85rem;
+        font-size: 11px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+      .csfx-num { color: rgb(var(--accent)); font-weight: 600; }
+      .csfx-key { color: rgb(var(--sepia)); }
+
+      .csfx-title {
+        margin: 0.4rem 0 0.6rem;
+        font-size: clamp(2rem, 4.2vw, 3.4rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .csfx-concept {
+        max-width: 42rem;
+        font-size: 0.92rem;
+        color: rgb(var(--muted));
+        line-height: 1.7;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .csfx-react {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.55rem;
+      }
+      .csfx-react-icon {
+        color: rgb(var(--accent));
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        line-height: 1;
+        width: 1.4em;
+      }
+
+      .csfx-hero {
+        margin-top: 2.5rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        align-items: center;
+        max-width: 64rem;
+      }
+      @media (min-width: 900px) {
+        .csfx-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 3.5rem; }
+      }
+
+      .csfx-hero-shot {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        border: 1px solid rgb(var(--border));
+        border-radius: 0.7rem;
+        background:
+          radial-gradient(circle at 25% 0%, rgb(var(--accent) / 0.06), transparent 55%),
+          rgb(var(--paper) / 0.5);
+        box-shadow: 0 18px 50px rgb(0 0 0 / 0.22);
+      }
+      .csfx-hero-plate {
+        position: absolute;
+        bottom: 0.8rem;
+        right: 0.9rem;
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        line-height: 0.85;
+        color: rgb(var(--accent) / 0.18);
+      }
+      .csfx-hero-corner {
+        position: absolute;
+        width: 16px; height: 16px;
+        border-color: rgb(var(--accent) / 0.6);
+        border-style: solid;
+        border-width: 0;
+      }
+      .csfx-hero-corner--tl { top: 10px; left: 10px; border-top-width: 1.5px; border-left-width: 1.5px; }
+      .csfx-hero-corner--tr { top: 10px; right: 10px; border-top-width: 1.5px; border-right-width: 1.5px; }
+      .csfx-hero-corner--bl { bottom: 10px; left: 10px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+      .csfx-hero-corner--br { bottom: 10px; right: 10px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+      .csfx-hero-body { display: flex; flex-direction: column; gap: 1rem; }
+      .csfx-eyebrow {
+        font-size: 10px;
+        letter-spacing: 0.42em;
+        text-transform: uppercase;
+        color: rgb(var(--sepia));
+      }
+      .csfx-hero-title {
+        font-size: clamp(2.2rem, 4.4vw, 3.6rem);
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        font-weight: 600;
+        margin: 0;
+        color: rgb(var(--text));
+      }
+      .csfx-hero-lede {
+        font-size: 1.1rem;
+        line-height: 1.55;
+        color: rgb(var(--text) / 0.85);
+        max-width: 30rem;
+        margin: 0;
+      }
+      .csfx-cta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem; }
+      .csfx-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.9rem;
+        border: 1px solid rgb(var(--border));
+        background: rgb(var(--surface) / 0.6);
+        border-radius: 9999px;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgb(var(--text));
+      }
+      .csfx-cta--primary {
+        background: rgb(var(--accent));
+        color: rgb(var(--bg));
+        border-color: rgb(var(--accent));
+      }
+    </style>
+  </body>
+</html>

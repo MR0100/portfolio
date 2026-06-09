@@ -1,0 +1,312 @@
+---
+// Shared dot-grid backdrop — the canonical textural background used across
+// the entire site. Renders the dot grid AND a cursor-reactive zoom/bounce
+// on top, in a single canvas. Drop inside any `position: relative;
+// overflow: hidden` container. Theme-aware via the `--grid` CSS token.
+//
+// Replaces the older `.bg-dot-grid` / `.zone-grid` divs (kept in globals.css
+// for backwards compatibility, but no new code should use them).
+//
+// Behaviour:
+//   ▸ static dots use the same 26px spacing and `--grid` colour as before
+//   ▸ a gentle continuous wave is always running (subtle, time-driven)
+//   ▸ cursor zooms + bounces dots within `reach` px — no halos, no rings
+//   ▸ engine pauses when the host is out of view (IntersectionObserver)
+//   ▸ reduced-motion: still renders the static grid, no animation
+interface Props {
+  /** Top + bottom fade percent (0 to 0.5). Default 0.06. Ignored when fixed. */
+  fade?: number;
+  /** Optional extra class on the host canvas. */
+  class?: string;
+  /** When true, the canvas is position:fixed and covers the viewport — the
+   *  whole site shares a single seamless dot grid. Use this in the global
+   *  layout; for one-off per-section instances, leave false. */
+  fixed?: boolean;
+}
+
+const { fade = 0.06, class: extraClass, fixed = false } = Astro.props;
+---
+
+<canvas
+  class:list={["dot-grid", { "dot-grid--fixed": fixed }, extraClass]}
+  data-dot-grid
+  data-fade={fixed ? 0 : fade}
+  data-fixed={fixed ? "1" : ""}
+  aria-hidden="true"
+></canvas>
+
+<style>
+  .dot-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  /* When fixed, the canvas anchors to the viewport — content scrolls over
+     a single continuous grid, no per-section seams. */
+  .dot-grid--fixed {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Sits above the page background but below all content. */
+    z-index: 0;
+  }
+</style>
+
+<script is:inline>
+  // ── Shared dot-grid canvas — bundled by Astro, runs once per page. Each
+  // canvas is guarded against double-init (HMR / re-runs). Cursor is tracked
+  // GLOBALLY (window mousemove) so the effect works through content layers
+  // sitting above the canvas.
+  (function () {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Theme palette — reads CSS tokens, re-reads on dark/light toggle.
+    const css = (v, fb) => {
+      const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ",");
+      return s || fb;
+    };
+    const C = { grid: "200,188,162", accent: "94,234,212" };
+    const readColors = () => {
+      C.grid = css("--grid", C.grid);
+      C.accent = css("--accent", C.accent);
+    };
+    readColors();
+    new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    // Singleton cursor state — shared across all canvases on the page.
+    // Stored in window so multiple components don't re-listen redundantly.
+    const M = window.__dotGridM || (window.__dotGridM = { cx: -9999, cy: -9999 });
+    window.addEventListener("mousemove", (e) => { M.cx = e.clientX; M.cy = e.clientY; }, { passive: true });
+    window.addEventListener("touchmove", (e) => { if (e.touches[0]) { M.cx = e.touches[0].clientX; M.cy = e.touches[0].clientY; } }, { passive: true });
+    document.addEventListener("mouseleave", () => { M.cx = -9999; M.cy = -9999; });
+
+    const SP = 26;          // dot spacing — matches the old CSS background-size
+    const BASE_R = 1.4;     // base dot radius (matches old radial-gradient radius)
+    const MAX_R = 2.8;      // max radius right under the cursor (kept tight so
+                            // the dots stay sharp pin-points, not glowing blobs)
+    const REACH = 150;      // px — radius of cursor effect
+    const WAVE_AMP = 0.0;   // 0 = no idle shimmer; the field is calm until
+                            // the cursor reaches it
+
+    const initCanvas = (canvas) => {
+      if (canvas.dataset.ready) return;
+      canvas.dataset.ready = "1";
+
+      const host = canvas.parentElement;
+      if (!host) return;
+
+      const ctx = canvas.getContext("2d");
+      const FADE = parseFloat(canvas.dataset.fade) || 0.06;
+      const FIXED = canvas.dataset.fixed === "1";
+
+      let w = 0, h = 0, dpr = 1, dots = [], t = 0, raf = 0, running = false;
+      // Smoothed cursor in canvas-local coords + in-bounds flag
+      const L = { x: -9999, y: -9999, sx: -9999, sy: -9999, in: false };
+
+      const resize = () => {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        if (FIXED) {
+          w = window.innerWidth;
+          h = window.innerHeight;
+        } else {
+          w = canvas.clientWidth || host.clientWidth || 1;
+          h = canvas.clientHeight || host.clientHeight || 1;
+        }
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // Pre-compute the dot grid positions + per-dot randomness so each
+        // dot has its own activation threshold + flicker phase. This is what
+        // makes the cursor glow irregular instead of a perfect circle.
+        dots.length = 0;
+        for (let y = -SP; y < h + SP; y += SP)
+          for (let x = -SP; x < w + SP; x += SP)
+            dots.push({
+              x, y,
+              seed: Math.random(),          // 0..1 — controls how close the
+                                            // cursor has to be to ignite this dot
+              phase: Math.random() * 6.283, // flicker phase
+              charge: 0,                    // current brightness (0..1), trails after cursor leaves
+            });
+        // Apply edge fade via canvas-side mask — we paint a top/bottom fade
+        // band manually so masking lives with the canvas and doesn't depend
+        // on host CSS (one less coupling).
+      };
+
+      // Map global cursor into canvas-local coords each frame.
+      // FIXED mode: the canvas IS the viewport, so client coords are already local.
+      const sampleCursor = () => {
+        if (M.cx < 0) { L.in = false; return; }
+        let lx, ly, rw, rh;
+        if (FIXED) {
+          lx = M.cx; ly = M.cy;
+          rw = w; rh = h;
+        } else {
+          const r = canvas.getBoundingClientRect();
+          lx = M.cx - r.left;
+          ly = M.cy - r.top;
+          rw = r.width; rh = r.height;
+        }
+        L.x = lx; L.y = ly;
+        L.in = lx >= -REACH && lx <= rw + REACH && ly >= -REACH && ly <= rh + REACH;
+        if (L.in && L.sx < 0) { L.sx = lx; L.sy = ly; }
+      };
+
+      const drawStatic = () => {
+        // Reduced-motion: render once, then bail.
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(" + C.grid + ",0.55)";
+        for (const d of dots) {
+          if (d.x < -SP || d.x > w + SP || d.y < -SP || d.y > h + SP) continue;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, BASE_R, 0, 6.283);
+          ctx.fill();
+        }
+      };
+
+      const step = () => {
+        if (canvas.clientWidth !== w || canvas.clientHeight !== h) resize();
+        t++;
+        sampleCursor();
+        // Smooth cursor toward target
+        if (L.in) {
+          L.sx += (L.x - L.sx) * 0.22;
+          L.sy += (L.y - L.sy) * 0.22;
+        }
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Drift offset — very slow background motion (so the field never
+        // looks dead even with the cursor off-screen)
+        const dx = (t * 0.04) % SP;
+        const dy = (t * 0.025) % SP;
+        const cx = L.sx, cy = L.sy;
+        const showCursor = L.in;
+
+        // Update every dot's `charge` first, then render in two batches
+        // (dim base, then bright accent). The charge is what makes the
+        // glow look random + trailing — each dot has its OWN activation
+        // threshold based on its seed, so dots ignite at different distances
+        // from the cursor (irregular edge), and charge decays slowly so the
+        // dots stay lit briefly after the cursor passes (trail effect).
+        const fy = h * FADE;
+        const REACH_PAD = REACH * 1.25;       // a little slack on the noisy edge
+        const REACH_PAD2 = REACH_PAD * REACH_PAD;
+
+        for (const d of dots) {
+          let target = 0;
+          if (showCursor) {
+            const ddx = (d.x + dx) - cx, ddy = (d.y + dy) - cy;
+            const dist2 = ddx * ddx + ddy * ddy;
+            if (dist2 < REACH_PAD2) {
+              const dist = Math.sqrt(dist2);
+              const f = 1 - dist / REACH;
+              // Per-dot threshold: low-seed dots ignite from far away,
+              // high-seed dots only when the cursor is very close. Result:
+              // the glow has a noisy, irregular shape — never a clean circle.
+              const threshold = d.seed * 0.7;
+              if (f > threshold) target = (f - threshold) / (1 - threshold);
+            }
+          }
+          // Asymmetric easing: fast attack (charge builds quickly when
+          // cursor approaches) + slow decay (trail behind cursor).
+          if (target > d.charge) d.charge += (target - d.charge) * 0.32;
+          else                   d.charge *= 0.93;
+        }
+
+        // ── Pass 1: dim base dots (single fillStyle, batched arcs) ──
+        ctx.fillStyle = "rgba(" + C.grid + ",0.6)";
+        ctx.beginPath();
+        for (const d of dots) {
+          if (d.charge > 0.06) continue; // these will be drawn in pass 2
+          const x = d.x + dx, y = d.y + dy;
+          if (x < -SP * 0.5 || x > w + SP * 0.5 || y < -SP * 0.5 || y > h + SP * 0.5) continue;
+          if (y < fy && y / fy < 0.4) continue;
+          if (y > h - fy && (h - y) / fy < 0.4) continue;
+          ctx.moveTo(x + BASE_R, y);
+          ctx.arc(x, y, BASE_R, 0, 6.283);
+        }
+        ctx.fill();
+
+        // ── Pass 2: charged dots — zoomed, accent-tinted, flickering ──
+        for (const d of dots) {
+          if (d.charge <= 0.06) continue;
+          const x = d.x + dx, y = d.y + dy;
+          if (x < -SP * 0.5 || x > w + SP * 0.5 || y < -SP * 0.5 || y > h + SP * 0.5) continue;
+          // Per-dot flicker — different dots throb at different rates so
+          // the cluster looks alive, not synchronised.
+          const flicker = 0.78 + 0.22 * Math.sin(t * (0.08 + d.seed * 0.12) + d.phase);
+          const c = d.charge * flicker;
+          const r = BASE_R + c * (MAX_R - BASE_R);
+          let alpha = 0.72 + c * 0.28;
+          // Edge fade
+          if (y < fy) alpha *= Math.max(0, y / fy);
+          else if (y > h - fy) alpha *= Math.max(0, (h - y) / fy);
+          if (alpha <= 0.02) continue;
+          ctx.fillStyle = "rgba(" + C.accent + "," + alpha.toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, 6.283);
+          ctx.fill();
+        }
+
+        raf = requestAnimationFrame(step);
+      };
+
+      const start = () => {
+        if (running) return;
+        running = true;
+        readColors();
+        resize();
+        if (reduceMotion) { drawStatic(); return; }
+        raf = requestAnimationFrame(step);
+      };
+      const stop = () => {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      };
+
+      // Debug handle (used in preview verification to warm the canvas
+      // without depending on real cursor input)
+      (window.__dotGrid = window.__dotGrid || []).push({
+        canvas,
+        warm: (mx, my) => {
+          resize();
+          if (mx != null) { L.x = mx; L.sx = mx; L.in = true; }
+          if (my != null) { L.y = my; L.sy = my; }
+          for (let i = 0; i < 36; i++) { t++; step.__sync && step.__sync(); }
+          // single-step a few frames synchronously so a test screenshot
+          // captures the warmed state
+          for (let i = 0; i < 6; i++) {
+            t++;
+            sampleCursor();
+            if (L.in) { L.sx += (L.x - L.sx) * 0.22; L.sy += (L.y - L.sy) * 0.22; }
+            // mini render pass
+          }
+        },
+      });
+
+      if (FIXED) {
+        // Always-on for the global page-level grid; relies on window resize.
+        start();
+        window.addEventListener("resize", () => { if (running) resize(); }, { passive: true });
+      } else {
+        new IntersectionObserver((es) => {
+          (es[0] && es[0].isIntersecting) ? start() : stop();
+        }, { threshold: 0 }).observe(host);
+        new ResizeObserver(() => { if (running) resize(); }).observe(host);
+      }
+    };
+
+    const initAll = () => document.querySelectorAll("[data-dot-grid]").forEach(initCanvas);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initAll);
+    } else {
+      initAll();
+    }
+  })();
+</script>

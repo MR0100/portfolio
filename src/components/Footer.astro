@@ -103,29 +103,32 @@ const navLinks = [
 </footer>
 
 <style>
-  /* Footer atmosphere — three-layer static gradient mesh on top of the page bg.
-     Top-left: accent teal glow. Bottom-right: sepia warm glow. Centre: a soft
-     vignette pulling focus inward. No animation. */
+  /* Footer atmosphere — clean elevated surface tone with subtle accent glow.
+     The black-overlay vignette is gone; the footer now sits on `surface`
+     (slightly raised above page bg) for visual hierarchy that harmonizes
+     with the rest of the site instead of feeling muddied. */
+  .footer-bg {
+    background-color: rgb(var(--surface));
+  }
   .footer-mesh {
     position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     background:
-      radial-gradient(60% 70% at 12% 18%, rgb(var(--accent) / 0.10), transparent 60%),
-      radial-gradient(55% 60% at 88% 82%, rgb(var(--sepia) / 0.08), transparent 60%),
-      radial-gradient(80% 110% at 50% 50%, transparent 32%, rgb(0 0 0 / 0.35) 100%);
+      /* Accent glow top-left — subtle */
+      radial-gradient(60% 70% at 10% 0%, rgb(var(--accent) / 0.08), transparent 55%),
+      /* Accent-soft balance bottom-right */
+      radial-gradient(55% 60% at 90% 100%, rgb(var(--accent-soft) / 0.14), transparent 55%);
   }
-  .footer-bg {
-    background-color: rgb(var(--bg));
-  }
+  /* Thin accent line at the very top edge to define the footer boundary */
   .footer-bg::before {
     content: "";
     position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.2) 100%);
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgb(var(--accent) / 0.4) 50%, transparent 100%);
+    z-index: 1;
   }
 </style>
 
