@@ -4,11 +4,10 @@ import { profile } from "~/data/profile";
 
 const all = await getCollection("work");
 const verified = all.filter((e) => e.data.status === "verified").length;
-
-const numberWord = (n: number) => {
-  const words = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
-  return words[n] ?? String(n);
-};
+// T01 guide: numerals beat spelled-out words for scannable impact + credibility.
+// "19 apps shipped, 13 still live" lands as measured data; "nineteen / thirteen"
+// reads as prose and the metric gets lost.
+const years = parseInt(profile.yearsExperience, 10) || 6;
 ---
 
 <!-- Magazine pull-quote feature -->
@@ -18,7 +17,7 @@ const numberWord = (n: number) => {
   <!-- Monumental statement -->
   <blockquote class="max-w-5xl">
     <p class="font-display text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.0]" data-scramble>
-      Six years, <span class="text-accent italic">{numberWord(all.length)} apps shipped</span>, <span class="text-accent italic">{numberWord(verified)} still live</span> in the stores.
+      <span class="tabular-nums">{years}</span> years, <span class="text-accent italic tabular-nums">{all.length} apps shipped</span>, <span class="text-accent italic tabular-nums">{verified} still live</span> in the stores.
     </p>
   </blockquote>
 
@@ -30,11 +29,63 @@ const numberWord = (n: number) => {
     </div>
     <div class="space-y-5 font-serif text-lg leading-relaxed text-text/90">
       <p>{profile.bioLong[2]}</p>
-      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 pt-2 font-mono text-[10px] uppercase tracking-[0.18em]">
-        <div><dt class="text-muted">Stack</dt><dd class="text-text mt-0.5">Flutter · Kotlin · Swift</dd></div>
-        <div><dt class="text-muted">Method</dt><dd class="text-text mt-0.5">Clean Arch · BLoC</dd></div>
-        <div><dt class="text-muted">Experience</dt><dd class="text-text mt-0.5">{profile.yearsExperience} years</dd></div>
-        <div><dt class="text-muted">Based</dt><dd class="text-text mt-0.5">{profile.location}</dd></div>
+
+      <!-- Spec card — 4 facts at a glance. Icon + sepia label (eyebrow) +
+           strong value. Border-top hairline divider sets it apart from the
+           prose above so the eye recognises "stats" instantly. -->
+      <dl class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 border-t border-border/70 pt-5">
+        <div class="flex items-start gap-3">
+          <span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-accent/30 bg-accent/10 text-accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+          </span>
+          <div class="min-w-0">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia">Stack</dt>
+            <dd class="mt-1 font-sans text-[15px] font-semibold text-text leading-snug">Flutter · Kotlin · Swift</dd>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-accent/30 bg-accent/10 text-accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </span>
+          <div class="min-w-0">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia">Method</dt>
+            <dd class="mt-1 font-sans text-[15px] font-semibold text-text leading-snug">Clean Arch · BLoC</dd>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-accent/30 bg-accent/10 text-accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </span>
+          <div class="min-w-0">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia">Experience</dt>
+            <dd class="mt-1 font-sans text-[15px] font-semibold text-text leading-snug tabular-nums">{profile.yearsExperience} years</dd>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-accent/30 bg-accent/10 text-accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </span>
+          <div class="min-w-0">
+            <dt class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia">Based</dt>
+            <dd class="mt-1 font-sans text-[15px] font-semibold text-text leading-snug">{profile.location}</dd>
+          </div>
+        </div>
       </dl>
     </div>
   </div>

@@ -15,9 +15,17 @@ const learningList = profile.currentlyLearning;
 ---
 
 <section class="container-page py-8 md:py-10">
-  <div class="hud overflow-hidden rounded-lg border border-border bg-paper/40">
+  <!-- Glassmorphic status console — translucent base + backdrop-blur + top
+       highlight sheen + soft accent glow. Sits beautifully on the dot-grid
+       backdrop without competing with it. -->
+  <div class="hud glass-card relative overflow-hidden rounded-xl">
+    <!-- Top sheen highlight — runs along the top edge to suggest glass curvature -->
+    <div class="glass-sheen" aria-hidden="true"></div>
+    <!-- Inner border highlight — gives the card a crisp outline against any bg -->
+    <div class="glass-rim" aria-hidden="true"></div>
+
     <!-- Console header -->
-    <div class="flex items-center justify-between gap-3 border-b border-border/70 bg-bg/40 px-4 py-2.5">
+    <div class="relative z-10 flex items-center justify-between gap-3 border-b border-white/[0.06] dark:border-white/[0.04] px-4 py-2.5">
       <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
         <span class="text-accent">◢</span>
         <span class="text-text">status</span>
@@ -43,7 +51,7 @@ const learningList = profile.currentlyLearning;
     </div>
 
     <!-- Channels -->
-    <dl class="divide-y divide-border/60">
+    <dl class="relative z-10 divide-y divide-white/[0.06] dark:divide-white/[0.04]">
       <!-- 01 · Currently -->
       <div class="grid grid-cols-[28px_1fr] md:grid-cols-[28px_140px_1fr_auto] items-baseline gap-x-4 gap-y-1 px-4 py-5 md:py-6">
         <span class="font-mono text-[11px] tabular-nums text-accent">01</span>
@@ -53,10 +61,10 @@ const learningList = profile.currentlyLearning;
           <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{current.company} · Surat, IN</div>
         </dd>
         <dd class="col-start-2 md:col-start-4 md:justify-self-end">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+          <span class="status-pill status-pill--active">
             <span class="relative inline-flex h-1.5 w-1.5">
-              <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
-              <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
+              <span class="absolute inset-0 rounded-full bg-[rgb(var(--status-active)_/_0.45)] animate-ping"></span>
+              <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-[rgb(var(--status-active))]"></span>
             </span>
             Active
           </span>
@@ -82,7 +90,7 @@ const learningList = profile.currentlyLearning;
           <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Live in app stores · iOS + Android</div>
         </dd>
         <dd class="col-start-2 md:col-start-4 md:justify-self-end">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+          <span class="status-pill status-pill--active">
             <svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
             Deployed
           </span>
@@ -105,8 +113,8 @@ const learningList = profile.currentlyLearning;
           <div class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Always something on the bench</div>
         </dd>
         <dd class="col-start-2 md:col-start-4 md:justify-self-end">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-sepia/40 bg-sepia/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-sepia">
-            <span class="inline-flex h-1.5 w-1.5 rounded-full bg-sepia"></span>
+          <span class="status-pill status-pill--progress">
+            <span class="inline-flex h-1.5 w-1.5 rounded-full bg-[rgb(var(--status-progress))]"></span>
             In progress
           </span>
         </dd>
@@ -114,6 +122,87 @@ const learningList = profile.currentlyLearning;
     </dl>
   </div>
 </section>
+
+<style>
+  /* ──────────── Frosted glass + glossy gleam ────────────
+     A thin, very-translucent panel with heavy blur — backdrop visibly
+     bleeds through the surface. A diagonal sheen sweeps top-left to
+     bottom-right to mimic light reflecting across polished glass.
+     Mode-aware via global selectors. */
+  .glass-card {
+    /* Frosted glass — moderate 4px blur for a clear "behind glass" feel
+       while keeping dots visible as softened points. Surface gets a
+       VERY light accent-soft tint in light mode so the card edge reads
+       against the bluish-white page bg (which otherwise blends). Drop
+       shadow tinted with the theme accent for a blueish lift instead
+       of grey weight. */
+    background: linear-gradient(
+      180deg,
+      rgb(var(--accent) / 0.05) 0%,
+      rgb(var(--accent) / 0.02) 100%
+    );
+    -webkit-backdrop-filter: blur(4px) saturate(120%);
+    backdrop-filter: blur(4px) saturate(120%);
+    box-shadow:
+      0 14px 28px -14px rgb(var(--accent) / 0.10),
+      0 4px 10px -6px rgb(var(--accent) / 0.06);
+  }
+  :global(.dark) .glass-card {
+    /* Dark mode — no tint needed, the dot grid + dark bg give the
+       card its own contrast. Shadow is the accent blue at low alpha
+       so it just suggests depth without halo-ing the card. */
+    background: transparent;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow:
+      0 16px 32px -16px rgb(var(--accent) / 0.12),
+      0 5px 12px -6px rgb(var(--accent) / 0.07);
+  }
+
+  /* ── Sheen — accent-tinted top wash only.
+        Was white at low alpha; switched to accent so the upper edge
+        picks up the theme blue family instead of looking grey. */
+  .glass-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(var(--accent) / 0.08) 0%,
+      rgb(var(--accent) / 0.02) 25%,
+      transparent 55%
+    );
+  }
+  :global(.dark) .glass-sheen {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--accent) / 0.06) 0%,
+      rgb(var(--accent) / 0.015) 25%,
+      transparent 55%
+    );
+  }
+
+  /* ── Rim — quiet hairline outline only.
+        Removed the bright top highlight + dark bottom shadow because
+        they were reading as "shiny edge". Just a soft 1px stroke at
+        very low alpha so the card has a clean boundary. */
+  .glass-rim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    /* Theme-accent tinted border — picks up the blue family instead of
+       the off-white rim that read as a "grey edge". Stronger in light
+       mode where the card sits on a bluish-white bg and needs visible
+       definition. */
+    border: 1px solid rgb(var(--accent) / 0.22);
+  }
+  :global(.dark) .glass-rim {
+    border-color: rgb(var(--accent) / 0.20);
+  }
+</style>
 
 <script is:inline>
   (function () {

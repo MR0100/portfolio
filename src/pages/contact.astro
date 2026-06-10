@@ -1,82 +1,245 @@
 ---
 import Base from "~/layouts/Base.astro";
-import SpecimenHeading from "~/components/SpecimenHeading.astro";
-import SpecBlock from "~/components/SpecBlock.astro";
-import SpecRow from "~/components/SpecRow.astro";
 import { profile } from "~/data/profile";
+
+const openTo = ["Senior IC", "Mobile Lead", "Architecture"];
+const linkedinHandle = "mitul-vaghasiya";
+const githubHandle = "MR0100";
+const twitterHandle = "@_MR_0100";
 ---
 
-<Base title="Contact" description={`Contact ${profile.name} — open to senior IC, lead, and architecture roles. Email is the fastest channel.`}>
-  <section class="container-page pt-10 md:pt-14">
-    <div class="flex flex-wrap items-baseline justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-      <div>Contact</div>
-      <div>Email is fastest</div>
-    </div>
-    <div class="mt-4 rule-thin"></div>
-
-    <header class="mt-12 max-w-4xl">
+<Base
+  title="Contact"
+  description={`Contact ${profile.name} — open to senior IC, lead, and architecture roles. Email is the fastest channel.`}
+>
+  <section class="container-page pt-16 md:pt-24">
+    <!-- Section header -->
+    <header class="max-w-4xl">
       <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-4">Channels open</div>
-      <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.92]">
+      <h1 class="font-display text-5xl md:text-7xl font-semibold tracking-tight leading-[0.92]" data-scramble>
         Let's talk<span class="text-accent">.</span>
       </h1>
       <p class="mt-5 font-serif text-xl md:text-2xl text-text/85 leading-snug max-w-2xl">
-        Open to senior IC, lead, and architecture roles. Email is the fastest channel.
+        Open to senior IC, lead, and architecture roles — full-time or contract.
+        Email is the fastest channel; I read everything that lands there.
       </p>
     </header>
   </section>
 
-  <section class="container-page mt-16 grid gap-10 lg:grid-cols-[1fr_1fr]">
-    <SpecBlock label="Channels" trailing="00.A">
-      <SpecRow label="Email"><a href={profile.socials.email} class="link-underline">{profile.email}</a></SpecRow>
-      <SpecRow label="GitHub"><a href={profile.socials.github} target="_blank" rel="noreferrer noopener" class="link-underline">github.com/MR0100</a></SpecRow>
-      <SpecRow label="LinkedIn"><a href={profile.socials.linkedin} target="_blank" rel="noreferrer noopener" class="link-underline">/in/mitul-vaghasiya-075a53166</a></SpecRow>
-      <SpecRow label="Twitter / X"><a href={profile.socials.twitter} target="_blank" rel="noreferrer noopener" class="link-underline">@_MR_0100</a></SpecRow>
-      <SpecRow label="Based">{profile.location}</SpecRow>
-      <SpecRow label="Languages">{profile.languagesSpoken.join(" / ")}</SpecRow>
-    </SpecBlock>
+  <!-- ═════════════ Two-column action + status layout ═════════════
+       Same design language as the home contact section. Standalone
+       page so we get more room to breathe — bigger cards, larger
+       handles, more detailed status. -->
+  <section class="container-page mt-16 md:mt-20 pb-24 md:pb-32">
+    <div class="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16 max-w-6xl">
 
-    <div class="border border-border bg-paper/40 rounded-md overflow-hidden">
-      <div class="flex items-center justify-between px-4 py-2 border-b border-border/60 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
-        <span>Reach out</span>
-        <span>00.B</span>
-      </div>
-      <div class="p-6 space-y-4">
-        <p class="font-serif text-base text-text/85 leading-relaxed">
-          Email is the fastest channel. I usually reply within a day or two.
-        </p>
-        <div class="flex flex-col gap-3 pt-1">
-          <a
-            href={profile.socials.email}
-            class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-bg hover:bg-accent-hover transition-colors"
-          >
-            {profile.email} →
-          </a>
-          <a
-            href={profile.socials.linkedin}
-            target="_blank"
-            rel="noreferrer noopener"
-            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            LinkedIn
-          </a>
-          <a
-            href={profile.socials.github}
-            target="_blank"
-            rel="noreferrer noopener"
-            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            GitHub
-          </a>
-          <a
-            href={profile.socials.twitter}
-            target="_blank"
-            rel="noreferrer noopener"
-            class="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
-          >
-            Twitter / X
-          </a>
+      <!-- ═════════════ LEFT: Hero email + secondary channels ═════════════ -->
+      <div class="space-y-8">
+        <!-- Hero email card -->
+        <a
+          href={profile.socials.email}
+          class="group block rounded-xl border border-border bg-paper/40 backdrop-blur-sm hover:border-accent/60 hover:bg-paper/60 transition-colors overflow-hidden"
+        >
+          <div class="flex items-stretch">
+            <div class="flex items-center justify-center px-6 bg-accent/10 border-r border-border group-hover:border-accent/40 transition-colors">
+              <svg class="h-6 w-6 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7l9 6 9-6"/>
+                <rect x="3" y="5" width="18" height="14" rx="2"/>
+              </svg>
+            </div>
+            <div class="flex-1 px-6 py-5 min-w-0">
+              <div class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia mb-1.5">
+                Send an email
+              </div>
+              <div class="font-display text-xl md:text-2xl font-semibold text-text truncate">
+                {profile.email}
+              </div>
+            </div>
+            <div class="flex items-center justify-center px-6 text-muted group-hover:text-accent group-hover:translate-x-0.5 transition-all">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Secondary channels — brand chip + label + handle. Bigger here than
+             on the home section since this is a dedicated contact page. -->
+        <div>
+          <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia mb-3">Or find me on</div>
+          <div class="grid sm:grid-cols-3 gap-3">
+            <a
+              href={profile.socials.linkedin}
+              target="_blank"
+              rel="noreferrer noopener"
+              class="group flex items-center gap-3 rounded-lg border border-border bg-paper/30 backdrop-blur-sm hover:border-accent/40 hover:bg-paper/60 px-4 py-3.5 transition-colors"
+            >
+              <svg class="h-5 w-5 text-muted group-hover:text-accent transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20.45 20.45h-3.55v-5.56c0-1.33-.03-3.03-1.85-3.03-1.85 0-2.13 1.45-2.13 2.94v5.65H9.36V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45z"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="font-mono text-[9px] uppercase tracking-[0.2em] text-sepia">LinkedIn</div>
+                <div class="font-mono text-[11px] text-text truncate">{linkedinHandle}</div>
+              </div>
+            </a>
+
+            <a
+              href={profile.socials.github}
+              target="_blank"
+              rel="noreferrer noopener"
+              class="group flex items-center gap-3 rounded-lg border border-border bg-paper/30 backdrop-blur-sm hover:border-accent/40 hover:bg-paper/60 px-4 py-3.5 transition-colors"
+            >
+              <svg class="h-5 w-5 text-muted group-hover:text-accent transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.51-1.47.11-3.06 0 0 .97-.31 3.19 1.18a11.1 11.1 0 0 1 5.81 0c2.22-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.77.12 3.06.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.41-5.27 5.69.41.36.78 1.06.78 2.14 0 1.54-.01 2.79-.01 3.17 0 .31.21.66.8.55C20.22 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="font-mono text-[9px] uppercase tracking-[0.2em] text-sepia">GitHub</div>
+                <div class="font-mono text-[11px] text-text truncate">{githubHandle}</div>
+              </div>
+            </a>
+
+            <a
+              href={profile.socials.twitter}
+              target="_blank"
+              rel="noreferrer noopener"
+              class="group flex items-center gap-3 rounded-lg border border-border bg-paper/30 backdrop-blur-sm hover:border-accent/40 hover:bg-paper/60 px-4 py-3.5 transition-colors"
+            >
+              <svg class="h-5 w-5 text-muted group-hover:text-accent transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="font-mono text-[9px] uppercase tracking-[0.2em] text-sepia">X / Twitter</div>
+                <div class="font-mono text-[11px] text-text truncate">{twitterHandle}</div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- "What to mention" — guides visitors to write a useful first email -->
+        <div class="rounded-xl border border-border/70 bg-paper/20 backdrop-blur-sm p-5 mt-4">
+          <div class="font-mono text-[10px] uppercase tracking-[0.22em] text-sepia mb-3">
+            What helps me reply fast
+          </div>
+          <ul class="space-y-2 text-[14px] text-text/80 font-serif">
+            <li class="flex gap-3">
+              <span class="text-accent font-mono text-[11px] flex-shrink-0 mt-1">01</span>
+              <span><strong class="text-text">Role + scope</strong> — title, team size, mobile stack.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="text-accent font-mono text-[11px] flex-shrink-0 mt-1">02</span>
+              <span><strong class="text-text">Format</strong> — full-time, contract, or one-off consult.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="text-accent font-mono text-[11px] flex-shrink-0 mt-1">03</span>
+              <span><strong class="text-text">Timeline + budget range</strong> — even rough numbers help me match.</span>
+            </li>
+          </ul>
         </div>
       </div>
+
+      <!-- ═════════════ RIGHT: Live status card ═════════════ -->
+      <aside class="lg:sticky lg:top-24 self-start">
+        <div class="relative rounded-xl border border-border bg-paper/40 backdrop-blur-sm overflow-hidden">
+          <!-- Status header -->
+          <div class="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/70 bg-bg/30">
+            <div class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em]">
+              <span class="text-accent">◢</span>
+              <span class="text-text">Status</span>
+              <span class="text-muted">·</span>
+              <span class="text-muted">now</span>
+            </div>
+            <span class="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
+              <span class="relative inline-flex h-1.5 w-1.5">
+                <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
+                <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
+              </span>
+              Available
+            </span>
+          </div>
+
+          <!-- Status body — facts list -->
+          <dl class="px-5 py-4 divide-y divide-border/50">
+            <!-- Open to -->
+            <div class="py-3 first:pt-0">
+              <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-2">Open to</dt>
+              <dd class="flex flex-wrap gap-1.5">
+                {openTo.map((role) => (
+                  <span class="inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-[11px] font-medium text-accent">
+                    {role}
+                  </span>
+                ))}
+              </dd>
+            </div>
+
+            <!-- Format / Notice -->
+            <div class="py-3 grid grid-cols-2 gap-3">
+              <div>
+                <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Format</dt>
+                <dd class="font-sans text-[13px] font-medium text-text">Full-time · Contract</dd>
+              </div>
+              <div>
+                <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Notice</dt>
+                <dd class="font-sans text-[13px] font-medium text-text tabular-nums">{profile.noticePeriod}</dd>
+              </div>
+            </div>
+
+            <!-- Location + live IST clock -->
+            <div class="py-3">
+              <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Based · Local time</dt>
+              <dd class="flex items-baseline justify-between gap-3">
+                <span class="font-sans text-[13px] font-medium text-text">{profile.location}</span>
+                <span class="font-mono text-[11px] text-muted tabular-nums">
+                  <span data-contact-clock>--:--:--</span> IST
+                </span>
+              </dd>
+            </div>
+
+            <!-- Reply time -->
+            <div class="py-3">
+              <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Reply window</dt>
+              <dd class="flex items-center gap-2">
+                <svg class="h-3.5 w-3.5 text-accent flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span class="font-sans text-[13px] font-medium text-text">Within 1–2 days</span>
+              </dd>
+            </div>
+
+            <!-- Languages -->
+            <div class="py-3">
+              <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Languages</dt>
+              <dd class="font-sans text-[13px] font-medium text-text">{profile.languagesSpoken.join(" · ")}</dd>
+            </div>
+
+            <!-- Years of experience -->
+            <div class="py-3 last:pb-0">
+              <dt class="font-mono text-[9px] uppercase tracking-[0.22em] text-sepia mb-1">Experience</dt>
+              <dd class="font-sans text-[13px] font-medium text-text tabular-nums">{profile.yearsExperience} years · Mobile</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
     </div>
   </section>
 </Base>
+
+<script is:inline>
+  // Live IST clock — same pattern as the home Status console.
+  (function () {
+    const el = document.querySelector("[data-contact-clock]");
+    if (!el) return;
+    const fmt = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const tick = () => {
+      try { el.textContent = fmt.format(new Date()); } catch (e) {}
+    };
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>

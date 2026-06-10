@@ -387,7 +387,7 @@ const platformTags = (l: WorkLinks) => {
     transition: left 720ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .work-card:hover .work-card-sheen { left: 130%; }
-  :global(.dark) .work-card-sheen { background: linear-gradient(115deg, transparent 0%, rgb(94 234 212 / 0.10) 50%, transparent 100%); }
+  :global(.dark) .work-card-sheen { background: linear-gradient(115deg, transparent 0%, rgb(var(--accent) / 0.10) 50%, transparent 100%); }
 
   /* Index chip overlay */
   .work-card-num {

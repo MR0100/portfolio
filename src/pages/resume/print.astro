@@ -49,6 +49,21 @@ const githubPlain = "github.com/MR0100";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>{profile.name} — Resume</title>
+
+    <!-- Theme bootstrap — mirrors src/layouts/Base.astro so the preview
+         chrome follows the website's theme toggle (localStorage "theme")
+         instead of the OS-level prefers-color-scheme. Runs synchronously
+         BEFORE first paint to avoid a flash of the wrong mode. -->
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem("theme");
+          const system = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          const mode = saved || system;
+          if (mode === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <main class="page">
@@ -161,7 +176,7 @@ const githubPlain = "github.com/MR0100";
       )}
 
       <!-- ── Skills ── -->
-      <section>
+      <section class="tight">
         <h2><span class="h2-bar"></span><span class="h2-text">Skills</span><span class="h2-rule"></span></h2>
         <dl class="skills">
           {flatSkills.map((g) => (
@@ -174,7 +189,7 @@ const githubPlain = "github.com/MR0100";
       </section>
 
       <!-- ── Education ── -->
-      <section>
+      <section class="tight">
         <h2><span class="h2-bar"></span><span class="h2-text">Education</span><span class="h2-rule"></span></h2>
         {education.map((edu) => (
           <div class="role">
@@ -192,7 +207,7 @@ const githubPlain = "github.com/MR0100";
 
       <!-- ── Certifications ── -->
       {certifications.length > 0 && (
-        <section>
+        <section class="tight">
           <h2><span class="h2-bar"></span><span class="h2-text">Certifications</span><span class="h2-rule"></span></h2>
           {certifications.map((c) => (
             <div class="entry">
@@ -251,17 +266,32 @@ const githubPlain = "github.com/MR0100";
       </footer>
     </main>
 
-    <!-- Floating control bar — screen only -->
-    <div class="bar no-print">
-      <span class="bar-hint">ATS-safe A4 view</span>
-      <a class="bar-btn" href={profile.resumeFile} download="Mitul-Vaghasiya-Resume.pdf">Save as PDF</a>
-      <a class="bar-link" href="/resume">← Web view</a>
+    <!-- ═════════════ Minimal floating bar (screen only) ═════════════
+         Sits at the bottom-right. Mode-aware via tokens:
+           LIGHT — dark-blue pill, white CTA
+           DARK  — light pill, dark-blue CTA
+         Stripped from PDF via .no-print. -->
+    <div class="dock no-print">
+      <a class="dock-link" href="/resume">
+        <span aria-hidden="true">←</span>
+        <span class="encrypt-tap" data-text="Web view">Web view</span>
+      </a>
+      <a
+        class="dock-cta"
+        href={profile.resumeFile}
+        download="Mitul-Vaghasiya-Resume.pdf"
+      >
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="dock-cta-icon">
+          <path d="M10 3v9m0 0l-4-4m4 4l4-4M4 16h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="encrypt-tap" data-text="Save as PDF">Save as PDF</span>
+      </a>
     </div>
 
     <style>
       :root {
-        /* MONO palette — no chromatic colors anywhere.
-           Hierarchy comes from value (black/gray/light), weight, and size. */
+        /* MONO palette — applies to the resume content (.page) on both
+           screen and print. Hierarchy comes from value, weight, and size. */
         --ink:     #111;              /* body text */
         --strong:  #000;              /* name, h2, company, accent bars */
         --mid:     #4b4f55;           /* secondary text (period, location) */
@@ -269,9 +299,58 @@ const githubPlain = "github.com/MR0100";
         --softer:  #8a8e94;           /* labels, footer */
         --rule:    #c8c8c8;           /* light dividers */
         --rule-2:  #e2e2e2;           /* lighter row dividers */
+
+        /* ═════════════ THEME palette — Onyx, mode-aware ═════════════
+           Screen-only preview shell. Print stylesheet hides all chrome.
+           Variant 13 — "Gradient Hover Stop": dock uses an accent →
+           accent-hover diagonal gradient with a glow, white pill CTA
+           inside. All values come from globals.css Onyx tokens.
+        */
+
+        /* Onyx palette (space-separated so they compose with alpha) */
+        --v-bg:             238 242 248;
+        --v-paper:          222 230 240;
+        --v-accent:          24  96 160;
+        --v-accent-hover:   16  76 134;
+        --v-accent-soft:   156 192 226;
+
+        /* Derived chrome tokens */
+        --t-bg:             rgb(var(--v-bg));
+        --t-card-shadow:    0 1px 2px rgb(8 16 32 / 0.04),
+                            0 6px 18px -4px rgb(8 16 32 / 0.06),
+                            0 24px 60px -16px rgb(8 16 32 / 0.10);
+        --t-card-border:    rgb(214, 224, 238);
+
+        --t-cta-bg:         #ffffff;
+      }
+      /* Dark mode tokens — driven by html.dark, which the website's theme
+         toggle adds/removes via localStorage("theme"). Class-based (NOT
+         prefers-color-scheme) so the preview follows the toggle, not the OS. */
+      html.dark {
+        --v-bg:               6  12  22;
+        --v-paper:           14  22  36;
+        --v-accent:         140 198 250;
+        --v-accent-hover:   180 224 254;
+        --v-accent-soft:     22  50  86;
+
+        --t-bg:             rgb(var(--v-bg));
+        --t-card-shadow:    0 1px 2px rgb(0 0 0 / 0.40),
+                            0 8px 24px -6px rgb(0 0 0 / 0.45),
+                            0 32px 80px -20px rgb(0 0 0 / 0.55);
+        --t-card-border:    rgb(48, 64, 92);
+
+        --t-cta-bg:         rgb(var(--v-bg));
       }
       * { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; background: #f1f1f3; color: var(--ink); }
+      html, body {
+        margin: 0;
+        padding: 0;
+        /* Solid backdrop — matches the Onyx theme bg in each mode. No
+           gradient, no lift; reads cleanly and matches the website. */
+        background: var(--t-bg);
+        min-height: 100vh;
+        color: var(--ink);
+      }
       body {
         /* ATS-safe font chain — system fonts, no web font load */
         font-family: "Calibri", "Segoe UI", "Arial", "Helvetica Neue", Helvetica, sans-serif;
@@ -284,10 +363,15 @@ const githubPlain = "github.com/MR0100";
          In print: page extends edge-to-edge of A4 with its own margins. */
       .page {
         max-width: 210mm;
-        margin: 24px auto;
+        margin: 40px auto 100px;
         background: #fff;
-        padding: 15mm 18mm 14mm;
-        box-shadow: 0 14px 40px rgb(0 0 0 / 0.10), 0 0 0 1px #dadada;
+        /* Tighter horizontal + vertical padding gives more usable area and
+           lets the doc breathe inside 2 pages instead of bleeding to 3. */
+        padding: 12mm 14mm 11mm;
+        /* Layered card shadow — driven by tokens so it adapts per mode. */
+        box-shadow: var(--t-card-shadow);
+        border: 1px solid var(--t-card-border);
+        border-radius: 4px;
       }
 
       /* ═════════════ Header ═════════════ */
@@ -306,29 +390,23 @@ const githubPlain = "github.com/MR0100";
         color: var(--ink);
         letter-spacing: 0.1pt;
       }
-      /* Double-rule editorial mark — thick over thin, both pure black */
+      /* Header rule — single elegant 0.6pt hairline spanning the full
+         content width. Replaces the prior heavy double-bar treatment for
+         a more refined editorial feel. */
       .hdr-rule {
-        display: flex;
-        flex-direction: column;
-        gap: 2pt;
-        margin: 11pt 0 14pt;
-        width: 72pt;
-      }
-      .hdr-rule-thick {
-        display: block;
-        height: 2pt;
-        background: var(--strong);
-      }
-      .hdr-rule-thin {
         display: block;
         height: 0.6pt;
         background: var(--strong);
+        width: 100%;
+        margin: 8pt 0 11pt;
       }
+      .hdr-rule-thick,
+      .hdr-rule-thin { display: none; }
 
       .hdr-rows {
         display: flex;
         flex-direction: column;
-        gap: 7pt;
+        gap: 4pt;
       }
       .hdr-row {
         display: grid;
@@ -337,7 +415,7 @@ const githubPlain = "github.com/MR0100";
       }
       .hdr-row--meta {
         grid-template-columns: 2fr 1fr 1.4fr;
-        margin-top: 7pt;
+        margin-top: 4pt;
       }
       .hdr-cell, .hdr-meta-cell {
         display: flex;
@@ -349,7 +427,8 @@ const githubPlain = "github.com/MR0100";
       .hdr-label {
         font-size: 7.5pt;
         font-weight: 700;
-        letter-spacing: 1.4pt;
+        /* See h2 note — letter-spacing breaks ATS keyword extraction. */
+        letter-spacing: 0;
         text-transform: uppercase;
         color: var(--softer);
       }
@@ -362,45 +441,52 @@ const githubPlain = "github.com/MR0100";
       a.hdr-value { color: var(--ink); }
 
       /* ═════════════ Section spacing — single, even rhythm ═════════════
-         Every section sits 20pt below the previous. H2 → first content
-         is always 10pt. Inside sections, entries (.role / .project / .entry)
-         start at exactly the same 10pt gap.  */
-      section { margin-top: 20pt; }
+         Every section sits 12pt below the previous. H2 → first content
+         is always 6pt. Tuned so the full doc lands cleanly inside 2 A4
+         pages for a 6+ YOE candidate.  */
+      section { margin-top: 12pt; }
+      /* Section heading — read as a proper TITLE, distinct from body type.
+         13.5pt uppercase (vs 10pt body) sets clear hierarchy. Small vertical
+         accent bar to the left frames it as a chapter mark. Single 0.4pt
+         hairline beneath closes the title block. No letter-spacing — Chrome
+         PDF emits CSS tracking as literal space chars and breaks ATS. */
       h2 {
         display: flex;
         align-items: center;
-        gap: 10pt;
-        margin: 0 0 10pt;
-        font-size: 11pt;
+        gap: 9pt;
+        margin: 0 0 9pt;
+        padding-bottom: 5pt;
+        border-bottom: 0.4pt solid var(--strong);
+        font-size: 13.5pt;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 2.6pt;
+        letter-spacing: 0;
         color: var(--strong);
+        line-height: 1.15;
       }
+      /* Vertical accent — small chapter mark to the left of the title.
+         2pt wide, 13pt tall — proportional to the title height, reads as
+         an editorial flourish without the heaviness of a 3pt block bar. */
       .h2-bar {
         display: inline-block;
-        width: 18pt;
-        height: 3pt;
+        width: 2pt;
+        height: 13pt;
         background: var(--strong);
         flex-shrink: 0;
       }
-      .h2-text { white-space: nowrap; }
-      .h2-rule {
-        flex: 1;
-        height: 0;
-        border-top: 0.6pt solid var(--rule);
-      }
+      .h2-text { display: inline; white-space: nowrap; }
+      .h2-rule { display: none; }
 
       p { margin: 0; }
       .summary {
-        font-size: 10.5pt;
-        line-height: 1.55;
+        font-size: 10pt;
+        line-height: 1.42;
         text-align: left;
         color: var(--ink);
       }
 
       /* ═════════════ Roles / Education ═════════════ */
-      .role { margin-top: 11pt; page-break-inside: avoid; }
+      .role { margin-top: 8pt; page-break-inside: avoid; }
       .role.role--first { margin-top: 0; }
 
       .role-row {
@@ -441,16 +527,18 @@ const githubPlain = "github.com/MR0100";
 
       /* Em-dash bullets with hanging indent */
       .bullets {
-        margin: 7pt 0 0;
+        margin: 4pt 0 0;
         padding: 0;
         list-style: none;
+        orphans: 2;
+        widows: 2;
       }
       .bullets li {
         position: relative;
-        padding-left: 16pt;
-        margin-bottom: 4pt;
-        font-size: 10.25pt;
-        line-height: 1.48;
+        padding-left: 13pt;
+        margin-bottom: 1.5pt;
+        font-size: 9.5pt;
+        line-height: 1.35;
         text-align: left;
       }
       .bullets li::before {
@@ -467,7 +555,7 @@ const githubPlain = "github.com/MR0100";
          Project name in black bold; period right-aligned tabular-nums.
          Role + stack on row 2 (left), employer on row 2 (right).
          One-line description below. Mono only. */
-      .project { margin-top: 11pt; page-break-inside: avoid; }
+      .project { margin-top: 5pt; page-break-inside: avoid; }
       .project:first-of-type { margin-top: 0; }
       .project-row {
         display: flex;
@@ -508,44 +596,50 @@ const githubPlain = "github.com/MR0100";
         white-space: nowrap;
       }
       .project-line {
-        margin: 3pt 0 0;
-        font-size: 10pt;
-        line-height: 1.45;
+        margin: 1.5pt 0 0;
+        font-size: 9.5pt;
+        line-height: 1.3;
         color: var(--ink);
       }
 
       /* ═════════════ Skills ═════════════ */
-      /* Clean: no row dividers. Distinction comes from the label column
-         alone — uppercase bold with letter-spacing carries the boundary. */
+      /* Two-column grid of category cards. Each cell stacks label (top) over
+         comma-separated skills (below). Halves the vertical space vs a flat
+         label/value list, lets the section land cleanly on page 2 alongside
+         Education + Certs, and stays ATS-parseable (source order is row-major:
+         cat1 / list1 / cat2 / list2 / cat3 / …). */
       .skills {
         margin: 0;
         padding: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 22pt;
+        row-gap: 6pt;
       }
       .skill-row {
-        display: grid;
-        grid-template-columns: 120pt 1fr;
-        gap: 18pt;
-        padding: 5pt 0;
-        align-items: baseline;
+        display: block;
+        page-break-inside: avoid;
       }
       .skill-row dt {
-        font-size: 9pt;
+        font-size: 8.5pt;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1.4pt;
+        /* See h2 note — letter-spacing breaks ATS keyword extraction. */
+        letter-spacing: 0;
         color: var(--strong);
-        line-height: 1.35;
+        line-height: 1.3;
+        margin-bottom: 1pt;
       }
       .skill-row dd {
         margin: 0;
-        font-size: 10.25pt;
+        font-size: 9.75pt;
         color: var(--ink);
-        line-height: 1.5;
-        word-spacing: 0.4pt;
+        line-height: 1.4;
+        word-spacing: 0.3pt;
       }
 
       /* ═════════════ Certs / OSS / Talks ═════════════ */
-      .entry { margin-top: 8pt; page-break-inside: avoid; }
+      .entry { margin-top: 6pt; page-break-inside: avoid; }
       .entry:first-of-type { margin-top: 0; }
       .entry-row {
         display: flex;
@@ -570,79 +664,286 @@ const githubPlain = "github.com/MR0100";
         color: var(--ink);
       }
       .entry-url {
-        font-size: 9.25pt;
+        font-size: 9pt;
         color: var(--soft);
         margin-top: 1pt;
         word-break: break-all;
       }
+      /* In the printed/PDF version, suppress long verification URLs — they
+         add no scannable value for a recruiter or ATS (the issuer name is
+         what counts), and they cost a full line that costs us page-2 fit. */
+      @media print { .entry-url { display: none; } }
 
       /* ═════════════ Page footer ═════════════ */
       /* Single thin black rule above the footer line — matches the editorial
          calm of the rest of the document. No double-rule clutter. */
       .pgfoot {
-        margin-top: 22pt;
-        padding-top: 8pt;
-        font-size: 8.5pt;
+        margin-top: 12pt;
+        padding-top: 6pt;
+        font-size: 8.25pt;
         color: var(--softer);
         text-align: center;
-        letter-spacing: 0.3pt;
-        border-top: 0.5pt solid var(--rule);
+        letter-spacing: 0;
+        /* Subtle hairline — sits behind the editorial focus, doesn't
+           compete with the section rules. */
+        border-top: 0.3pt solid var(--rule-2);
       }
       .pgfoot .dot { color: var(--rule); margin: 0 5pt; }
 
-      /* ═════════════ Floating control bar (screen only) ═════════════ */
-      .bar {
+      /* ═════════════ Floating dock — Variant 13 (Gradient Hover Stop)
+         Pill at bottom-right. Gradient bar from --accent to --accent-hover
+         (deeper, bolder feel). White pill CTA inside (bg-colored in dark).
+         Glow shadow tinted with --accent-hover at 50%.
+         Hidden from print via .no-print. */
+      .dock {
         position: fixed;
-        right: 18px; bottom: 18px;
+        right: 20px;
+        bottom: 20px;
+        z-index: 50;
         display: inline-flex;
         align-items: center;
-        gap: 14px;
-        padding: 10px 14px;
-        background: #111;
-        color: #fff;
-        border-radius: 8px;
-        font-family: "Calibri", "Arial", sans-serif;
-        font-size: 11pt;
-        box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+        gap: 4px;
+        padding: 5px 6px 5px 8px;
+        background: linear-gradient(135deg,
+          rgb(var(--v-accent)),
+          rgb(var(--v-accent-hover)));
+        color: #ffffff;
+        border-radius: 999px;
+        font-family: "Inter", "Segoe UI", "Calibri", "Arial", sans-serif;
+        box-shadow:
+          0 10px 28px -6px rgb(var(--v-accent-hover) / 0.55),
+          0 2px 8px -2px rgb(8 16 32 / 0.18);
       }
-      .bar-hint { color: #bbb; font-size: 10pt; }
-      .bar .bar-btn {
-        padding: 7px 14px;
-        background: #fff;
-        color: #111;
-        border: 0;
-        border-radius: 5px;
-        font: inherit;
-        font-weight: 600;
-        cursor: pointer;
+      html.dark .dock { color: rgb(var(--v-bg)); }
+
+      .dock-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        color: inherit;
         text-decoration: none;
-        display: inline-block;
-        line-height: 1.2;
+        font-size: 9.5pt;
+        font-weight: 500;
+        opacity: 0.85;
+        border-radius: 999px;
+        transition: opacity 0.15s ease, background 0.15s ease;
       }
-      .bar .bar-btn:hover { background: #eee; }
-      .bar .bar-link { color: #fff; text-decoration: underline; font-size: 10.5pt; }
+      .dock-link:hover {
+        opacity: 1;
+        background: rgb(255 255 255 / 0.12);
+      }
+      html.dark .dock-link:hover { background: rgb(var(--v-bg) / 0.10); }
+
+      .dock-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        background: var(--t-cta-bg);
+        color: rgb(var(--v-accent));
+        text-decoration: none;
+        font-size: 10pt;
+        font-weight: 700;
+        border-radius: 999px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: 0 1px 0 rgb(8 16 32 / 0.05);
+      }
+      .dock-cta:hover {
+        transform: translateY(-0.5px);
+        box-shadow: 0 6px 14px -4px rgb(8 16 32 / 0.25);
+      }
+      .dock-cta-icon {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      @media (max-width: 480px) {
+        .dock { right: 12px; bottom: 12px; }
+        .dock-link span:last-child { display: none; }
+      }
+
+      /* ═════════════ Encryption hover (screen only) ═════════════
+         Same effect as the rest of the website's buttons — text scrambles
+         through cipher chars with a chromatic teal/red/white split, then
+         resolves left-to-right. Only the label text gets .encrypt-tap so
+         the SVG icon stays static. Engine lives in the <script> below.
+         Hidden from print via the .no-print parent dock. */
+      .encrypt-tap { position: relative; display: inline-block; }
+      .encrypt-tap.is-encrypting {
+        font-variant-numeric: tabular-nums;
+        text-shadow:
+          -1px 0 0 rgb(244 63 94 / 0.85),
+           1px 0 0 rgb(var(--enc-accent, 24 96 160) / 0.85);
+      }
+      .encrypt-tap .enc-wrap,
+      .encrypt-tap .enc-wrap *,
+      .encrypt-tap .enc-c1,
+      .encrypt-tap .enc-c2,
+      .encrypt-tap .enc-c3 {
+        pointer-events: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      .encrypt-tap .enc-c1 { color: rgb(var(--enc-accent, 24 96 160)); }
+      .encrypt-tap .enc-c2 { color: rgb(244 63 94); }
+      .encrypt-tap .enc-c3 { color: #ffffff; }
+      /* Pick up the actual Onyx accent in each mode so the chromatic shadow
+         matches the rest of the site (light = deep blue, dark = light cyan). */
+      :root      { --enc-accent: 24 96 160; }
+      html.dark  { --enc-accent: 140 198 250; }
 
       /* ═════════════ Print stylesheet ═════════════ */
       @media print {
         @page {
           size: A4;
-          margin: 0;
+          /* Margins on @page (not .page) so EVERY printed page has the
+             same inset — otherwise pages 2+ would have content bleed right
+             to the paper edge while only page 1 had a margin. */
+          margin: 11mm 13mm 10mm;
         }
-        html, body { background: #fff; }
+        /* Reset the themed backdrop — PDF output is fully mono. */
+        html, body {
+          background: #fff !important;
+          background-image: none !important;
+        }
         .no-print { display: none !important; }
         .page {
           margin: 0;
-          padding: 14mm 16mm 12mm;
+          padding: 0;
           max-width: none;
-          width: 210mm;
-          min-height: 297mm;
+          width: auto;
+          min-height: auto;
           box-shadow: none;
           background: #fff;
+          border-radius: 0;
         }
-        /* Keep h2 paired with its first paragraph */
-        h2 { page-break-after: avoid; }
-        .role, .entry { page-break-inside: avoid; }
+        /* ── Page-break discipline ──
+           1. Header is one unit — never split company name across pages.
+           2. Section h2 stays with first content.
+           3. Roles, projects, entries, skill rows are each atomic units.
+           4. The Summary paragraph stays whole.
+           5. Skills / Education / Certifications are short enough to never split.
+           Experience can break BETWEEN roles, Projects can break BETWEEN
+           projects — never inside one. */
+        .hdr { page-break-inside: avoid; }
+        h2 { page-break-after: avoid; break-after: avoid; }
+        .summary, .role, .project, .entry, .skill-row {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        /* Small sections that should stay whole regardless of position */
+        section.tight { page-break-inside: avoid; break-inside: avoid; }
       }
     </style>
+
+    <!-- ─── Encryption scramble engine — same as src/layouts/Base.astro ───
+         Scrambles any element with .encrypt-tap on hover/focus. Skipped
+         when prefers-reduced-motion is set. Width + height locked via an
+         inner wrapper span so the dock buttons never jitter. All scramble
+         spans are pointer-events:none so taps reliably reach the anchor. -->
+    <script is:inline>
+      (function () {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const CIPHER = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789!@#$%&*<>{}[]_/\\";
+        const FRAMES = 22;
+        const FRAME_MS = 28;
+        const REVEAL_START = 6;
+        const CHANNELS = ["enc-c1", "enc-c1", "enc-c1", "enc-c2", "enc-c3"];
+
+        const randChar = () => CIPHER[Math.floor(Math.random() * CIPHER.length)];
+        const randChannel = () => CHANNELS[Math.floor(Math.random() * CHANNELS.length)];
+        const escapeHTML = (s) => s.replace(/[&<>"']/g, (c) => (
+          { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]
+        ));
+
+        function measureInner(el, text) {
+          const probe = document.createElement("span");
+          const cs = getComputedStyle(el);
+          probe.style.cssText =
+            "visibility:hidden;position:absolute;left:-9999px;top:0;" +
+            "white-space:pre;pointer-events:none;display:inline-block;";
+          probe.style.fontFamily = cs.fontFamily;
+          probe.style.fontSize = cs.fontSize;
+          probe.style.fontWeight = cs.fontWeight;
+          probe.style.fontStyle = cs.fontStyle;
+          probe.style.letterSpacing = cs.letterSpacing;
+          probe.style.textTransform = cs.textTransform;
+          probe.style.fontVariantCaps = cs.fontVariantCaps;
+          probe.style.lineHeight = cs.lineHeight;
+          probe.textContent = text;
+          document.body.appendChild(probe);
+          const r = probe.getBoundingClientRect();
+          document.body.removeChild(probe);
+          return { width: r.width, height: r.height };
+        }
+
+        function scramble(el) {
+          if (el.__encryptId) return;
+          const real = el.getAttribute("data-text") || el.textContent.trim();
+          if (!real) return;
+          const dims = measureInner(el, real);
+          const cs = getComputedStyle(el);
+          const lineHeight = cs.lineHeight === "normal"
+            ? (parseFloat(cs.fontSize) * 1.2).toFixed(2) + "px"
+            : cs.lineHeight;
+          el.classList.add("is-encrypting");
+          let frame = 0;
+          el.__encryptId = setInterval(() => {
+            frame++;
+            const t = Math.max(0, frame - REVEAL_START) / (FRAMES - REVEAL_START);
+            const revealed = Math.floor(real.length * Math.min(1, t));
+            let inner = "";
+            for (let i = 0; i < real.length; i++) {
+              const c = real[i];
+              if (i < revealed || c === " " || /[^A-Za-z0-9]/.test(c)) {
+                inner += escapeHTML(c);
+              } else {
+                inner += '<span class="' + randChannel() + '">' + escapeHTML(randChar()) + "</span>";
+              }
+            }
+            el.innerHTML =
+              '<span class="enc-wrap" style="display:inline-block;' +
+              'width:' + dims.width.toFixed(2) + 'px;' +
+              'height:' + dims.height.toFixed(2) + 'px;' +
+              'line-height:' + lineHeight + ';' +
+              'overflow:hidden;white-space:nowrap;text-align:left;' +
+              'vertical-align:middle">' + inner + "</span>";
+            if (frame >= FRAMES) finish(el);
+          }, FRAME_MS);
+        }
+
+        function finish(el) {
+          if (!el.__encryptId) return;
+          clearInterval(el.__encryptId);
+          el.__encryptId = null;
+          el.textContent = el.getAttribute("data-text") || el.textContent;
+          el.classList.remove("is-encrypting");
+        }
+
+        // Don't scramble during a tap — resolves the click target stably.
+        let interactingEl = null;
+        document.addEventListener("pointerdown", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el) return;
+          interactingEl = el;
+          if (el.__encryptId) finish(el);
+        }, true);
+        document.addEventListener("pointerup",    () => { interactingEl = null; }, true);
+        document.addEventListener("pointercancel",() => { interactingEl = null; }, true);
+
+        document.addEventListener("mouseenter", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el || el === interactingEl) return;
+          scramble(el);
+        }, true);
+        document.addEventListener("focusin", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el || el === interactingEl) return;
+          scramble(el);
+        });
+      })();
+    </script>
   </body>
 </html>

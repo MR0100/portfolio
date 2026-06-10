@@ -225,13 +225,26 @@ const defenders = [
     const EVADE_SAFE = SCAN_RANGE + 55;                // …keeping at least this far from the leader's scanner while it does
     const DAMP = 0.95;
 
-    // theme-aware teal + a valid fallback (custom props can read empty at init);
-    // re-read once styles land + on theme toggle.
+    // Theme-aware accent + fallback matching the Onyx palette (deep blue
+     // in light mode, light cyan in dark mode). Previous fallback was a
+     // green-teal "94,234,212" which made drones render green when CSS
+     // hadn't loaded yet. Now the fallback IS in the blue family so even
+     // the pre-styles flash matches the theme.
     const css = (v, fb) => { const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ","); return s || fb; };
-    let TEAL = css("--accent", "94,234,212");
+    const ACCENT_FALLBACK = () =>
+      document.documentElement.classList.contains("dark")
+        ? "140,198,250"   // Onyx dark accent (light cyan-blue)
+        : "24,96,160";    // Onyx light accent (deep blue)
+    let TEAL = css("--accent", ACCENT_FALLBACK());
     const RED = "244,63,94", REDDOT = "255,90,110";
-    const readTeal = () => { TEAL = css("--accent", "94,234,212"); };
+    const readTeal = () => { TEAL = css("--accent", ACCENT_FALLBACK()); };
     new MutationObserver(readTeal).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    // Force a re-read after first paint + after full load — guarantees we
+    // pick up --accent the moment the stylesheet is fully applied.
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", readTeal, { once: true });
+    }
+    requestAnimationFrame(readTeal);
 
     let dpr = 1;
     const resize = () => {

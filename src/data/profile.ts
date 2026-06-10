@@ -23,9 +23,9 @@ export const profile = {
   ],
   email: "mr.vaghasiya197@gmail.com",
   // Single source for the "Download" CTA across the site. Points at the
-  // pre-generated PDF in /public/resume/. Regenerate this file from
-  // /resume/print → File → Print → Save as PDF (A4) whenever the source
-  // resume content changes, then commit the updated PDF.
+  // pre-generated PDF in /public/resume/. Regenerated automatically from
+  // the live /resume/print page by `npm run resume:pdf` (also runs as part
+  // of `npm run build`, so prod deploys always ship a fresh PDF).
   resumeFile: "/resume/mitul-vaghasiya-resume.pdf",
   // Surfaced on the home "status console" — keep honest, matches the GitHub README.
   currentlyLearning: ["Rust", "Server-side Dart"],

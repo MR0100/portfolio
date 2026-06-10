@@ -50,15 +50,23 @@ const { variant, bleed = false } = Astro.props;
     // theme-aware palette — reads CSS tokens (re-reads on light/dark toggle) so the FX
     // adapt to LIGHT mode instead of staying dark-mode colours. `dim`/`red` work on both.
     const css = (v, fb) => { const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ","); return s || fb; };
-    const C = { dim: "96,116,140", red: "244,63,94", teal: "94,234,212", white: "240,235,222", bg: "11,17,26", sepia: "217,161,99" };
+    // Onyx-aligned fallbacks (replaced legacy green-teal "94,234,212").
+    const accentFallback = () =>
+      document.documentElement.classList.contains("dark")
+        ? "140,198,250"  // Onyx dark accent
+        : "24,96,160";   // Onyx light accent
+    const C = { dim: "96,116,140", red: "244,63,94", teal: accentFallback(), white: "232,240,252", bg: "6,12,22", sepia: "200,218,240" };
     const readColors = () => {
-      C.teal = css("--accent", C.teal);   // teal (dark-teal in light, glowing-teal in dark)
-      C.white = css("--text", C.white);    // the bright/high-contrast tone (dark in light, cream in dark)
-      C.bg = css("--bg", C.bg);            // trail-fade target = the page background
-      C.sepia = css("--sepia", C.sepia);   // warm secondary accent
+      C.teal = css("--accent", accentFallback());  // theme accent (blue family — name is legacy)
+      C.white = css("--text", C.white);
+      C.bg = css("--bg", C.bg);
+      C.sepia = css("--sepia", C.sepia);
     };
     readColors();
     new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", readColors, { once: true });
+    }
     const rnd = (a = 1, b = 0) => b + Math.random() * (a - b);
 
     // Shared, decayed, SIGNED scroll velocity (+ down / − up) for scroll-reactive variants.

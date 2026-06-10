@@ -69,13 +69,23 @@ const { fade = 0.06, class: extraClass, fixed = false } = Astro.props;
       const s = getComputedStyle(document.documentElement).getPropertyValue(v).trim().replace(/\s+/g, ",");
       return s || fb;
     };
-    const C = { grid: "200,188,162", accent: "94,234,212" };
+    // Fallbacks match the Onyx palette (blue accent, not the old green-teal).
+    const accentFallback = () =>
+      document.documentElement.classList.contains("dark")
+        ? "140,198,250"   // Onyx dark accent
+        : "24,96,160";    // Onyx light accent
+    const C = { grid: "180,196,218", accent: accentFallback() };
     const readColors = () => {
       C.grid = css("--grid", C.grid);
-      C.accent = css("--accent", C.accent);
+      C.accent = css("--accent", accentFallback());
     };
     readColors();
     new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    // Re-read after full load so we always pick up the actual CSS value
+    // once stylesheets are applied.
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", readColors, { once: true });
+    }
 
     // Singleton cursor state — shared across all canvases on the page.
     // Stored in window so multiple components don't re-listen redundantly.

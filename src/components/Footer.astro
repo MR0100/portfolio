@@ -11,7 +11,7 @@ const navLinks = [
 ];
 ---
 
-<footer class="footer-bg relative mt-2 border-t border-border/60 overflow-hidden">
+<footer class="footer-bg relative z-10 mt-2 border-t border-border/60 overflow-hidden">
   <!-- Static gradient-mesh atmosphere — no animation. Accent teal glow top-left,
        sepia warm glow bottom-right, soft vignette pulls focus to centre. -->
   <div class="footer-mesh" aria-hidden="true"></div>
@@ -116,18 +116,17 @@ const navLinks = [
     z-index: 0;
     pointer-events: none;
     background:
-      /* Accent glow top-left — subtle */
-      radial-gradient(60% 70% at 10% 0%, rgb(var(--accent) / 0.08), transparent 55%),
-      /* Accent-soft balance bottom-right */
-      radial-gradient(55% 60% at 90% 100%, rgb(var(--accent-soft) / 0.14), transparent 55%);
+      /* Very subtle accent corner glows — barely-there */
+      radial-gradient(60% 70% at 10% 0%, rgb(var(--accent) / 0.035), transparent 55%),
+      radial-gradient(55% 60% at 90% 100%, rgb(var(--accent-soft) / 0.06), transparent 55%);
   }
-  /* Thin accent line at the very top edge to define the footer boundary */
+  /* Thin accent line at the very top edge — softer */
   .footer-bg::before {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgb(var(--accent) / 0.4) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgb(var(--accent) / 0.22) 50%, transparent 100%);
     z-index: 1;
   }
 </style>

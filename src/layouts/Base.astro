@@ -64,8 +64,10 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
     />
 
-    <!-- Theme bootstrap: pick saved mode (light/dark) + saved variant
-         (atlas/carbon/.../cyber) before paint to avoid flash. -->
+    <!-- Theme bootstrap: pick saved mode (light/dark) before paint to
+         avoid flash. Site is Onyx-only — no variant restoration. Any
+         old themeVariant in localStorage is also cleared on visit so
+         stale values can't apply a non-Onyx data-theme. -->
     <script is:inline>
       (function () {
         try {
@@ -73,13 +75,9 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
           const system = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
           const mode = saved || system;
           if (mode === "dark") document.documentElement.classList.add("dark");
-
-          const VARIANTS = ["onyx","slate","carbon","atlas","plum","mono","aurora","matrix","synthwave","cyber"];
-          const variant = localStorage.getItem("themeVariant");
-          // Onyx is the no-attribute default; any other variant sets the attr.
-          if (variant && VARIANTS.indexOf(variant) !== -1 && variant !== "onyx") {
-            document.documentElement.setAttribute("data-theme", variant);
-          }
+          // Clean up legacy variant state — site is Onyx-only now.
+          try { localStorage.removeItem("themeVariant"); } catch (e) {}
+          document.documentElement.removeAttribute("data-theme");
         } catch (e) {}
       })();
     </script>
@@ -118,9 +116,14 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       Skip to content
     </a>
 
+    <!-- Nav + main + footer are pulled into a positioned layer (z-10) so
+         the fixed dot-grid canvas (z-0) cleanly sits BEHIND every page
+         content tree. Without this, fixed-positioned canvases paint above
+         non-positioned siblings per CSS stacking rules, and the dot grid
+         would render on top of text. -->
     <Nav />
 
-    <main id="main" class="flex-1">
+    <main id="main" class="relative z-10 flex-1">
       <slot />
     </main>
 
@@ -220,23 +223,206 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       })();
     </script>
 
-    <!-- Tag every interactive element for the hover glitch: text links/buttons get
-         the crisp slice glitch (.glitch-tap + data-text), complex tappables (cards,
-         icon buttons) get the chromatic shake (.glitch-hover). -->
+    <!-- Tag every interactive element for the encryption / decode hover:
+         text links/buttons get the JS scramble (.encrypt-tap), complex
+         icon-only tappables get a soft accent glow (.glitch-hover).
+         The hero <h1> still uses the manual chromatic-slice .glitch. -->
     <script is:inline>
       (function () {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         document.querySelectorAll("a, button, [role='button']").forEach((el) => {
           if (el.closest("[data-drones], [data-breach]")) return;
-          if (el.classList.contains("glitch") || el.classList.contains("glitch-tap") || el.classList.contains("glitch-hover")) return;
+          if (el.classList.contains("glitch") || el.classList.contains("encrypt-tap") || el.classList.contains("glitch-hover")) return;
           const txt = (el.textContent || "").trim().replace(/\s+/g, " ");
           const hasGfx = el.querySelector("img, svg, picture, video, canvas");
+          // Tap labels short enough to scramble cleanly without layout jump.
           if (txt && txt.length <= 42 && !hasGfx) {
             el.setAttribute("data-text", txt);
-            el.classList.add("glitch-tap");
+            el.classList.add("encrypt-tap");
           } else {
             el.classList.add("glitch-hover");
           }
+        });
+      })();
+    </script>
+
+    <!-- ─────────── Encryption / Decode hover engine ───────────
+         When a .encrypt-tap element is hovered, scramble its visible text
+         through a cipher charset, then progressively reveal the real label
+         from left to right. Each scrambled character is wrapped in a span
+         tinted with the GLITCH PALETTE — accent (teal/blue) / red / white
+         — chosen per-frame at random. Resolved characters return to the
+         element's natural color. Original text restored on completion.
+
+         Timing: ~22 frames × ~28ms = ~620ms total. Reveal starts at frame
+         6 (so the eye reads "encryption" first) and finishes at frame 22.
+         Spaces and non-letter chars stay in place — they don't scramble. -->
+    <script is:inline>
+      (function () {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const CIPHER = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789!@#$%&*<>{}[]_/\\";
+        const FRAMES = 22;
+        const FRAME_MS = 28;
+        const REVEAL_START = 6;
+        // Per-char channel weights — accent dominates, red + white punctuate.
+        const CHANNELS = ["enc-c1", "enc-c1", "enc-c1", "enc-c2", "enc-c3"];
+
+        const randChar = () => CIPHER[Math.floor(Math.random() * CIPHER.length)];
+        const randChannel = () => CHANNELS[Math.floor(Math.random() * CHANNELS.length)];
+        const escapeHTML = (s) => s.replace(/[&<>"']/g, (c) => (
+          { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]
+        ));
+
+        // Measure the rendered width of each character in `text` as it would
+        // render INSIDE this element (same font, weight, letter-spacing).
+        // Used to pin each cipher span to the original glyph's width so the
+        // scramble never widens or narrows the label.
+        function measureCharWidths(el, text) {
+          const probe = document.createElement("span");
+          const cs = getComputedStyle(el);
+          probe.style.cssText =
+            "visibility:hidden;position:absolute;left:-9999px;top:0;" +
+            "white-space:pre;pointer-events:none;";
+          probe.style.fontFamily = cs.fontFamily;
+          probe.style.fontSize = cs.fontSize;
+          probe.style.fontWeight = cs.fontWeight;
+          probe.style.fontStyle = cs.fontStyle;
+          probe.style.letterSpacing = cs.letterSpacing;
+          probe.style.textTransform = cs.textTransform;
+          probe.style.fontVariantCaps = cs.fontVariantCaps;
+          // Render the WHOLE label so per-char widths include their share
+          // of letter-spacing. Measuring one char at a time would miss the
+          // spacing and the scramble would drift wider than the original.
+          probe.textContent = text;
+          document.body.appendChild(probe);
+
+          const widths = new Array(text.length);
+          const range = document.createRange();
+          const node = probe.firstChild;
+          for (let i = 0; i < text.length; i++) {
+            range.setStart(node, i);
+            range.setEnd(node, i + 1);
+            widths[i] = range.getBoundingClientRect().width;
+          }
+          document.body.removeChild(probe);
+          return widths;
+        }
+
+        function scramble(el) {
+          if (el.__encryptId) return;
+          const real = el.getAttribute("data-text") || el.textContent.trim();
+          if (!real) return;
+
+          // ── Inner-span lock (flex-safe) ──
+          // We DON'T set width on the button itself — that fights with
+          // flex containers (the box collapses to its padding when the
+          // inner spans don't intrinsically size). Instead we wrap all
+          // scrambled content in a SINGLE inline-block span pinned to
+          // exactly the natural inner-content width AND height. The
+          // button keeps its natural size; the wrapper holds the
+          // scramble + clips. Height lock is critical: inline-block with
+          // overflow:hidden shifts its baseline behavior, which would
+          // otherwise push the parent line taller.
+          const dims = measureInner(el, real);
+          el.__encryptInnerWidth = dims.width;
+          el.classList.add("is-encrypting");
+
+          // Capture the parent's line-height once so the wrapper inherits
+          // exactly the same vertical metric every frame.
+          const cs = getComputedStyle(el);
+          const lineHeight = cs.lineHeight === "normal"
+            ? (parseFloat(cs.fontSize) * 1.2).toFixed(2) + "px"
+            : cs.lineHeight;
+
+          let frame = 0;
+          el.__encryptId = setInterval(() => {
+            frame++;
+            const t = Math.max(0, frame - REVEAL_START) / (FRAMES - REVEAL_START);
+            const revealed = Math.floor(real.length * Math.min(1, t));
+            let inner = "";
+            for (let i = 0; i < real.length; i++) {
+              const c = real[i];
+              if (i < revealed || c === " " || /[^A-Za-z0-9]/.test(c)) {
+                inner += escapeHTML(c);
+              } else {
+                const ch = randChar();
+                const cls = randChannel();
+                inner += '<span class="' + cls + '">' + escapeHTML(ch) + "</span>";
+              }
+            }
+            el.innerHTML =
+              '<span class="enc-wrap" style="display:inline-block;' +
+              'width:' + dims.width.toFixed(2) + 'px;' +
+              'height:' + dims.height.toFixed(2) + 'px;' +
+              'line-height:' + lineHeight + ';' +
+              'overflow:hidden;white-space:nowrap;text-align:left;' +
+              'vertical-align:middle">' +
+              inner + "</span>";
+            if (frame >= FRAMES) finish(el);
+          }, FRAME_MS);
+        }
+
+        // Measure the rendered width AND height of the full label string
+        // using the element's exact font metrics + line-height. The
+        // wrapper is pinned to BOTH so the button never grows in either
+        // axis during scramble.
+        function measureInner(el, text) {
+          const probe = document.createElement("span");
+          const cs = getComputedStyle(el);
+          probe.style.cssText =
+            "visibility:hidden;position:absolute;left:-9999px;top:0;" +
+            "white-space:pre;pointer-events:none;display:inline-block;";
+          probe.style.fontFamily = cs.fontFamily;
+          probe.style.fontSize = cs.fontSize;
+          probe.style.fontWeight = cs.fontWeight;
+          probe.style.fontStyle = cs.fontStyle;
+          probe.style.letterSpacing = cs.letterSpacing;
+          probe.style.textTransform = cs.textTransform;
+          probe.style.fontVariantCaps = cs.fontVariantCaps;
+          probe.style.lineHeight = cs.lineHeight;
+          probe.textContent = text;
+          document.body.appendChild(probe);
+          const r = probe.getBoundingClientRect();
+          document.body.removeChild(probe);
+          return { width: r.width, height: r.height };
+        }
+
+        function finish(el) {
+          if (!el.__encryptId) return;
+          clearInterval(el.__encryptId);
+          el.__encryptId = null;
+          // Restore plain text — strips the wrapper + cipher spans cleanly.
+          el.textContent = el.getAttribute("data-text") || el.textContent;
+          el.classList.remove("is-encrypting");
+          delete el.__encryptInnerWidth;
+        }
+
+        // Don't scramble when the user is starting/finishing a tap — keeps
+        // the click target stable. As soon as pointerdown lands on a button,
+        // we set a guard and clear it on pointerup. While the guard is set,
+        // mouseenter / focusin don't start a new scramble.
+        let interactingEl = null;
+        document.addEventListener("pointerdown", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el) return;
+          interactingEl = el;
+          // Already scrambling? Resolve immediately so the user sees the
+          // real label they're tapping on.
+          if (el.__encryptId) finish(el);
+        }, true);
+        document.addEventListener("pointerup",   () => { interactingEl = null; }, true);
+        document.addEventListener("pointercancel",() => { interactingEl = null; }, true);
+
+        // Delegate from document so dynamically-added buttons work too.
+        document.addEventListener("mouseenter", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el || el === interactingEl) return;
+          scramble(el);
+        }, true);
+        document.addEventListener("focusin", (e) => {
+          const el = e.target.closest && e.target.closest(".encrypt-tap");
+          if (!el || el === interactingEl) return;
+          scramble(el);
         });
       })();
     </script>
