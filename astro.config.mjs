@@ -8,7 +8,4 @@ export default defineConfig({
     tailwind({ applyBaseStyles: false }),
     mdx(),
   ],
-  image: {
-    domains: ["apps.apple.com", "play.google.com"],
-  },
 });

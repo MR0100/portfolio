@@ -133,7 +133,7 @@
     const back = document.querySelector(".bgfx-back");
     const front = document.querySelector(".bgfx-front");
     if (!back) return;
-    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion");
     if (rm) return;
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 

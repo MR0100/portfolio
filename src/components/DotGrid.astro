@@ -62,7 +62,7 @@ const { fade = 0.06, class: extraClass, fixed = false } = Astro.props;
   // GLOBALLY (window mousemove) so the effect works through content layers
   // sitting above the canvas.
   (function () {
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion");
 
     // Theme palette — reads CSS tokens, re-reads on dark/light toggle.
     const css = (v, fb) => {

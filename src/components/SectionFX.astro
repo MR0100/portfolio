@@ -45,7 +45,7 @@ const { variant, bleed = false } = Astro.props;
   // Bundled + deduped by Astro → runs once per page regardless of how many
   // <SectionFX> instances exist. Each canvas is guarded so it can't double-init.
   (function () {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion")) return;
 
     // theme-aware palette — reads CSS tokens (re-reads on light/dark toggle) so the FX
     // adapt to LIGHT mode instead of staying dark-mode colours. `dim`/`red` work on both.

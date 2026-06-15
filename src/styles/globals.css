@@ -402,6 +402,31 @@
     .atmosphere { display: none !important; }
   }
 
+  /* User-controlled "Reduce motion" — set via the footer toggle, which adds
+     html.reduce-motion (persisted in localStorage) and is also applied on
+     load when the OS prefers reduced motion. Mirrors the media query above so
+     a visitor can kill all motion without touching OS settings (vestibular
+     safety + a calmer first impression for a hiring audience). The JS engines
+     (game, section canvases, glitch/scramble) additionally read this class so
+     their rAF loops never start on a fresh load. */
+  html.reduce-motion *,
+  html.reduce-motion *::before,
+  html.reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* All animated backgrounds on this site are decorative <canvas> layers (the
+     drone game, per-section FX, dot grid, background reticle) plus the drifting
+     atmosphere orbs — there is no content canvas, so hiding them is safe and
+     stops every moving background at once. */
+  html.reduce-motion canvas,
+  html.reduce-motion [data-drones],
+  html.reduce-motion .atmosphere {
+    display: none !important;
+  }
+
   /* Display heading default tracking */
   h1, h2, h3 {
     font-feature-settings: "ss01", "ss02", "liga";
@@ -415,6 +440,31 @@
 
   .prose-page {
     @apply max-w-prose;
+  }
+
+  /* ── Vertical rhythm — ONE consistent section scale. Previously every
+     section invented its own padding (py-8 / py-14 / py-20 / custom), which
+     reads as visually uneven. `.section-y` is the default; `.section-y-lg`
+     is for feature moments. Consistent rhythm is itself a polish/seniority
+     signal a reviewer registers subconsciously. ── */
+  .section-y { @apply py-16 md:py-24; }
+  .section-y-lg { @apply py-24 md:py-32; }
+
+  /* ── Buttons — one recipe, used everywhere (was: rounded-md on home/resume
+     but pill-shaped in case studies, with drifting padding). Consistent CTAs
+     make the "hire me / view work / download resume" actions read as one
+     coherent system. ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors;
+  }
+  .btn-primary { @apply btn bg-accent text-bg hover:bg-accent-hover; }
+  .btn-outline { @apply btn border border-border bg-paper/60 text-text hover:border-accent/40 hover:text-accent; }
+  .btn-ghost { @apply btn text-muted hover:text-accent; }
+
+  /* ── Eyebrow — the small mono section label repeated across the site.
+     Uses the contrast-safe `sepia` token (AA-verified). ── */
+  .eyebrow {
+    @apply font-mono text-[10px] uppercase tracking-[0.24em] text-sepia;
   }
 
   .reveal {

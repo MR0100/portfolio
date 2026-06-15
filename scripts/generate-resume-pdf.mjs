@@ -37,7 +37,12 @@ const REUSE_PORT = 4321;
 const SPAWN_PORT = 4329;
 const OUT = resolve(PROJECT_ROOT, "public/resume/mitul-vaghasiya-resume.pdf");
 
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+// Override Chrome's path for non-macOS / CI use:
+//   CHROME_PATH=/usr/bin/google-chrome npm run resume:pdf
+const CHROME =
+  process.env.CHROME_PATH ||
+  process.env.PUPPETEER_EXECUTABLE_PATH ||
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 const log = (msg) => console.log(`[resume:pdf] ${msg}`);
 const err = (msg) => console.error(`[resume:pdf] ✗ ${msg}`);
@@ -78,8 +83,9 @@ async function spawnDev() {
 async function main() {
   if (!(await fileExists(CHROME))) {
     err(`Google Chrome not found at ${CHROME}.`);
-    err(`Install Chrome or update CHROME in scripts/generate-resume-pdf.mjs.`);
-    process.exit(1);
+    err(`Set CHROME_PATH=/path/to/chrome (or install Chrome) and re-run.`);
+    err(`Skipping PDF regeneration — the committed public/resume PDF still ships.`);
+    process.exit(0); // non-fatal: never block a build/deploy over the PDF
   }
 
   // Prefer reusing whatever's already on 4321 — saves ~3s startup.

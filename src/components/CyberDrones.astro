@@ -193,7 +193,7 @@ const defenders = [
   (function () {
     const root = document.querySelector("[data-drones]");
     if (!root) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion")) return;
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
     const canvas = root.querySelector("[data-canvas]");

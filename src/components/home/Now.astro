@@ -14,7 +14,7 @@ const shipping = all
 const learningList = profile.currentlyLearning;
 ---
 
-<section class="container-page py-8 md:py-10">
+<section class="container-page section-y">
   <!-- Glassmorphic status console — translucent base + backdrop-blur + top
        highlight sheen + soft accent glow. Sits beautifully on the dot-grid
        backdrop without competing with it. -->
@@ -25,7 +25,7 @@ const learningList = profile.currentlyLearning;
     <div class="glass-rim" aria-hidden="true"></div>
 
     <!-- Console header -->
-    <div class="relative z-10 flex items-center justify-between gap-3 border-b border-white/[0.06] dark:border-white/[0.04] px-4 py-2.5">
+    <div class="relative z-10 flex items-center justify-between gap-3 border-b border-border dark:border-white/[0.04] px-4 py-2.5">
       <div class="flex items-center gap-2.5 font-mono text-[10px] uppercase tracking-[0.24em] text-muted">
         <span class="text-accent">◢</span>
         <span class="text-text">status</span>
@@ -39,7 +39,7 @@ const learningList = profile.currentlyLearning;
         </span>
         <span class="hidden sm:inline" aria-hidden="true">·</span>
         <!-- live clock (IST) -->
-        <span class="inline-flex items-center gap-1.5">
+        <span class="inline-flex items-center gap-1.5" aria-hidden="true">
           <span class="relative inline-flex h-1.5 w-1.5">
             <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
             <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
@@ -51,7 +51,7 @@ const learningList = profile.currentlyLearning;
     </div>
 
     <!-- Channels -->
-    <dl class="relative z-10 divide-y divide-white/[0.06] dark:divide-white/[0.04]">
+    <dl class="relative z-10 divide-y divide-border dark:divide-white/[0.04]">
       <!-- 01 · Currently -->
       <div class="grid grid-cols-[28px_1fr] md:grid-cols-[28px_140px_1fr_auto] items-baseline gap-x-4 gap-y-1 px-4 py-5 md:py-6">
         <span class="font-mono text-[11px] tabular-nums text-accent">01</span>

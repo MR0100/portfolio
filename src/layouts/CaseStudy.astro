@@ -185,7 +185,7 @@ const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && type
           <aside class="cs-todos mt-12 reveal">
             <div class="cs-todos-header font-mono">
               <span>Editor's notes</span>
-              <span class="text-muted/70">{d.todos.length} pending</span>
+              <span class="text-muted">{d.todos.length} pending</span>
             </div>
             <ul class="cs-todos-list">
               {d.todos.map((t) => <li>{t}</li>)}
@@ -264,7 +264,11 @@ const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && type
         ) : <span class="cs-paginate-spacer" aria-hidden="true"></span>}
       </div>
 
-      <div class="mt-12 text-center">
+      <div class="mt-12 text-center space-y-6">
+        <p class="font-serif text-lg text-muted">
+          Interested in working together?{" "}
+          <a href="/contact" class="text-accent hover:underline">Get in touch →</a>
+        </p>
         <a href="/work" class="cs-back-cta font-mono">
           <span aria-hidden="true">←</span>
           Back to all work
@@ -421,7 +425,7 @@ const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && type
     padding: 0.6rem 1rem;
     border: 1px solid rgb(var(--border));
     background: rgb(var(--surface) / 0.6);
-    border-radius: 9999px;
+    border-radius: 0.375rem;
     font-family: ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.16em;

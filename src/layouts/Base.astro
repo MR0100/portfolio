@@ -17,7 +17,7 @@ interface Props {
 const {
   title,
   description = `${profile.headline}. ${profile.tagline}`,
-  image = "/og-default.svg",
+  image = "/og-default.png",
   type = "website",
   noindex = false,
 } = Astro.props;
@@ -59,10 +59,21 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
     <!-- Fonts: Inter + Fraunces + JetBrains Mono via Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Load fonts without blocking first paint: fetch as `print` (non-render-
+         blocking), then flip to `all` once ready. `display=swap` shows fallback
+         text immediately. <noscript> fallback for JS-off. -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
 
     <!-- Theme bootstrap: pick saved mode (light/dark) before paint to
          avoid flash. Site is Onyx-only — no variant restoration. Any
@@ -82,6 +93,20 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
       })();
     </script>
 
+    <!-- Motion preference (before paint): animations are OFF BY DEFAULT for a
+         calm, legible first impression. The class is applied unless the visitor
+         has explicitly opted in (hero "Play animations" control, persisted in
+         localStorage), so the FX engines see it on their very first init and
+         never start their rAF loops on a default load. Default-off also covers
+         the OS prefers-reduced-motion case automatically. -->
+    <script is:inline>
+      (function () {
+        var optedIn = false;
+        try { optedIn = localStorage.getItem("motion") === "on"; } catch (e) {}
+        if (!optedIn) document.documentElement.classList.add("reduce-motion");
+      })();
+    </script>
+
     <!-- No-JS fallback: reveal animations are JS-driven, so force content visible without it -->
     <noscript>
       <style>
@@ -90,7 +115,8 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
     </noscript>
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="alternate icon" type="image/png" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap.xml" />
   </head>
   <body class="min-h-screen flex flex-col antialiased">
@@ -140,7 +166,7 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
           });
         });
 
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const reduceMotion = (window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion"));
         if (reduceMotion) {
           document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in-view"));
           return;
@@ -163,7 +189,7 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
     <!-- Heading decode: scramble each [data-scramble] heading as it enters view -->
     <script is:inline>
       (function () {
-        const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const rm = (window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion"));
         const els = document.querySelectorAll("[data-scramble]");
         if (!els.length || rm) return;
         const CH = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&/<>*+-_=01";
@@ -205,7 +231,7 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
     <!-- Hero name: occasional auto chromatic-glitch (every ~7–13s) -->
     <script is:inline>
       (function () {
-        const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const rm = (window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion"));
         if (rm) return;
         const names = document.querySelectorAll("h1 .glitch");
         if (!names.length) return;
@@ -229,7 +255,7 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
          The hero <h1> still uses the manual chromatic-slice .glitch. -->
     <script is:inline>
       (function () {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if ((window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion"))) return;
         document.querySelectorAll("a, button, [role='button']").forEach((el) => {
           if (el.closest("[data-drones], [data-breach]")) return;
           if (el.classList.contains("glitch") || el.classList.contains("encrypt-tap") || el.classList.contains("glitch-hover")) return;
@@ -259,7 +285,7 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
          Spaces and non-letter chars stay in place — they don't scramble. -->
     <script is:inline>
       (function () {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if ((window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion"))) return;
         const CIPHER = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789!@#$%&*<>{}[]_/\\";
         const FRAMES = 22;
         const FRAME_MS = 28;
@@ -414,16 +440,15 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
         document.addEventListener("pointercancel",() => { interactingEl = null; }, true);
 
         // Delegate from document so dynamically-added buttons work too.
+        // NOTE: hover-only by design. We deliberately do NOT scramble on
+        // `focusin` — mutating an element's text while it's focused corrupts
+        // the accessible name a screen reader announces (it would read cipher
+        // gibberish). Keyboard users get the stable label + focus ring.
         document.addEventListener("mouseenter", (e) => {
           const el = e.target.closest && e.target.closest(".encrypt-tap");
           if (!el || el === interactingEl) return;
           scramble(el);
         }, true);
-        document.addEventListener("focusin", (e) => {
-          const el = e.target.closest && e.target.closest(".encrypt-tap");
-          if (!el || el === interactingEl) return;
-          scramble(el);
-        });
       })();
     </script>
   </body>

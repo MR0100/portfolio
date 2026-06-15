@@ -54,22 +54,44 @@ const rotators = ["Flutter", "Kotlin", "Swift", "Compose"];
     <div class="mt-10 flex flex-wrap gap-3">
       <a
         href="/work"
-        class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-bg hover:bg-accent-hover transition-colors"
+        class="btn-primary"
       >
         View work →
       </a>
       <a
         href="#contact"
-        class="inline-flex items-center gap-2 rounded-md border border-border bg-paper/60 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-text hover:border-accent/40 hover:text-accent transition-colors"
+        class="btn-outline"
       >
         Get in touch
       </a>
       <a
         href="/resume"
-        class="inline-flex items-center gap-2 rounded-md px-5 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted hover:text-accent transition-colors"
+        class="btn-ghost"
       >
         Read resume
       </a>
+    </div>
+
+    <!-- Motion control — animations are OFF by default for a calm, legible
+         first impression. A reviewer can switch on the full animated
+         experience (the drone game + section FX) right here. Toggling reloads
+         so every FX engine re-initialises from a clean state. -->
+    <div class="mt-9">
+      <button
+        type="button"
+        data-motion-toggle
+        aria-pressed="false"
+        aria-label="Play background animations"
+        class="group inline-flex items-center gap-2.5 rounded-full border border-border bg-paper/50 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors hover:border-accent/50 hover:text-accent"
+      >
+        <svg data-motion-icon="play" class="h-3 w-3 text-accent" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <svg data-motion-icon="pause" class="hidden h-3 w-3 text-accent" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+        </svg>
+        <span data-motion-label>Play animations</span>
+      </button>
     </div>
   </div>
 
@@ -94,7 +116,7 @@ const rotators = ["Flutter", "Kotlin", "Swift", "Compose"];
       items = [];
     }
     if (!items.length) return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion");
     if (reduceMotion) return;
 
     let i = 0;
@@ -109,5 +131,34 @@ const rotators = ["Flutter", "Kotlin", "Swift", "Compose"];
         el.style.transform = "translateY(0)";
       }, 240);
     }, 2600);
+  })();
+</script>
+
+<!-- Motion toggle — flips the persisted preference and reloads so the FX
+     engines (game, section canvases, glitch/scramble) re-init cleanly with the
+     new state, rather than half-applying mid-session. -->
+<script is:inline>
+  (function () {
+    const btn = document.querySelector("[data-motion-toggle]");
+    if (!btn) return;
+    const root = document.documentElement;
+    const motionOn = !root.classList.contains("reduce-motion");
+    const playIcon = btn.querySelector('[data-motion-icon="play"]');
+    const pauseIcon = btn.querySelector('[data-motion-icon="pause"]');
+    const label = btn.querySelector("[data-motion-label]");
+
+    // Reflect the current state on load (default = off → "Play animations").
+    btn.setAttribute("aria-pressed", motionOn ? "true" : "false");
+    if (motionOn) {
+      if (playIcon) playIcon.classList.add("hidden");
+      if (pauseIcon) pauseIcon.classList.remove("hidden");
+      if (label) label.textContent = "Pause animations";
+      btn.setAttribute("aria-label", "Pause background animations");
+    }
+
+    btn.addEventListener("click", () => {
+      try { localStorage.setItem("motion", motionOn ? "off" : "on"); } catch (e) {}
+      location.reload();
+    });
   })();
 </script>

@@ -75,7 +75,7 @@ const platformTags = (l: WorkLinks) => {
 
     <!-- Filter chips -->
     <div class="mt-12 md:mt-14 flex flex-wrap items-center gap-2" data-work-filters>
-      <span class="mr-2 font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">Filter by platform</span>
+      <span class="mr-2 eyebrow">Filter by platform</span>
       {facets.map((f, i) => (
         <button
           type="button"
@@ -104,7 +104,7 @@ const platformTags = (l: WorkLinks) => {
             data-platforms={platformTags(d.links)}
             style={`--card-i: ${i};`}
           >
-            <a href={`/work/${entry.slug}`} class="work-card-shot" aria-label={`Read case study: ${d.title}`}>
+            <a href={`/work/${entry.slug}`} class="work-card-shot" tabindex="-1" aria-hidden="true">
               {heroImg ? (
                 <img src={heroImg} alt={`${d.title} screenshot`} loading="lazy" decoding="async" />
               ) : (

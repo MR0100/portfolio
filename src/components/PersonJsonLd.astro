@@ -11,6 +11,7 @@ const jsonld = {
   description: profile.bioShort,
   email: profile.email,
   url: Astro.site?.toString() ?? "https://mitulvaghasiya.com/",
+  image: new URL("/mitul.jpg", Astro.site ?? "https://mitulvaghasiya.com").toString(),
   address: {
     "@type": "PostalAddress",
     addressLocality: "Surat",

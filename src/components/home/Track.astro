@@ -3,17 +3,17 @@ import { experience } from "~/data/profile";
 import SectionFX from "~/components/SectionFX.astro";
 ---
 
-<section data-track class="relative overflow-hidden" style="--sfx-opacity: 0.4;">
+<section data-track class="relative overflow-hidden" style="--sfx-opacity: 0.18;">
   <!-- Dot-grid circuit (Experience-section only): current pulses hop from dot
        to dot orthogonally on top of the dot grid above. -->
   <div class="absolute inset-0" aria-hidden="true">
     <SectionFX variant="dotcircuit" />
   </div>
 
-  <div class="container-page py-20 md:py-28 relative z-10">
+  <div class="container-page section-y relative z-10">
     <div class="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-16">
     <div class="lg:sticky lg:top-24 lg:self-start space-y-3">
-      <div class="font-mono text-[10px] uppercase tracking-[0.24em] text-sepia">The track record</div>
+      <div class="eyebrow">The track record</div>
       <h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-[1.05]" data-scramble>
         Two companies, six years, one craft.
       </h2>
