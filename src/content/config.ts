@@ -57,4 +57,18 @@ const work = defineCollection({
   }),
 });
 
-export const collections = { work };
+// Notes / writing — scaffolded ready; ships hidden (unlinked + noindex) until
+// the first non-draft post exists. Add `.mdx` files to src/content/notes/.
+const notes = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { work, notes };

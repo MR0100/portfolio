@@ -72,7 +72,7 @@ metaRows.push({ label: "Distrib.", value: distribution });
 const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && typeof d.lng === "number"));
 ---
 
-<Base title={d.title} description={d.oneLiner} type="article">
+<Base title={d.title} description={d.oneLiner} type="article" image={`/og/${entry.slug}.png`}>
   <CreativeWorkJsonLd entry={entry} />
   <BreadcrumbJsonLd
     items={[

@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "npm run resume:pdf && astro build",
+    "build": "npm run resume:pdf && npm run og:images && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "resume:pdf": "node scripts/generate-resume-pdf.mjs",
-    "optimize:images": "node scripts/optimize-images.mjs"
+    "optimize:images": "node scripts/optimize-images.mjs",
+    "og:images": "node scripts/generate-og-images.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.9",

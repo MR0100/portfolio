@@ -1,0 +1,13 @@
+---
+// Privacy-friendly, cookieless analytics (Plausible). DORMANT by default —
+// renders nothing until you set PUBLIC_PLAUSIBLE_DOMAIN in the environment to
+// your verified domain. Then it loads Plausible's lightweight (~1KB), no-cookie,
+// no-PII script. PUBLIC_PLAUSIBLE_HOST lets you point at a self-hosted instance
+// (e.g. Umami/Plausible-compatible) instead of plausible.io.
+const domain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
+const host = import.meta.env.PUBLIC_PLAUSIBLE_HOST || "https://plausible.io";
+---
+
+{domain && (
+  <script defer data-domain={domain} src={`${host}/js/script.tagged-events.js`} is:inline></script>
+)}

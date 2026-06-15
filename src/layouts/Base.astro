@@ -5,6 +5,7 @@ import Footer from "~/components/Footer.astro";
 import BackgroundFX from "~/components/BackgroundFX.astro";
 import DotGrid from "~/components/DotGrid.astro";
 import { profile } from "~/data/profile";
+import Analytics from "~/components/Analytics.astro";
 
 interface Props {
   title?: string;
@@ -121,6 +122,9 @@ const ogImage = new URL(image, Astro.site ?? "https://mitulvaghasiya.com").toStr
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef2f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#060c16" />
     <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${profile.shortName} — Notes`} href="/rss.xml" />
+
+    <Analytics />
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <!-- Drifting atmospheres — fixed behind everything, GPU-cheap, reduced-motion safe -->

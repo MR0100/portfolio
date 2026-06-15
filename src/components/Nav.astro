@@ -1,10 +1,15 @@
 ---
 import ThemeToggle from "~/components/ThemeToggle.astro";
+import { getCollection } from "astro:content";
+
+// Notes nav link appears only once a non-draft post exists (scaffold stays hidden).
+const hasNotes = (await getCollection("notes")).some((n) => !n.data.draft);
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
   { href: "/resume", label: "Resume" },
+  ...(hasNotes ? [{ href: "/notes", label: "Notes" }] : []),
   { href: "/contact", label: "Contact" },
 ];
 
