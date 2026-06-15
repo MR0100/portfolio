@@ -6,6 +6,7 @@ import StatusBadge from "~/components/StatusBadge.astro";
 import LocationCard from "~/components/LocationCard.astro";
 import SpecimenHeading from "~/components/SpecimenHeading.astro";
 import CreativeWorkJsonLd from "~/components/CreativeWorkJsonLd.astro";
+import BreadcrumbJsonLd from "~/components/BreadcrumbJsonLd.astro";
 
 interface Props {
   entry: CollectionEntry<"work">;
@@ -73,6 +74,13 @@ const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && type
 
 <Base title={d.title} description={d.oneLiner} type="article">
   <CreativeWorkJsonLd entry={entry} />
+  <BreadcrumbJsonLd
+    items={[
+      { name: "Home", path: "/" },
+      { name: "Work", path: "/work" },
+      { name: d.title, path: `/work/${entry.slug}` },
+    ]}
+  />
 
   <article class="cs-zone">
     <!-- Page-level dot-grid backdrop lives in Base.astro — no per-section grid here. -->
@@ -99,7 +107,7 @@ const hasLocation = !!(d.city || d.country || (typeof d.lat === "number" && type
       <div class={heroImg ? "cs-hero cs-hero--with-image" : "cs-hero cs-hero--text-only"}>
         {heroImg && (
           <div class="cs-hero-shot reveal">
-            <img src={heroImg} alt={`${d.title} hero`} loading="eager" decoding="async" />
+            <img src={heroImg} alt={`${d.title} hero`} loading="eager" fetchpriority="high" decoding="async" />
             <span class="cs-hero-shot-corner cs-hero-shot-corner--tl" aria-hidden="true"></span>
             <span class="cs-hero-shot-corner cs-hero-shot-corner--tr" aria-hidden="true"></span>
             <span class="cs-hero-shot-corner cs-hero-shot-corner--bl" aria-hidden="true"></span>

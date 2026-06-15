@@ -132,9 +132,17 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
 
     const iconOpen = toggle.querySelector('[data-menu-icon="open"]');
     const iconClose = toggle.querySelector('[data-menu-icon="close"]');
+    const links = () => Array.from(menu.querySelectorAll("a"));
 
-    const closeOnEscape = (e) => {
-      if (e.key === "Escape") close();
+    const onKeydown = (e) => {
+      if (e.key === "Escape") { close(); toggle.focus(); return; }
+      if (e.key !== "Tab") return;
+      // Focus trap — keep Tab cycling within the toggle + open sheet.
+      const focusables = [toggle, ...links()];
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
 
     const close = () => {
@@ -143,7 +151,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
       toggle.setAttribute("aria-label", "Open menu");
       iconOpen?.classList.remove("hidden");
       iconClose?.classList.add("hidden");
-      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("keydown", onKeydown);
     };
 
     const open = () => {
@@ -152,12 +160,14 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWit
       toggle.setAttribute("aria-label", "Close menu");
       iconOpen?.classList.add("hidden");
       iconClose?.classList.remove("hidden");
-      document.addEventListener("keydown", closeOnEscape);
+      document.addEventListener("keydown", onKeydown);
+      // Move focus into the sheet for keyboard + screen-reader users.
+      links()[0]?.focus();
     };
 
     toggle.addEventListener("click", () => {
       const isOpen = toggle.getAttribute("aria-expanded") === "true";
-      if (isOpen) close(); else open();
+      if (isOpen) { close(); toggle.focus(); } else open();
     });
 
     // Close when a link inside the menu is activated

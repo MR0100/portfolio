@@ -161,7 +161,7 @@ const twitterHandle = "@_MR_0100";
               <dd class="flex items-baseline justify-between gap-3">
                 <span class="font-sans text-[13px] font-medium text-text">{profile.location}</span>
                 <span class="font-mono text-[11px] text-muted tabular-nums" aria-hidden="true">
-                  <span data-contact-clock>--:--:--</span> IST
+                  <span data-ist-clock>--:--:--</span> IST
                 </span>
               </dd>
             </div>
@@ -189,23 +189,3 @@ const twitterHandle = "@_MR_0100";
     </div>
   </div>
 </section>
-
-<script is:inline>
-  // Live IST clock — same pattern as the home Status console.
-  (function () {
-    const el = document.querySelector("[data-contact-clock]");
-    if (!el) return;
-    const fmt = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Kolkata",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-    const tick = () => {
-      try { el.textContent = fmt.format(new Date()); } catch (e) {}
-    };
-    tick();
-    setInterval(tick, 1000);
-  })();
-</script>

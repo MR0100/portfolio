@@ -44,7 +44,7 @@ const learningList = profile.currentlyLearning;
             <span class="absolute inset-0 rounded-full bg-accent/40 animate-ping"></span>
             <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent"></span>
           </span>
-          <span data-clock class="tabular-nums text-text">--:--:--</span>
+          <span data-ist-clock class="tabular-nums text-text">--:--:--</span>
           <span>IST</span>
         </span>
       </div>
@@ -203,24 +203,3 @@ const learningList = profile.currentlyLearning;
     border-color: rgb(var(--accent) / 0.20);
   }
 </style>
-
-<script is:inline>
-  (function () {
-    const el = document.querySelector("[data-clock]");
-    if (!el) return;
-    const fmt = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Kolkata",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-    const tick = () => {
-      try {
-        el.textContent = fmt.format(new Date());
-      } catch (e) {}
-    };
-    tick();
-    setInterval(tick, 1000);
-  })();
-</script>

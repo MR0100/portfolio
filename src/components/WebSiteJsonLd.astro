@@ -1,0 +1,18 @@
+---
+// WebSite structured data — helps Google understand the site as a branded
+// entity (name + author) for richer SERP treatment. Rendered once on the home page.
+import { profile } from "~/data/profile";
+
+const site = (Astro.site ?? "https://mitulvaghasiya.com/").toString();
+
+const jsonld = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: `${profile.name} — ${profile.headline}`,
+  url: site,
+  inLanguage: "en",
+  author: { "@type": "Person", name: profile.name },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />

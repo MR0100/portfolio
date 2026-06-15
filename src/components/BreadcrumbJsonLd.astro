@@ -1,0 +1,23 @@
+---
+// BreadcrumbList structured data — gives Google a "Home › Work › Project"
+// breadcrumb rail in results instead of a bare URL.
+interface Props {
+  items: { name: string; path: string }[];
+}
+
+const { items } = Astro.props;
+const base = (Astro.site ?? "https://mitulvaghasiya.com/").toString().replace(/\/$/, "");
+
+const jsonld = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: items.map((it, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: it.name,
+    item: `${base}${it.path}`,
+  })),
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonld)} is:inline />

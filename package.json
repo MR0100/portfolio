@@ -9,7 +9,8 @@
     "build": "npm run resume:pdf && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "resume:pdf": "node scripts/generate-resume-pdf.mjs"
+    "resume:pdf": "node scripts/generate-resume-pdf.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.9",
