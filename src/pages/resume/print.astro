@@ -817,6 +817,10 @@ const githubPlain = "github.com/MR0100";
           min-height: auto;
           box-shadow: none;
           background: #fff;
+          /* Strip the on-screen "floating card" frame — an ATS résumé must be
+             borderless (boxes/frames confuse parsers and look non-standard in
+             the PDF). The screen .page sets border + radius; reset BOTH here. */
+          border: 0;
           border-radius: 0;
         }
         /* ── Page-break discipline ──

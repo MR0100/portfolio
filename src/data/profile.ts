@@ -22,10 +22,10 @@ export const profile = {
     "I'm equally comfortable writing Flutter, dropping into Kotlin/Swift for native bridges, or running the CI that ships the build. I mentor the engineers around me, run code review, and translate fuzzy business intent into shippable scope.",
   ],
   email: "mr.vaghasiya197@gmail.com",
-  // Single source for the "Download" CTA across the site. Points at the
-  // pre-generated PDF in /public/resume/. Regenerated automatically from
-  // the live /resume/print page by `npm run resume:pdf` (also runs as part
-  // of `npm run build`, so prod deploys always ship a fresh PDF).
+  // Single source for the "Download" CTA. The PDF is AUTO-GENERATED from the
+  // live /resume/print page (which renders from THIS data) on every `npm run
+  // build`, so it's always current AND always the controlled, borderless ~2-page
+  // layout — edit content here and the downloadable résumé updates everywhere.
   resumeFile: "/resume/mitul-vaghasiya-resume.pdf",
   // Surfaced on the home "status console" — keep honest, matches the GitHub README.
   currentlyLearning: ["Rust", "Server-side Dart"],
